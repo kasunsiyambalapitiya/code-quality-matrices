@@ -8,6 +8,7 @@ target
 *.iml
 *.iws
 *.ipr
+*.json
 .idea
 
 # Package Files #

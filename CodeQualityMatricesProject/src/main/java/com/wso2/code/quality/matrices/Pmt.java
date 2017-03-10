@@ -18,6 +18,7 @@
 
 package com.wso2.code.quality.matrices;
 
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -27,6 +28,7 @@ import org.json.JSONObject;
 
 public class Pmt {
     private String[] patchInformation_svnRevisionpublic;
+    static Logger pmtLogger = Logger.getLogger(Pmt.class.getName());
 
 
     /**
@@ -35,7 +37,6 @@ public class Pmt {
      * @param jsonArray jsonarray containing the output received from WSO2 PMT for the given patch
      * @return a copy of the array containing the commit hashes that belongs to the given patch
      */
-
     public String[] getThePublicGitCommitId(JSONArray jsonArray) {
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject jsonObject = (JSONObject) jsonArray.get(i);
@@ -47,6 +48,7 @@ public class Pmt {
                 for (int j = 0; j < tempCommitsJSONArray.length(); j++) {
                     patchInformation_svnRevisionpublic[j] = ((String) tempCommitsJSONArray.get(j)).trim();     // for ommiting the white spaces at the begingin and end of the commits
                 }
+                pmtLogger.info("the commits hashes obtained from WSO2 PMT are successfully saved to an array");
                 System.out.println("The commit Ids are");
                 //            for printing all the commits ID associated with a patch
                 for (String tmp : patchInformation_svnRevisionpublic) {
