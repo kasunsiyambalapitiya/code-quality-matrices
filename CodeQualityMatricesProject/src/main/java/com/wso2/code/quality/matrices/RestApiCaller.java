@@ -27,6 +27,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.log4j.Logger;
 import org.json.JSONTokener;
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -36,13 +37,14 @@ import org.json.JSONArray;
  */
 
 public class RestApiCaller {
+    static Logger restApiCallerLogger= Logger.getLogger(RestApiCaller.class.getName());
     /**
      * calling the relevant API and saving the output to a file
      *
-     * @param URL   url of the REST API to be called
-     * @param token either the WSO2 PMT access token or giihub.com access token
-     * @param requireCommitHeader   should be true for accessing the github commit search API and false otherwise
-     * @param requireReviewHeader   should be true for accessing the github review API or false otherwise
+     * @param URL                 url of the REST API to be called
+     * @param token               either the WSO2 PMT access token or giihub.com access token
+     * @param requireCommitHeader should be true for accessing the github commit search API and false otherwise
+     * @param requireReviewHeader should be true for accessing the github review API or false otherwise
      */
 
     public Object callingTheAPI(String URL, String token, boolean requireCommitHeader, boolean requireReviewHeader) {
@@ -95,6 +97,7 @@ public class RestApiCaller {
                         JSONArray jsonArray = (JSONArray) json;
                         returnedObject = jsonArray;
                     }
+                    restApiCallerLogger.info("JSON response is passed after calling the given REST API");
                     break;
                 case 401:
                     // to handle Response code 401: Unauthorized
