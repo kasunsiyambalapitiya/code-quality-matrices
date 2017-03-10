@@ -28,8 +28,7 @@ import org.json.JSONObject;
 
 public class Pmt {
     private String[] patchInformation_svnRevisionpublic;
-    static Logger pmtLogger = Logger.getLogger(Pmt.class.getName());
-
+    private final Logger logger = Logger.getLogger(Pmt.class.getName());
 
     /**
      * getting the commit IDs from the received json response
@@ -48,7 +47,9 @@ public class Pmt {
                 for (int j = 0; j < tempCommitsJSONArray.length(); j++) {
                     patchInformation_svnRevisionpublic[j] = ((String) tempCommitsJSONArray.get(j)).trim();     // for ommiting the white spaces at the begingin and end of the commits
                 }
-                pmtLogger.info("the commits hashes obtained from WSO2 PMT are successfully saved to an array");
+
+                logger.info(" The commits hashes obtained from WSO2 PMT are successfully saved to an array");
+
                 System.out.println("The commit Ids are");
                 //            for printing all the commits ID associated with a patch
                 for (String tmp : patchInformation_svnRevisionpublic) {

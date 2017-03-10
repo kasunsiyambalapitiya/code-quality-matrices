@@ -39,6 +39,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -57,6 +58,9 @@ public class BlameCommit extends RestApiCaller {
     Set<String> authorNames = new HashSet<String>();    //as the authors are for all the commits that exists in the relevant patch
     protected Set<String> commitHashObtainedForPRReview = new HashSet<String>();  //  relevant commits in old file that need to find the PR Reviewers
     private String repoLocation[];
+
+    private static final Logger BlameCommitLogger = Logger.getLogger(BlameCommit.class.getName());
+
 
     public String getUrlForSearchingCommits() {
         return urlForObtainingCommits;
@@ -111,6 +115,7 @@ public class BlameCommit extends RestApiCaller {
             //adding the repo name to the array
             repoLocation[i] = (String) repositoryJsonObject.get("full_name");
         }
+        BlameCommitLogger.info("Repo names having the given commit are successfully saved in an array");
 
         //        for running through the repoName Array
         for (int i = 0; i < repoLocation.length; i++) {
@@ -120,6 +125,7 @@ public class BlameCommit extends RestApiCaller {
                 lineRangesChanged.clear();
                 //authorNames.clear();
                 callingToGetFilesChanged(repoLocation[i], commitHash, gitHubToken);
+
                 iteratingOver(repoLocation[i], commitHash, gitHubToken);
             }
         }
@@ -143,6 +149,7 @@ public class BlameCommit extends RestApiCaller {
         rootJsonObject = (JSONObject) callingTheAPI(getUrlForGetingFilesChanged(), gitHubToken, false, false);
         //calling savingRelaventFileNamesAndEditLineNumbers method to read the above saved json output
         savingRelaventFileNamesAndEditLineNumbers(rootJsonObject);
+        BlameCommitLogger.info("Relevant file names and their line ranges which being affected by the given commit are saved successfully");
     }
 
     /**
@@ -225,6 +232,7 @@ public class BlameCommit extends RestApiCaller {
                 //            calling the graphql API for getting blame information for the current file and saving it in a location.
                 rootJsonObject = (JSONObject) callingGraphQl(graphqlApiJsonObject, gitHubToken);
             } catch (IOException e) {
+                BlameCommitLogger.error("IO exception occurred when calling the github graphQL API ", e);
                 e.printStackTrace();
             }
             //            reading the above saved output for the current selected file name
@@ -233,6 +241,7 @@ public class BlameCommit extends RestApiCaller {
             // parent commit hashes are stored in the arraylist for the given file
 
             iteratingOverForFindingAuthors(owner, repositoryName, fileName, arrayListOfRelevantChangedLines, gitHubToken);
+            BlameCommitLogger.info("Authors of the bug lines of code which are being fixed from the given patch are saved successfully to authorNames SET");
         }
     }
 
@@ -260,10 +269,15 @@ public class BlameCommit extends RestApiCaller {
             response = client.execute(httpPost);
 
         } catch (UnsupportedEncodingException e) {
+            BlameCommitLogger.error("Encoding error occured before calling the github graphQL API", e);
             e.printStackTrace();
         } catch (ClientProtocolException e) {
+            BlameCommitLogger.error("Client protocol exception occurred when calling the github graphQL API", e);
+
             e.printStackTrace();
         } catch (IOException e) {
+            BlameCommitLogger.error("IO Exception occured when calling the github graphQL API", e);
+
             e.printStackTrace();
         }
 
@@ -290,6 +304,7 @@ public class BlameCommit extends RestApiCaller {
 
             //            System.out.println(stringBuilder.toString());
         } catch (Exception e) {
+            BlameCommitLogger.error("Exception occured when reading the response received from github graphQL API", e);
             e.printStackTrace();
         } finally {
 
@@ -419,6 +434,7 @@ public class BlameCommit extends RestApiCaller {
                         String commitHash = (String) StringUtils.substringAfter(urlOfTheParentCommit, "commit/");
                         commitHashesOfTheParent.add(commitHash);
                     }
+                    BlameCommitLogger.info("Parent Commits hashes of the lines which are being fixed by the patch are saved to commitHashesOfTheParent SET successfully ");
                 }
             }
         }
@@ -427,11 +443,11 @@ public class BlameCommit extends RestApiCaller {
     /**
      * Finding the authors of the commits
      *
-     * @param owner owner of the repository
-     * @param repositoryName    repository name
-     * @param fileName  name of the file which is required to get blame details
-     * @param arrayListOfRelevantChangedLines   arraylist containing the changed line ranges of the current selected file
-     * @param gitHubToken   github token for accessing github GraphQL API
+     * @param owner                           owner of the repository
+     * @param repositoryName                  repository name
+     * @param fileName                        name of the file which is required to get blame details
+     * @param arrayListOfRelevantChangedLines arraylist containing the changed line ranges of the current selected file
+     * @param gitHubToken                     github token for accessing github GraphQL API
      */
     public void iteratingOverForFindingAuthors(String owner, String repositoryName, String fileName, ArrayList<String> arrayListOfRelevantChangedLines, String gitHubToken) {
 
@@ -445,6 +461,7 @@ public class BlameCommit extends RestApiCaller {
                 rootJsonObject = (JSONObject) callingGraphQl(graphqlApiJsonObject, gitHubToken);
                 readingTheBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLines, true);
             } catch (IOException e) {
+                BlameCommitLogger.error("IO Exception occured when calling the github graphQL API for finding the authors of the bug lines which are being fixed by the given patch", e);
                 e.printStackTrace();
             }
         }
