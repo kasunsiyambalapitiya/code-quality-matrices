@@ -37,7 +37,8 @@ import org.json.JSONArray;
  */
 
 public class RestApiCaller {
-    static Logger restApiCallerLogger= Logger.getLogger(RestApiCaller.class.getName());
+    static Logger restApiCallerLogger = Logger.getLogger(RestApiCaller.class.getName());
+
     /**
      * calling the relevant API and saving the output to a file
      *
@@ -97,7 +98,9 @@ public class RestApiCaller {
                         JSONArray jsonArray = (JSONArray) json;
                         returnedObject = jsonArray;
                     }
+
                     restApiCallerLogger.info("JSON response is passed after calling the given REST API");
+
                     break;
                 case 401:
                     // to handle Response code 401: Unauthorized
@@ -107,7 +110,7 @@ public class RestApiCaller {
                         Thread.sleep(100);
                         runningTheAppAgain();
                     } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
+                        restApiCallerLogger.error("InterruptedException occurred when validating the github user", e);
                         e.printStackTrace();
                     }
                     break;
@@ -119,7 +122,7 @@ public class RestApiCaller {
                         Thread.sleep(100);
                         runningTheAppAgain();
                     } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
+                        restApiCallerLogger.error("InterruptedException occurred when validating the WSO2 PMT user", e);
                         e.printStackTrace();
                     }
 
@@ -132,6 +135,7 @@ public class RestApiCaller {
                         runningTheAppAgain();
 
                     } catch (InterruptedException e) {
+                        restApiCallerLogger.error("InterruptedException occurred when validating the given patch", e);
                         e.printStackTrace();
                     }
 
@@ -140,10 +144,10 @@ public class RestApiCaller {
                     returnedObject = null;
             }
         } catch (ClientProtocolException e) {
-            // TODO Auto-generated catch block
+            restApiCallerLogger.error("ClientProtocolException when calling the REST API", e);
             e.printStackTrace();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
+            restApiCallerLogger.error("IOException occurred when calling the REST API");
             e.printStackTrace();
         } finally {
 
@@ -180,7 +184,7 @@ public class RestApiCaller {
         try {
             MainClass.main(null);
         } catch (Exception e) {
-            // TODO Auto-generated catch block
+            restApiCallerLogger.error("Exception occurred when running the main method again after invalid inputs");
             e.printStackTrace();
         }
     }

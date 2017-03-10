@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -38,6 +39,8 @@ public class Reviewers extends BlameCommit {
     String pullRequestReviewAPIUrl;
     Set<String> approvedReviewers = new HashSet<String>();      // to store the reviewed and approved users of the pull requests
     Set<String> commentedReviewers = new HashSet<String>();     // to store the reviewed and commented users of the pull requests
+
+    private static final Logger reviewersLogger = Logger.getLogger(Reviewers.class.getName());
 
     public String getSearchPullReqeustAPI() {
         return searchPullReqeustAPIUrl;
@@ -80,10 +83,12 @@ public class Reviewers extends BlameCommit {
             // reading thus saved json file
             savingPrNumberAndRepoName(rootJsonObject);
         }
-        System.out.println("Done Mapping" + mapContainingPRNoAgainstRepoName);
+        reviewersLogger.info("PR numbers which introduce bug lines of code with their relevant repository are saved successfully to mapContainingPRNoAgainstRepoName map");
         savingReviewersToList(githubToken);
+        reviewersLogger.info("List of approved reviwers and comment users of the PRs which introduce bug lines to repository are saved in commentedReviewers and approvedReviewers list ");
         // printing the list of reviewers of pull requests
         printReviewUsers();
+        reviewersLogger.info("Names of approved reviewers and commented reviewers are printed successfully");
     }
 
     /**
