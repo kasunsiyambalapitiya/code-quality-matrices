@@ -1,2 +1,16 @@
-/target/
-/.idea/
+*.class
+
+# Ignore everything in this directory
+target
+.classpath
+.settings
+.project
+*.iml
+*.iws
+*.ipr
+.idea
+
+# Package Files #
+*.jar
+*.war
+*.ear
