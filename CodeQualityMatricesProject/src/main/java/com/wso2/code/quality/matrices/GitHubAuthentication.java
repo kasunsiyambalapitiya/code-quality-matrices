@@ -17,53 +17,71 @@ package com.wso2.code.quality.matrices;/*
 */
 
 
-import com.sun.org.apache.xpath.internal.SourceTree;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.egit.github.core.CommitFile;
 import org.eclipse.egit.github.core.IRepositoryIdProvider;
 import org.eclipse.egit.github.core.Repository;
 import org.eclipse.egit.github.core.RepositoryCommit;
 import org.eclipse.egit.github.core.client.GitHubClient;
 import org.eclipse.egit.github.core.service.CommitService;
-import org.eclipse.egit.github.core.service.GitHubService;
 import org.eclipse.egit.github.core.service.RepositoryService;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
+/**
+ *
+ */
 
 public class GitHubAuthentication {
-    public void gettingGithubClient(){
-        GitHubClient client= new GitHubClient();
-        client.setCredentials("kasunsiyambalapitiya","resident0507");
+    protected GitHubClient gitHubClient = null;
+    protected CommitService commitService = null;
+    protected RepositoryService repositoryService = null;
+    protected ArrayList<String> fileNames = new ArrayList<String>();
+    protected ArrayList<String> patchString = new ArrayList<String>();
 
-        CommitService commitService= new CommitService(client);
-//        commitService.getCommit("product-is","fdafewafd");
 
-        RepositoryService repositoryService= new RepositoryService(client);
+    GitHubAuthentication(String githubToken) {
+        gitHubClient = new GitHubClient();
+        gitHubClient.setOAuth2Token(githubToken);
+        commitService = new CommitService(gitHubClient);
+        repositoryService = new RepositoryService(gitHubClient);
+
+
+    }
+
+    public Map<String, ArrayList<String>> gettingFilesChanged(String repositoryName, String commitHash) {
+        Map<String, ArrayList<String>> mapWithFileNamesAndPatches = new HashMap<>();
+
         try {
-            Repository repository=repositoryService.getRepository("wso2","wso2-axis2-transports");
+//            Repository repository = repositoryService.getRepository("wso2", "carbon-apimgt");
+//            String id = repository.generateId();
 
-            String id=repository.generateId();
+            IRepositoryIdProvider iRepositoryIdProvider = () -> repositoryName;
+            RepositoryCommit repositoryCommit = commitService.getCommit(iRepositoryIdProvider, commitHash);
+            List<CommitFile> filesChanged = repositoryCommit.getFiles();
 
-            IRepositoryIdProvider iRepositoryIdProvider = () -> id;
-            RepositoryCommit repositoryCommit=commitService.getCommit(iRepositoryIdProvider,"e3c3457149b109178d510aac965d5a85cc465aa0");
-            List<CommitFile> filesChanged=repositoryCommit.getFiles();
-
-            Iterator listIterator= filesChanged.iterator();
-            while(listIterator.hasNext()){
-                CommitFile commitFile= (CommitFile) listIterator.next();
-                System.out.println(commitFile.getFilename());
-                String patch=commitFile.getPatch();
-                System.out.println(patch);
-
+            Iterator listIterator = filesChanged.iterator();
+            while (listIterator.hasNext()) {
+                CommitFile commitFile = (CommitFile) listIterator.next();
+                fileNames.add(commitFile.getFilename());
+                patchString.add(commitFile.getPatch());
 
             }
-
-//            filesChanged.stream().forEach();
+//            System.out.println(fileNames);
+            mapWithFileNamesAndPatches.put("fileNames", fileNames);
+            mapWithFileNamesAndPatches.put("patchString", patchString);
 
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return mapWithFileNamesAndPatches;
+
     }
+
 }
