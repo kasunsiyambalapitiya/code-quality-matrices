@@ -52,6 +52,7 @@ public class BlameCommit extends RestApiCaller {
 
     private String urlForObtainingCommits, urlForGetingFilesChanged;
     protected ArrayList<String> fileNames = new ArrayList<String>();
+    protected ArrayList<String> patchString = new ArrayList<>();
     protected List<ArrayList<String>> lineRangesChanged = new ArrayList<ArrayList<String>>();      // for saving the line no that are changed
     JSONObject graphqlApiJsonObject = new JSONObject();
     Set<String> commitHashesOfTheParent;
@@ -117,14 +118,31 @@ public class BlameCommit extends RestApiCaller {
         }
         BlameCommitLogger.info("Repo names having the given commit are successfully saved in an array");
 
+        //==========================================================================================================
+        GitHubAuthentication gitHubAuthentication = new GitHubAuthentication(gitHubToken);
+
+        //==========================================================================================================
+
         //        for running through the repoName Array
         for (int i = 0; i < repoLocation.length; i++) {
             if (StringUtils.contains(repoLocation[i], "wso2/")) {
                 //clearing all the data in the current fileNames and lineRangesChanged arraylists for each repository
                 fileNames.clear();
                 lineRangesChanged.clear();
+                patchString.clear();
                 //authorNames.clear();
-                callingToGetFilesChanged(repoLocation[i], commitHash, gitHubToken);
+
+                //==============================================================================================
+
+                Map<String, ArrayList<String>> mapWithFileNamesAndPatch = gitHubAuthentication.gettingFilesChanged(repoLocation[i], commitHash);
+
+                fileNames = mapWithFileNamesAndPatch.get("fileNames");
+                patchString = mapWithFileNamesAndPatch.get("patchString");
+
+                savingRelaventEditLineNumbers(fileNames, patchString);
+
+
+                //==============================================================================================
 
                 iteratingOver(repoLocation[i], commitHash, gitHubToken);
             }
@@ -134,40 +152,19 @@ public class BlameCommit extends RestApiCaller {
         System.out.println(commitHashObtainedForPRReview);
     }
 
-    /**
-     * calling github single commit API to get files changed from the current selected commit in the current selected repository
-     *
-     * @param repoLocation current selected repository
-     * @param commitHash   current selected commit hash
-     * @param gitHubToken  github token for accessing github REST API
+     /**
+     * @param fileNames
+     * @param patchString
      */
-    public void callingToGetFilesChanged(String repoLocation, String commitHash, String gitHubToken) {
-        //        setting the URL for calling github single commit API
-        setUrlForGetingFilesChanged(repoLocation, commitHash);
-        JSONObject rootJsonObject = null;
-        //saving the commit details for the commit hash on the relevant repository
-        rootJsonObject = (JSONObject) callingTheAPI(getUrlForGetingFilesChanged(), gitHubToken, false, false);
-        //calling savingRelaventFileNamesAndEditLineNumbers method to read the above saved json output
-        savingRelaventFileNamesAndEditLineNumbers(rootJsonObject);
-        BlameCommitLogger.info("Relevant file names and their line ranges which being affected by the given commit are saved successfully");
-    }
 
-    /**
-     * saving relevant file names and their changed line ranges from the current selected commit in the current selected repository
-     *
-     * @param rootJsonObject JSONObject received from the calling the single commit API in github
-     */
-    public void savingRelaventFileNamesAndEditLineNumbers(JSONObject rootJsonObject) {
-        JSONArray fileJsonArray = (JSONArray) rootJsonObject.get("files");
-        // to save one file at a time
-        for (int i = 0; i < fileJsonArray.length(); i++) {
-            JSONObject tempJsonObject = (JSONObject) fileJsonArray.get(i);
-            String fileName = (String) tempJsonObject.get("filename");
-            //saving the file name in the filename arraylist
-            fileNames.add(fileName);
+    public void savingRelaventEditLineNumbers(ArrayList<String> fileNames, ArrayList<String> patchString) {
+
+        Iterator patchStringIterator = patchString.iterator();
+        while (patchStringIterator.hasNext()) {
+            String patch = (String) patchStringIterator.next();
+
 
             //filtering only the line ranges that are modified and saving to a string array
-            String patch = (String) tempJsonObject.get("patch");
             String lineChanges[] = StringUtils.substringsBetween(patch, "@@ ", " @@");
 
             //filtering the lines that existed in the previous file, that exists in the new file and saving them in to the same array
