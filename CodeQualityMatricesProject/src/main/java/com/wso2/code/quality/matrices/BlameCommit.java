@@ -71,14 +71,6 @@ public class BlameCommit extends RestApiCaller {
         this.urlForObtainingCommits = "https://api.github.com/search/commits?q=hash%3A" + commitHash;
     }
 
-    public String getUrlForGetingFilesChanged() {
-        return urlForGetingFilesChanged;
-    }
-
-    public void setUrlForGetingFilesChanged(String repoName, String commitHash) {
-        this.urlForGetingFilesChanged = "http://api.github.com/repos/" + repoName + "/commits/" + commitHash;
-    }
-
     /**
      * This method is used for obtaining the repositories that contain the relevant commits belongs to the given patch
      *
@@ -118,10 +110,7 @@ public class BlameCommit extends RestApiCaller {
         }
         BlameCommitLogger.info("Repo names having the given commit are successfully saved in an array");
 
-        //==========================================================================================================
         GitHubAuthentication gitHubAuthentication = new GitHubAuthentication(gitHubToken);
-
-        //==========================================================================================================
 
         //        for running through the repoName Array
         for (int i = 0; i < repoLocation.length; i++) {
@@ -132,17 +121,12 @@ public class BlameCommit extends RestApiCaller {
                 patchString.clear();
                 //authorNames.clear();
 
-                //==============================================================================================
-
                 Map<String, ArrayList<String>> mapWithFileNamesAndPatch = gitHubAuthentication.gettingFilesChanged(repoLocation[i], commitHash);
 
                 fileNames = mapWithFileNamesAndPatch.get("fileNames");
                 patchString = mapWithFileNamesAndPatch.get("patchString");
 
                 savingRelaventEditLineNumbers(fileNames, patchString);
-
-
-                //==============================================================================================
 
                 iteratingOver(repoLocation[i], commitHash, gitHubToken);
             }
@@ -152,7 +136,7 @@ public class BlameCommit extends RestApiCaller {
         System.out.println(commitHashObtainedForPRReview);
     }
 
-     /**
+    /**
      * @param fileNames
      * @param patchString
      */
