@@ -18,16 +18,16 @@
 
 package com.wso2.code.quality.matrices;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 /**
  * This class is used to find the revierwers of the buggy lines of code
@@ -40,7 +40,7 @@ public class Reviewers extends BlameCommit {
     Set<String> approvedReviewers = new HashSet<String>();      // to store the reviewed and approved users of the pull requests
     Set<String> commentedReviewers = new HashSet<String>();     // to store the reviewed and commented users of the pull requests
 
-    private static final Logger reviewersLogger = Logger.getLogger(Reviewers.class.getName());
+    private static final Logger reviewersLogger = Logger.getLogger(Reviewers.class);
 
     public String getSearchPullReqeustAPI() {
         return searchPullReqeustAPIUrl;
