@@ -31,7 +31,7 @@ import java.util.logging.Logger;
  * should be passed as command line arguments when running the application
  */
 public class MainClass {
-    private final static Logger logger = Logger.getLogger(MainClass.class.getName());
+    private final static Logger logger = Logger.getLogger(MainClass.class);
 
     public static void main(String[] args) {
         logger.info(" Main method got executed");
@@ -62,7 +62,6 @@ public class MainClass {
 
         Reviewers reviewers = new Reviewers();
         reviewers.findingReviewers(commitHashObtainedForPRReview, gitHubToken);
-
     }
 
 
