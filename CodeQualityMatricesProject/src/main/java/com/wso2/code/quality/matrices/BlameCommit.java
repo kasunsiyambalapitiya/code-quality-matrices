@@ -18,32 +18,21 @@
 
 package com.wso2.code.quality.matrices;
 
-import java.io.BufferedReader;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.IntStream;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 
 /**
  * This class is used for getting the blame information on relevant lines changeed from the given patch
@@ -62,8 +51,7 @@ public class BlameCommit extends RestApiCaller {
     private String repoLocation[];
     GraphQlApiCaller graphQlApiCaller = new GraphQlApiCaller();
 
-    private static final Logger BlameCommitLogger = Logger.getLogger(BlameCommit.class.getName());
-
+    private static final Logger BlameCommitLogger = Logger.getLogger(BlameCommit.class);
 
     public String getUrlForSearchingCommits() {
         return urlForObtainingCommits;
@@ -169,7 +157,7 @@ public class BlameCommit extends RestApiCaller {
                 lineChanges[j] = intialLineNoInOldFile + "," + endLineNoOfOldFile + "/" + intialLineNoInNewFile + "," + endLineNoOfNewFile;
             });
             ArrayList<String> tempArrayList = new ArrayList<>(Arrays.asList(lineChanges));
-            //adding to the array list which keep track of the line ranges which are being changed to the main arrayList
+            //adding to the array list which keep track of the line ranges being changed
             lineRangesChanged.add(tempArrayList);
         });
         System.out.println("done saving file names and their relevant modification line ranges");

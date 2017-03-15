@@ -18,26 +18,27 @@
 
 package com.wso2.code.quality.matrices;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.log4j.Logger;
-import org.json.JSONTokener;
-import org.json.JSONObject;
 import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 /**
  * This class is used to call the REST API of both WSO2 PMT and github.com
  */
 
 public class RestApiCaller {
-    static Logger restApiCallerLogger = Logger.getLogger(RestApiCaller.class.getName());
+
+    static Logger restApiCallerLogger = Logger.getLogger(RestApiCaller.class);
 
     /**
      * calling the relevant API and saving the output to a file

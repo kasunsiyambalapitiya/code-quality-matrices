@@ -34,7 +34,7 @@ import java.io.UnsupportedEncodingException;
 
 public class GraphQlApiCaller {
 
-    protected static final Logger GraphQlApiCallerLogger= Logger.getLogger(GraphQlApiCaller.class.getName());
+    protected static final Logger GraphQlApiCallerLogger = Logger.getLogger(GraphQlApiCaller.class);
 
     /**
      * Calling the github graphQL API
@@ -103,7 +103,6 @@ public class GraphQlApiCaller {
                 bufferedReader.close();
             }
         }
-
         return returnedObject;
     }
 }
