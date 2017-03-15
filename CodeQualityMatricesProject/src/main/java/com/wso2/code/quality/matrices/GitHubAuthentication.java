@@ -17,10 +17,9 @@ package com.wso2.code.quality.matrices;/*
 */
 
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.eclipse.egit.github.core.CommitFile;
 import org.eclipse.egit.github.core.IRepositoryIdProvider;
-import org.eclipse.egit.github.core.Repository;
 import org.eclipse.egit.github.core.RepositoryCommit;
 import org.eclipse.egit.github.core.client.GitHubClient;
 import org.eclipse.egit.github.core.service.CommitService;
@@ -29,7 +28,6 @@ import org.eclipse.egit.github.core.service.RepositoryService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -44,14 +42,13 @@ public class GitHubAuthentication {
     protected ArrayList<String> fileNames = new ArrayList<String>();
     protected ArrayList<String> patchString = new ArrayList<String>();
 
+    private static final Logger githubAuthenticationLogger = Logger.getLogger(GitHubAuthentication.class);
 
     GitHubAuthentication(String githubToken) {
         gitHubClient = new GitHubClient();
         gitHubClient.setOAuth2Token(githubToken);
         commitService = new CommitService(gitHubClient);
         repositoryService = new RepositoryService(gitHubClient);
-
-
     }
 
     /**
@@ -61,36 +58,21 @@ public class GitHubAuthentication {
      */
     public Map<String, ArrayList<String>> gettingFilesChanged(String repositoryName, String commitHash) {
         Map<String, ArrayList<String>> mapWithFileNamesAndPatches = new HashMap<>();
-
         try {
-//            Repository repository = repositoryService.getRepository("wso2", "carbon-apimgt");
-//            String id = repository.generateId();
-
             IRepositoryIdProvider iRepositoryIdProvider = () -> repositoryName;
             RepositoryCommit repositoryCommit = commitService.getCommit(iRepositoryIdProvider, commitHash);
             List<CommitFile> filesChanged = repositoryCommit.getFiles();
-
-//            Iterator listIterator = filesChanged.iterator();
             // this can be run parallely as patchString of a file will always be in the same index as the file
             filesChanged.parallelStream().forEach(commitFile -> {
                 fileNames.add(commitFile.getFilename());
                 patchString.add(commitFile.getPatch());
             });
-//            while (listIterator.hasNext()) {
-//                CommitFile commitFile = (CommitFile) listIterator.next();
-//
-//
-//            }
-//            System.out.println(fileNames);
+            githubAuthenticationLogger.info("for" + commitHash + " on the " + repositoryName + " repository, files changed and their relevant changed line ranges added to the arraylists successfully");
             mapWithFileNamesAndPatches.put("fileNames", fileNames);
             mapWithFileNamesAndPatches.put("patchString", patchString);
-
-
         } catch (IOException e) {
             e.printStackTrace();
         }
         return mapWithFileNamesAndPatches;
-
     }
-
 }
