@@ -70,13 +70,17 @@ public class GitHubAuthentication {
             RepositoryCommit repositoryCommit = commitService.getCommit(iRepositoryIdProvider, commitHash);
             List<CommitFile> filesChanged = repositoryCommit.getFiles();
 
-            Iterator listIterator = filesChanged.iterator();
-            while (listIterator.hasNext()) {
-                CommitFile commitFile = (CommitFile) listIterator.next();
+//            Iterator listIterator = filesChanged.iterator();
+            // this can be run parallely as patchString of a file will always be in the same index as the file
+            filesChanged.parallelStream().forEach(commitFile -> {
                 fileNames.add(commitFile.getFilename());
                 patchString.add(commitFile.getPatch());
-
-            }
+            });
+//            while (listIterator.hasNext()) {
+//                CommitFile commitFile = (CommitFile) listIterator.next();
+//
+//
+//            }
 //            System.out.println(fileNames);
             mapWithFileNamesAndPatches.put("fileNames", fileNames);
             mapWithFileNamesAndPatches.put("patchString", patchString);
