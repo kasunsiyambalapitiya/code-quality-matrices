@@ -60,6 +60,7 @@ public class BlameCommit extends RestApiCaller {
     Set<String> authorNames = new HashSet<String>();    //as the authors are for all the commits that exists in the relevant patch
     protected Set<String> commitHashObtainedForPRReview = new HashSet<String>();  //  relevant commits in old file that need to find the PR Reviewers
     private String repoLocation[];
+    GraphQlApiCaller graphQlApiCaller = new GraphQlApiCaller();
 
     private static final Logger BlameCommitLogger = Logger.getLogger(BlameCommit.class.getName());
 
@@ -135,6 +136,7 @@ public class BlameCommit extends RestApiCaller {
 
     /**
      * This method is used to save the line ranges being modified in a given file to a list and add that list to the root list of
+     *
      * @param fileNames   Arraylist of files names that are being affected by the relevant commit
      * @param patchString Array list having the patch string value for each of the file being changed
      */
@@ -199,7 +201,7 @@ public class BlameCommit extends RestApiCaller {
             JSONObject rootJsonObject = null;
             try {
                 //            calling the graphql API for getting blame information for the current file and saving it in a location.
-                rootJsonObject = (JSONObject) callingGraphQl(graphqlApiJsonObject, gitHubToken);
+                rootJsonObject = (JSONObject) graphQlApiCaller.callingGraphQl(graphqlApiJsonObject, gitHubToken);
             } catch (IOException e) {
                 BlameCommitLogger.error("IO exception occurred when calling the github graphQL API ", e);
                 e.printStackTrace();
@@ -212,77 +214,6 @@ public class BlameCommit extends RestApiCaller {
             iteratingOverForFindingAuthors(owner, repositoryName, fileName, arrayListOfRelevantChangedLines, gitHubToken);
             BlameCommitLogger.info("Authors of the bug lines of code which are being fixed from the given patch are saved successfully to authorNames SET");
         });
-    }
-
-    /**
-     * Calling the github graphQL API
-     *
-     * @param queryObject the JSONObject required for querying
-     * @param gitHubToken github token for accessing github GraphQL API
-     * @return Depending on the content return a JSONObject or a JSONArray
-     * @throws IOException
-     */
-    public Object callingGraphQl(JSONObject queryObject, String gitHubToken) throws IOException {
-
-        CloseableHttpClient client = null;
-        CloseableHttpResponse response = null;
-        client = HttpClients.createDefault();
-        HttpPost httpPost = new HttpPost("https://api.github.com/graphql");
-        httpPost.addHeader("Authorization", "Bearer " + gitHubToken);
-        httpPost.addHeader("Accept", "application/json");
-        Object returnedObject = null;
-
-        try {
-            StringEntity entity = new StringEntity(queryObject.toString());
-            httpPost.setEntity(entity);
-            response = client.execute(httpPost);
-
-        } catch (UnsupportedEncodingException e) {
-            BlameCommitLogger.error("Encoding error occured before calling the github graphQL API", e);
-            e.printStackTrace();
-        } catch (ClientProtocolException e) {
-            BlameCommitLogger.error("Client protocol exception occurred when calling the github graphQL API", e);
-
-            e.printStackTrace();
-        } catch (IOException e) {
-            BlameCommitLogger.error("IO Exception occured when calling the github graphQL API", e);
-
-            e.printStackTrace();
-        }
-
-        BufferedReader bufferedReader = null;
-        try {
-            bufferedReader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
-            String line;
-            StringBuilder stringBuilder = new StringBuilder();
-            while ((line = bufferedReader.readLine()) != null) {
-
-                stringBuilder.append(line);
-            }
-
-            String jsonText = stringBuilder.toString();
-            Object json = new JSONTokener(jsonText).nextValue();     // gives an object http://stackoverflow.com/questions/14685777/how-to-check-if-response-from-server-is-jsonaobject-or-jsonarray
-
-            if (json instanceof JSONObject) {
-                JSONObject jsonObject = (JSONObject) json;
-                returnedObject = jsonObject;
-            } else if (json instanceof JSONArray) {
-                JSONArray jsonArray = (JSONArray) json;
-                returnedObject = jsonArray;
-            }
-
-            //            System.out.println(stringBuilder.toString());
-        } catch (Exception e) {
-            BlameCommitLogger.error("Exception occured when reading the response received from github graphQL API", e);
-            e.printStackTrace();
-        } finally {
-
-            if (bufferedReader != null) {
-                bufferedReader.close();
-            }
-        }
-
-        return returnedObject;
     }
 
     /**
@@ -412,7 +343,7 @@ public class BlameCommit extends RestApiCaller {
             graphqlApiJsonObject.put("query", "{repository(owner:\"" + owner + "\",name:\"" + repositoryName + "\"){object(expression:\"" + parentCommitHashForCallingGraphQl + "\"){ ... on Commit{blame(path:\"" + fileName + "\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }");
             JSONObject rootJsonObject = null;
             try {
-                rootJsonObject = (JSONObject) callingGraphQl(graphqlApiJsonObject, gitHubToken);
+                rootJsonObject = (JSONObject) graphQlApiCaller.callingGraphQl(graphqlApiJsonObject, gitHubToken);
                 readingTheBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLines, true);
             } catch (IOException e) {
                 BlameCommitLogger.error("IO Exception occured when calling the github graphQL API for finding the authors of the bug lines which are being fixed by the given patch", e);
