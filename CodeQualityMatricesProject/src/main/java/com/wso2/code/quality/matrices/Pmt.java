@@ -22,6 +22,8 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.stream.IntStream;
+
 /**
  * This class is used for obtaining the commit hashes that belongs to the given patch
  */
@@ -44,17 +46,14 @@ public class Pmt {
                 JSONArray tempCommitsJSONArray = (JSONArray) jsonObject.get("value");
                 //initializing the patchInformation_svnRevisionpublic array
                 patchInformation_svnRevisionpublic = new String[tempCommitsJSONArray.length()];
-                for (int j = 0; j < tempCommitsJSONArray.length(); j++) {
-                    patchInformation_svnRevisionpublic[j] = ((String) tempCommitsJSONArray.get(j)).trim();     // for ommiting the white spaces at the begingin and end of the commits
-                }
+                // for ommiting the white spaces at the begingin and end of the commits
+                IntStream.range(0, tempCommitsJSONArray.length()).forEach(j -> patchInformation_svnRevisionpublic[j] = ((String) tempCommitsJSONArray.get(j)).trim());
 
                 logger.info(" The commits hashes obtained from WSO2 PMT are successfully saved to an array");
 
                 System.out.println("The commit Ids are");
                 //            for printing all the commits ID associated with a patch
-                for (String tmp : patchInformation_svnRevisionpublic) {
-                    System.out.println(tmp);
-                }
+                IntStream.range(0, patchInformation_svnRevisionpublic.length).mapToObj(i1 -> patchInformation_svnRevisionpublic[i1]).forEach(System.out::println);
                 System.out.println();
                 break;
             }
