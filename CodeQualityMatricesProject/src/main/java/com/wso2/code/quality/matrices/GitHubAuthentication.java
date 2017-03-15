@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * This class is used for communicating with the github REST API from egit github API
  */
 
 public class GitHubAuthentication {
@@ -54,6 +54,11 @@ public class GitHubAuthentication {
 
     }
 
+    /**
+     * @param repositoryName The repository name that contain the given commit hash
+     * @param commitHash     The querying commit hash
+     * @return a map containg arraylist of file changed and their relevant patch
+     */
     public Map<String, ArrayList<String>> gettingFilesChanged(String repositoryName, String commitHash) {
         Map<String, ArrayList<String>> mapWithFileNamesAndPatches = new HashMap<>();
 
