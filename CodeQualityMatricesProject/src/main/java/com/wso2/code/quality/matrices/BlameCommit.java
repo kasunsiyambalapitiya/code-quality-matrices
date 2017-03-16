@@ -74,7 +74,12 @@ public class BlameCommit extends RestApiCaller {
         //calling the API calling method
         IntStream.range(0, commitsInTheGivenPatch.length).mapToObj(i -> commitsInTheGivenPatch[i]).forEach(commitHash -> {
             setUrlForSearchingCommits(commitHash);
-            JSONObject jsonObject = (JSONObject) restApiCaller.callingTheAPI(getUrlForSearchingCommits(), gitHubToken, true, false);
+            JSONObject jsonObject = null;
+            try {
+                jsonObject = (JSONObject) restApiCaller.callingTheAPI(getUrlForSearchingCommits(), gitHubToken, true, false);
+            } catch (Exception e) {
+                System.out.println(e.getMessage() + "cause" + e.getCause());
+            }
             saveRepoNamesInAnArray(jsonObject, commitHash, gitHubToken);
         });
         return commitHashObtainedForPRReview;
@@ -109,7 +114,12 @@ public class BlameCommit extends RestApiCaller {
             fileNames.clear();
             lineRangesChanged.clear();
             patchString.clear();
-            Map<String, ArrayList<String>> mapWithFileNamesAndPatch = gitHubAuthentication.gettingFilesChanged(repoLocation[i], commitHash);
+            Map<String, ArrayList<String>> mapWithFileNamesAndPatch = null;
+            try {
+                mapWithFileNamesAndPatch = gitHubAuthentication.gettingFilesChanged(repoLocation[i], commitHash);
+            } catch (Exception e) {
+                System.out.println(e.getMessage() + "cause" + e.getCause());
+            }
             fileNames = mapWithFileNamesAndPatch.get("fileNames");
             patchString = mapWithFileNamesAndPatch.get("patchString");
             savingRelaventEditLineNumbers(fileNames, patchString);

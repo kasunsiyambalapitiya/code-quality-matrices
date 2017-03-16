@@ -42,7 +42,13 @@ public class MainClass {
         String pmtUrl = "http://umt.private.wso2.com:9765/codequalitymatricesapi/1.0.0//properties?path=/_system/governance/patchs/" + patchId;
 
         RestApiCaller restApiCaller = new RestApiCaller();
-        JSONArray jsonArray = (JSONArray) restApiCaller.callingTheAPI(pmtUrl, pmtToken, false, false);
+        JSONArray jsonArray = null;
+        try {
+            jsonArray = (JSONArray) restApiCaller.callingTheAPI(pmtUrl, pmtToken, false, false);
+        } catch (Exception e) {
+            System.out.println(e.getMessage()+"cause"+e.getCause());
+
+        }
 
         logger.info("JSON response is received successfully from WSO2 PMT for the given patch " + args[1]);
 

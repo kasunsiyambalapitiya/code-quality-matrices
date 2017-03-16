@@ -79,7 +79,12 @@ public class Reviewers extends BlameCommit {
             String commitHashForFindingReviewers = (String) commitHashObtainedForPRReviewIterator.next();
             setSearchPullReqeustAPI(commitHashForFindingReviewers);
             // calling the github search API
-            JSONObject rootJsonObject = (JSONObject) callingTheAPI(getSearchPullReqeustAPI(), githubToken, false, true);
+            JSONObject rootJsonObject = null;
+            try {
+                rootJsonObject = (JSONObject) callingTheAPI(getSearchPullReqeustAPI(), githubToken, false, true);
+            } catch (Exception e) {
+                System.out.println(e.getMessage() + "cause" + e.getCause());
+            }
             // reading thus saved json file
             savingPrNumberAndRepoName(rootJsonObject);
         }
@@ -130,7 +135,12 @@ public class Reviewers extends BlameCommit {
             while (prNumberIterator.hasNext()) {
                 int prNumber = (int) prNumberIterator.next();
                 setPullRequestReviewAPIUrl(productLocation, prNumber);
-                JSONArray rootJsonArray = (JSONArray) callingTheAPI(getPullRequestReviewAPIUrl(), githubToken, false, true);
+                JSONArray rootJsonArray = null;
+                try {
+                    rootJsonArray = (JSONArray) callingTheAPI(getPullRequestReviewAPIUrl(), githubToken, false, true);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage() + "cause" + e.getCause());
+                }
                 // for reading the output JSON from above and adding the reviewers to the Set
                 readingTheReviewOutJSON(rootJsonArray, productLocation, prNumber);
             }

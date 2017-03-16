@@ -57,7 +57,7 @@ public class GitHubAuthentication {
      * @param commitHash     The querying commit hash
      * @return a map containg arraylist of file changed and their relevant patch
      */
-    public Map<String, ArrayList<String>> gettingFilesChanged(String repositoryName, String commitHash) {
+    public Map<String, ArrayList<String>> gettingFilesChanged(String repositoryName, String commitHash) throws CodeQualityMatricesException {
         Map<String, ArrayList<String>> mapWithFileNamesAndPatches = new HashMap<>();
         try {
             IRepositoryIdProvider iRepositoryIdProvider = () -> repositoryName;
@@ -72,7 +72,8 @@ public class GitHubAuthentication {
             mapWithFileNamesAndPatches.put("fileNames", fileNames);
             mapWithFileNamesAndPatches.put("patchString", patchString);
         } catch (IOException e) {
-            e.printStackTrace();
+            githubAuthenticationLogger.error("IO Exception occurred when getting the commit with the given SHA form the given repository ",e);
+            throw new CodeQualityMatricesException("IO Exception occurred when getting the commit with the given SHA form the given repository ",e);
         }
         return mapWithFileNamesAndPatches;
     }
