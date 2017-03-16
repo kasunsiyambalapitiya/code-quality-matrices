@@ -51,7 +51,7 @@ public class BlameCommit extends RestApiCaller {
     private String repoLocation[];
     GraphQlApiCaller graphQlApiCaller = new GraphQlApiCaller();
 
-    private static final Logger BlameCommitLogger = Logger.getLogger(BlameCommit.class);
+    private static final Logger logger = Logger.getLogger(BlameCommit.class);
 
     public String getUrlForSearchingCommits() {
         return urlForObtainingCommits;
@@ -103,7 +103,7 @@ public class BlameCommit extends RestApiCaller {
             JSONObject repositoryJsonObject = (JSONObject) jsonObject.get("repository");
             repoLocation[i] = (String) repositoryJsonObject.get("full_name");
         });
-        BlameCommitLogger.info("Repo names having the given commit are successfully saved in an array");
+        logger.info("Repo names having the given commit are successfully saved in an array");
 
         GitHubAuthentication gitHubAuthentication = new GitHubAuthentication(gitHubToken);
 
@@ -201,7 +201,7 @@ public class BlameCommit extends RestApiCaller {
                 //            calling the graphql API for getting blame information for the current file and saving it in a location.
                 rootJsonObject = (JSONObject) graphQlApiCaller.callingGraphQl(graphqlApiJsonObject, gitHubToken);
             } catch (IOException e) {
-                BlameCommitLogger.error("IO exception occurred when calling the github graphQL API ", e);
+                logger.error("IO exception occurred when calling the github graphQL API ", e);
                 e.printStackTrace();
             }
             //            reading the above saved output for the current selected file name
@@ -210,7 +210,7 @@ public class BlameCommit extends RestApiCaller {
             // parent commit hashes are stored in the arraylist for the given file
 
             iteratingOverForFindingAuthors(owner, repositoryName, fileName, arrayListOfRelevantChangedLines, gitHubToken);
-            BlameCommitLogger.info("Authors of the bug lines of code which are being fixed from the given patch are saved successfully to authorNames SET");
+            logger.info("Authors of the bug lines of code which are being fixed from the given patch are saved successfully to authorNames SET");
         });
     }
 
@@ -318,7 +318,7 @@ public class BlameCommit extends RestApiCaller {
                         commitHashesOfTheParent.add(commitHash);
 
                     });
-                    BlameCommitLogger.info("Parent Commits hashes of the lines which are being fixed by the patch are saved to commitHashesOfTheParent SET successfully ");
+                    logger.info("Parent Commits hashes of the lines which are being fixed by the patch are saved to commitHashesOfTheParent SET successfully ");
                 }
             }
         });
@@ -344,7 +344,7 @@ public class BlameCommit extends RestApiCaller {
                 rootJsonObject = (JSONObject) graphQlApiCaller.callingGraphQl(graphqlApiJsonObject, gitHubToken);
                 readingTheBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLines, true);
             } catch (IOException e) {
-                BlameCommitLogger.error("IO Exception occured when calling the github graphQL API for finding the authors of the bug lines which are being fixed by the given patch", e);
+                logger.error("IO Exception occured when calling the github graphQL API for finding the authors of the bug lines which are being fixed by the given patch", e);
                 e.printStackTrace();
             }
         });
