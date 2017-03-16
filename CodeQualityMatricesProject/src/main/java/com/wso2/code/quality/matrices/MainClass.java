@@ -46,14 +46,17 @@ public class MainClass {
         try {
             jsonArray = (JSONArray) restApiCaller.callingTheAPI(pmtUrl, pmtToken, false, false);
         } catch (Exception e) {
-            System.out.println(e.getMessage()+"cause"+e.getCause());
+            System.out.println(e.getMessage() + "cause" + e.getCause());
 
         }
 
         logger.info("JSON response is received successfully from WSO2 PMT for the given patch " + args[1]);
 
         Pmt pmt = new Pmt();
-        String[] commitsInTheGivenPatch = pmt.getThePublicGitCommitId(jsonArray);
+        String[] commitsInTheGivenPatch = null;
+        if (jsonArray != null) {
+            commitsInTheGivenPatch = pmt.getThePublicGitCommitId(jsonArray);
+        }
         logger.info("Commits received from WSO2 PMT are saved in an array successfully");
 
         logger.info("Commits received from WSO2 PMT are saved in an array successfully");
@@ -61,12 +64,17 @@ public class MainClass {
         String gitHubToken = args[2];
 
         BlameCommit blameCommit = new BlameCommit();
-        Set<String> commitHashObtainedForPRReview = blameCommit.obtainingRepoNamesForCommitHashes(gitHubToken, commitsInTheGivenPatch, restApiCaller);
+        Set<String> commitHashObtainedForPRReview = null;
+        if (commitsInTheGivenPatch != null) {
+            commitHashObtainedForPRReview = blameCommit.obtainingRepoNamesForCommitHashes(gitHubToken, commitsInTheGivenPatch, restApiCaller);
+        }
         logger.info("Author commits that introduce bug lines of code to the repository are saved in commitHashObtainedForPRReview SET successfully");
 
         logger.info("Author commits that introduce bug lines of code to the repository are saved in commitHashObtainedForPRReview SET successfully");
 
         Reviewers reviewers = new Reviewers();
-        reviewers.findingReviewers(commitHashObtainedForPRReview, gitHubToken);
+        if (commitHashObtainedForPRReview != null) {
+            reviewers.findingReviewers(commitHashObtainedForPRReview, gitHubToken);
+        }
     }
 }
