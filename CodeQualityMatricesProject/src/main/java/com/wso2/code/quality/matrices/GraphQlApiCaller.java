@@ -36,7 +36,7 @@ import java.io.UnsupportedEncodingException;
 
 public class GraphQlApiCaller {
 
-    protected static final Logger GraphQlApiCallerLogger = Logger.getLogger(GraphQlApiCaller.class);
+    protected static final Logger logger = Logger.getLogger(GraphQlApiCaller.class);
 
     /**
      * Calling the github graphQL API
@@ -62,14 +62,14 @@ public class GraphQlApiCaller {
             response = client.execute(httpPost);
 
         } catch (UnsupportedEncodingException e) {
-            GraphQlApiCallerLogger.error("Encoding error occured before calling the github graphQL API", e);
+            logger.error("Encoding error occured before calling the github graphQL API", e);
             e.printStackTrace();
         } catch (ClientProtocolException e) {
-            GraphQlApiCallerLogger.error("Client protocol exception occurred when calling the github graphQL API", e);
+            logger.error("Client protocol exception occurred when calling the github graphQL API", e);
 
             e.printStackTrace();
         } catch (IOException e) {
-            GraphQlApiCallerLogger.error("IO Exception occured when calling the github graphQL API", e);
+            logger.error("IO Exception occured when calling the github graphQL API", e);
 
             e.printStackTrace();
         }
@@ -97,7 +97,7 @@ public class GraphQlApiCaller {
 
             //            System.out.println(stringBuilder.toString());
         } catch (Exception e) {
-            GraphQlApiCallerLogger.error("Exception occured when reading the response received from github graphQL API", e);
+            logger.error("Exception occured when reading the response received from github graphQL API", e);
             e.printStackTrace();
         } finally {
 

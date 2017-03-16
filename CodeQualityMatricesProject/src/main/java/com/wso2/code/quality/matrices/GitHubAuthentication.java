@@ -43,7 +43,7 @@ public class GitHubAuthentication {
     protected ArrayList<String> fileNames = new ArrayList<String>();
     protected ArrayList<String> patchString = new ArrayList<String>();
 
-    private static final Logger githubAuthenticationLogger = Logger.getLogger(GitHubAuthentication.class);
+    private static final Logger logger = Logger.getLogger(GitHubAuthentication.class);
 
     GitHubAuthentication(String githubToken) {
         gitHubClient = new GitHubClient();
@@ -68,11 +68,11 @@ public class GitHubAuthentication {
                 fileNames.add(commitFile.getFilename());
                 patchString.add(commitFile.getPatch());
             });
-            githubAuthenticationLogger.info("for" + commitHash + " on the " + repositoryName + " repository, files changed and their relevant changed line ranges added to the arraylists successfully");
+            logger.info("for" + commitHash + " on the " + repositoryName + " repository, files changed and their relevant changed line ranges added to the arraylists successfully");
             mapWithFileNamesAndPatches.put("fileNames", fileNames);
             mapWithFileNamesAndPatches.put("patchString", patchString);
         } catch (IOException e) {
-            githubAuthenticationLogger.error("IO Exception occurred when getting the commit with the given SHA form the given repository ",e);
+            logger.error("IO Exception occurred when getting the commit with the given SHA form the given repository ",e);
             throw new CodeQualityMatricesException("IO Exception occurred when getting the commit with the given SHA form the given repository ",e);
         }
         return mapWithFileNamesAndPatches;

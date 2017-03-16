@@ -40,7 +40,7 @@ public class Reviewers extends BlameCommit {
     Set<String> approvedReviewers = new HashSet<String>();      // to store the reviewed and approved users of the pull requests
     Set<String> commentedReviewers = new HashSet<String>();     // to store the reviewed and commented users of the pull requests
 
-    private static final Logger reviewersLogger = Logger.getLogger(Reviewers.class);
+    private static final Logger logger = Logger.getLogger(Reviewers.class);
 
     public String getSearchPullReqeustAPI() {
         return searchPullReqeustAPIUrl;
@@ -86,14 +86,16 @@ public class Reviewers extends BlameCommit {
                 System.out.println(e.getMessage() + "cause" + e.getCause());
             }
             // reading thus saved json file
-            savingPrNumberAndRepoName(rootJsonObject);
+            if (rootJsonObject != null) {
+                savingPrNumberAndRepoName(rootJsonObject);
+            }
         }
-        reviewersLogger.info("PR numbers which introduce bug lines of code with their relevant repository are saved successfully to mapContainingPRNoAgainstRepoName map");
+        logger.info("PR numbers which introduce bug lines of code with their relevant repository are saved successfully to mapContainingPRNoAgainstRepoName map");
         savingReviewersToList(githubToken);
-        reviewersLogger.info("List of approved reviwers and comment users of the PRs which introduce bug lines to repository are saved in commentedReviewers and approvedReviewers list ");
+        logger.info("List of approved reviwers and comment users of the PRs which introduce bug lines to repository are saved in commentedReviewers and approvedReviewers list ");
         // printing the list of reviewers of pull requests
         printReviewUsers();
-        reviewersLogger.info("Names of approved reviewers and commented reviewers are printed successfully");
+        logger.info("Names of approved reviewers and commented reviewers are printed successfully");
     }
 
     /**
@@ -142,7 +144,9 @@ public class Reviewers extends BlameCommit {
                     System.out.println(e.getMessage() + "cause" + e.getCause());
                 }
                 // for reading the output JSON from above and adding the reviewers to the Set
-                readingTheReviewOutJSON(rootJsonArray, productLocation, prNumber);
+                if (rootJsonArray != null) {
+                    readingTheReviewOutJSON(rootJsonArray, productLocation, prNumber);
+                }
             }
         }
     }

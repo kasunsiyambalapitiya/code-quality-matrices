@@ -38,7 +38,7 @@ import java.io.InputStreamReader;
 
 public class RestApiCaller {
 
-    static Logger restApiCallerLogger = Logger.getLogger(RestApiCaller.class);
+    private static Logger logger = Logger.getLogger(RestApiCaller.class);
 
     /**
      * calling the relevant API and saving the output to a file
@@ -94,13 +94,13 @@ public class RestApiCaller {
                 JSONArray jsonArray = (JSONArray) json;
                 returnedObject = jsonArray;
             }
-            restApiCallerLogger.info("JSON response is passed after calling the given REST API");
+            logger.info("JSON response is passed after calling the given REST API");
 
         } catch (ClientProtocolException e) {
-            restApiCallerLogger.error("ClientProtocolException when calling the REST API", e);
+            logger.error("ClientProtocolException when calling the REST API", e);
             throw new CodeQualityMatricesException("ClientProtocolException when calling the REST API", e);
         } catch (IOException e) {
-            restApiCallerLogger.error("IOException occurred when calling the REST API");
+            logger.error("IOException occurred when calling the REST API");
             throw new CodeQualityMatricesException("IOException occurred when calling the REST API", e);
         } finally {
 
