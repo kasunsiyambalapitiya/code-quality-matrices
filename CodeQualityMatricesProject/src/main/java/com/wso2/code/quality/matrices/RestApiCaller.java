@@ -49,7 +49,7 @@ public class RestApiCaller {
      * @param requireReviewHeader should be true for accessing the github review API or false otherwise
      */
 
-    public Object callingTheAPI(String URL, String token, boolean requireCommitHeader, boolean requireReviewHeader) {
+    public Object callingTheAPI(String URL, String token, boolean requireCommitHeader, boolean requireReviewHeader) throws CodeQualityMatricesException {
 
         BufferedReader bufferedReader = null;
         CloseableHttpClient httpclient = null;
@@ -76,80 +76,32 @@ public class RestApiCaller {
             }
 
             httpResponse = httpclient.execute(httpGet);
-            int responseCode = httpResponse.getStatusLine().getStatusCode();     // to get the response code
-
-            switch (responseCode) {
-                case 200:
-                    //success
-                    bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent(), "UTF-8"));
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String line;
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line);
-                    }
-
-                    // creating a JSON object from the response
-                    String JSONText = stringBuilder.toString();
-                    Object json = new JSONTokener(JSONText).nextValue();    // gives an object http://stackoverflow.com/questions/14685777/how-to-check-if-response-from-server-is-jsonaobject-or-jsonarray
-
-                    if (json instanceof JSONObject) {
-                        JSONObject jsonObject = (JSONObject) json;
-                        returnedObject = jsonObject;
-                    } else if (json instanceof JSONArray) {
-                        JSONArray jsonArray = (JSONArray) json;
-                        returnedObject = jsonArray;
-                    }
-
-                    restApiCallerLogger.info("JSON response is passed after calling the given REST API");
-
-                    break;
-                case 401:
-                    // to handle Response code 401: Unauthorized
-                    System.err.print("Response code 401 : Git hub access token is invalid");
-                    try {
-
-                        Thread.sleep(100);
-                        runningTheAppAgain();
-                    } catch (InterruptedException e) {
-                        restApiCallerLogger.error("InterruptedException occurred when validating the github user", e);
-                        e.printStackTrace();
-                    }
-                    break;
-                case 403:
-                    // to handle invalid credentials
-                    System.err.println("Response Code:403 Invalid Credentials, insert a correct token");
-                    try {
-
-                        Thread.sleep(100);
-                        runningTheAppAgain();
-                    } catch (InterruptedException e) {
-                        restApiCallerLogger.error("InterruptedException occurred when validating the WSO2 PMT user", e);
-                        e.printStackTrace();
-                    }
-
-                    break;
-                case 404:
-                    // to handle invalid patch
-                    System.err.println("Reponse Code 404: Patch not found, enter a valid patch");
-                    try {
-                        Thread.sleep(100);
-                        runningTheAppAgain();
-
-                    } catch (InterruptedException e) {
-                        restApiCallerLogger.error("InterruptedException occurred when validating the given patch", e);
-                        e.printStackTrace();
-                    }
-
-                    break;
-                default:
-                    returnedObject = null;
+            bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent(), "UTF-8"));
+            StringBuilder stringBuilder = new StringBuilder();
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
             }
+
+            // creating a JSON object from the response
+            String JSONText = stringBuilder.toString();
+            Object json = new JSONTokener(JSONText).nextValue();    // gives an object http://stackoverflow.com/questions/14685777/how-to-check-if-response-from-server-is-jsonaobject-or-jsonarray
+
+            if (json instanceof JSONObject) {
+                JSONObject jsonObject = (JSONObject) json;
+                returnedObject = jsonObject;
+            } else if (json instanceof JSONArray) {
+                JSONArray jsonArray = (JSONArray) json;
+                returnedObject = jsonArray;
+            }
+            restApiCallerLogger.info("JSON response is passed after calling the given REST API");
+
         } catch (ClientProtocolException e) {
             restApiCallerLogger.error("ClientProtocolException when calling the REST API", e);
-            e.printStackTrace();
+            throw new CodeQualityMatricesException("ClientProtocolException when calling the REST API", e);
         } catch (IOException e) {
             restApiCallerLogger.error("IOException occurred when calling the REST API");
-            e.printStackTrace();
+            throw new CodeQualityMatricesException("IOException occurred when calling the REST API", e);
         } finally {
 
             if (bufferedReader != null) {
@@ -176,17 +128,5 @@ public class RestApiCaller {
             }
         }
         return returnedObject;
-    }
-
-    /**
-     * this method calls the main method again when incorrect inputs are supplied
-     */
-    public void runningTheAppAgain() {
-        try {
-            MainClass.main(null);
-        } catch (Exception e) {
-            restApiCallerLogger.error("Exception occurred when running the main method again after invalid inputs");
-            e.printStackTrace();
-        }
     }
 }
