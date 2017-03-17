@@ -108,7 +108,8 @@ public class RestApiCaller {
                 try {
                     bufferedReader.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("IOException occurred when closing the BufferedReader");
+                    throw new CodeQualityMatricesException("IOException occurred when closing the BufferedReader", e);
                 }
             }
 
@@ -116,15 +117,15 @@ public class RestApiCaller {
                 try {
                     httpResponse.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                    logger.error("IOException occurred when closing the HttpResponse");
+                    throw new CodeQualityMatricesException("IOException occurred when closing the HttpResponse", e);                }
             }
             if (httpclient != null) {
                 try {
                     httpclient.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                    logger.error("IOException occurred when closing the HttpClient");
+                    throw new CodeQualityMatricesException("IOException occurred when closing the HttpClient", e);                }
             }
         }
         return returnedObject;
