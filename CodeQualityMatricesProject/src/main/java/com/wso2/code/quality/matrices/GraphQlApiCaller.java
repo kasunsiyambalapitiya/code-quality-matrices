@@ -34,19 +34,25 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 
+/**
+ * This class is used for calling the GithubGraphQL API which is currently in early access mode.
+ *
+ * @since 1.0.0
+ */
+
 public class GraphQlApiCaller {
 
     protected static final Logger logger = Logger.getLogger(GraphQlApiCaller.class);
 
     /**
-     * Calling the github graphQL API
+     * Calls the github graphQL API and returns the relevant JSON response received
      *
      * @param queryObject the JSONObject required for querying
      * @param gitHubToken github token for accessing github GraphQL API
      * @return Depending on the content return a JSONObject or a JSONArray
      * @throws IOException
      */
-    public Object callingGraphQl(JSONObject queryObject, String gitHubToken) throws IOException {
+    public Object callingGraphQl(JSONObject queryObject, String gitHubToken) throws CodeQualityMatricesException {
 
         CloseableHttpClient client = null;
         CloseableHttpResponse response = null;
@@ -60,18 +66,15 @@ public class GraphQlApiCaller {
             StringEntity entity = new StringEntity(queryObject.toString());
             httpPost.setEntity(entity);
             response = client.execute(httpPost);
-
         } catch (UnsupportedEncodingException e) {
             logger.error("Encoding error occured before calling the github graphQL API", e);
-            e.printStackTrace();
+            throw new CodeQualityMatricesException("Encoding error occured before calling the github graphQL API",e);
         } catch (ClientProtocolException e) {
             logger.error("Client protocol exception occurred when calling the github graphQL API", e);
-
-            e.printStackTrace();
+           throw new CodeQualityMatricesException("Client protocol exception occurred when calling the github graphQL API",e);
         } catch (IOException e) {
             logger.error("IO Exception occured when calling the github graphQL API", e);
-
-            e.printStackTrace();
+           throw new CodeQualityMatricesException("IO Exception occured when calling the github graphQL API",e);
         }
 
         BufferedReader bufferedReader = null;
@@ -80,7 +83,6 @@ public class GraphQlApiCaller {
             String line;
             StringBuilder stringBuilder = new StringBuilder();
             while ((line = bufferedReader.readLine()) != null) {
-
                 stringBuilder.append(line);
             }
 
@@ -98,11 +100,15 @@ public class GraphQlApiCaller {
             //            System.out.println(stringBuilder.toString());
         } catch (Exception e) {
             logger.error("Exception occured when reading the response received from github graphQL API", e);
-            e.printStackTrace();
+            throw new CodeQualityMatricesException("Exception occured when reading the response received from github graphQL API",e);
         } finally {
-
             if (bufferedReader != null) {
-                bufferedReader.close();
+                try {
+                    bufferedReader.close();
+                } catch (IOException e) {
+                    logger.error("IOException occured when closing the buffered reader",e);
+                    throw new CodeQualityMatricesException("IOException occured when closing the buffered reader",e);
+                }
             }
         }
         return returnedObject;
