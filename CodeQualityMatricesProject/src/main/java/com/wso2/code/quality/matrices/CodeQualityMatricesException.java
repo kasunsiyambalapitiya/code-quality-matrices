@@ -19,9 +19,9 @@
 package com.wso2.code.quality.matrices;
 
 /**
- * The exception class for all Code Quality Matrices project related exceptions
+ * The exception class for all Code Quality Matrices project related exceptions.
  *
- *
+ *@since 1.0.0
  */
 public class CodeQualityMatricesException extends Exception {
     public CodeQualityMatricesException(String message) {

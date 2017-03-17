@@ -33,7 +33,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class is used for communicating with the github REST API from egit github API
+ * This class is used for communicating with the github REST API from egit github API.
+ *
+ * @since 1.0.0
  */
 
 public class GitHubAuthentication {
@@ -53,6 +55,9 @@ public class GitHubAuthentication {
     }
 
     /**
+     * This method is used for saving the files changed and their relevant changed line ranges from
+     * the given commit in the given repository
+     *
      * @param repositoryName The repository name that contain the given commit hash
      * @param commitHash     The querying commit hash
      * @return a map containg arraylist of file changed and their relevant patch
@@ -72,8 +77,8 @@ public class GitHubAuthentication {
             mapWithFileNamesAndPatches.put("fileNames", fileNames);
             mapWithFileNamesAndPatches.put("patchString", patchString);
         } catch (IOException e) {
-            logger.error("IO Exception occurred when getting the commit with the given SHA form the given repository ",e);
-            throw new CodeQualityMatricesException("IO Exception occurred when getting the commit with the given SHA form the given repository ",e);
+            logger.error("IO Exception occurred when getting the commit with the given SHA form the given repository ", e);
+            throw new CodeQualityMatricesException("IO Exception occurred when getting the commit with the given SHA form the given repository ", e);
         }
         return mapWithFileNamesAndPatches;
     }
