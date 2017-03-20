@@ -265,25 +265,7 @@ public class ChangeFinder {
 
                 //checking line by line by iterating the startinLineNo
                 while (endLineNo >= startingLineNo) {
-                    //running through the rangeJSONArray
-//                    IntStream.range(0,rangeJSONArray.length()).forEach(j->{
-//                        JSONObject rangeJSONObject = (JSONObject) rangeJSONArray.get(j);
-//                        int tempStartingLineNo = (int) rangeJSONObject.get("startingLine");
-//                        int tempEndingLineNo = (int) rangeJSONObject.get("endingLine");
-//
-//                        //checking whether the line belongs to that line range group
-//                        if ((tempStartingLineNo <= startingLineNo) && (tempEndingLineNo >= startingLineNo)) {
-//                            // so the relevant startingLineNo belongs in this line range in other words in this JSONObject
-//                            if (!gettingPr) {
-//                                int age = (int) rangeJSONObject.get("age");
-//                                // storing the age field with relevant index of the JSONObject
-//                                mapForStoringAgeAndIndex.putIfAbsent(age, new ArrayList<Integer>());
-//                                if (!mapForStoringAgeAndIndex.get(age).contains(j)) {
-//                                    mapForStoringAgeAndIndex.get(age).add(j);   // adding if the index is not present in the array list for the relevant age
-//                                }
-//
-//                    });
-
+                    // since the index value is required for later processing for loop is used for iteration
                     for (int i = 0; i < rangeJSONArray.length(); i++) {
                         JSONObject rangeJSONObject = (JSONObject) rangeJSONArray.get(i);
                         int tempStartingLineNo = (int) rangeJSONObject.get("startingLine");
@@ -325,7 +307,7 @@ public class ChangeFinder {
                     //converting the map into a treeMap to get it ordered
                     TreeMap<Integer, ArrayList<Integer>> treeMap = new TreeMap<>(mapForStoringAgeAndIndex);
                     int minimumKeyOfMapForStoringAgeAndIndex = treeMap.firstKey(); // getting the minimum key
-                    //                     getting the relevant JSONObject indexes which consists of the recent commit with in the relevant line range
+                    //getting the relevant JSONObject indexes which consists of the recent commit with in the relevant line range
                     ArrayList<Integer> indexesOfJsonObjectForRecentCommit = mapForStoringAgeAndIndex.get(minimumKeyOfMapForStoringAgeAndIndex);
                     // the order of the indexesOfJsonObjectForRecentCommit is not important as we only need to get the parent commit hashes
                     indexesOfJsonObjectForRecentCommit.parallelStream().forEach(index -> {
