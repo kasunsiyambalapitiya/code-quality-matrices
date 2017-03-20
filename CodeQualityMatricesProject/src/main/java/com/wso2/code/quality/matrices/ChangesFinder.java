@@ -93,18 +93,20 @@ public class ChangesFinder {
     public Set obtainRepoNamesForCommitHashes(String gitHubToken, String[] commitsInTheGivenPatch, RestApiCaller restApiCaller) {
 
         //calling the API calling method
-        IntStream.range(0, commitsInTheGivenPatch.length).mapToObj(i -> commitsInTheGivenPatch[i]).forEach(commitHash -> {
-            setUrlForSearchingCommits(commitHash);
-            JSONObject jsonObject = null;
-            try {
-                jsonObject = (JSONObject) restApiCaller.callApi(getUrlForSearchingCommits(), gitHubToken, true, false);
-            } catch (CodeQualityMatricesException e) {
-                logger.error(e.getMessage(), e.getCause());
-                System.exit(1);
-            }
+        IntStream.range(0, commitsInTheGivenPatch.length)
+                .mapToObj(i -> commitsInTheGivenPatch[i])
+                .forEach(commitHash -> {
+                    setUrlForSearchingCommits(commitHash);
+                    JSONObject jsonObject = null;
+                    try {
+                        jsonObject = (JSONObject) restApiCaller.callApi(getUrlForSearchingCommits(), gitHubToken, true, false);
+                    } catch (CodeQualityMatricesException e) {
+                        logger.error(e.getMessage(), e.getCause());
+                        System.exit(1);
+                    }
 
-            saveRepoNamesInAnArray(jsonObject, commitHash, gitHubToken);
-        });
+                    saveRepoNamesInAnArray(jsonObject, commitHash, gitHubToken);
+                });
         return commitHashObtainedForPRReview;
     }
 
@@ -121,39 +123,42 @@ public class ChangesFinder {
         // setting the size of the repoLocationArray
         repoLocation = new String[jsonArrayOfItems.length()];
         //adding the repo name to the array
-        IntStream.range(0, jsonArrayOfItems.length()).forEach(i -> {
-            JSONObject jsonObject = (JSONObject) jsonArrayOfItems.get(i);
-            JSONObject repositoryJsonObject = (JSONObject) jsonObject.get(GITHUB_SEARCH_API_REPOSITORY_KEY_STRING);
-            repoLocation[i] = (String) repositoryJsonObject.get(GITHUB_SEARCH_API_FULL_NAME_OF_REPOSITORY_KEY_STRING);
-        });
+        IntStream.range(0, jsonArrayOfItems.length())
+                .forEach(i -> {
+                    JSONObject jsonObject = (JSONObject) jsonArrayOfItems.get(i);
+                    JSONObject repositoryJsonObject = (JSONObject) jsonObject.get(GITHUB_SEARCH_API_REPOSITORY_KEY_STRING);
+                    repoLocation[i] = (String) repositoryJsonObject.get(GITHUB_SEARCH_API_FULL_NAME_OF_REPOSITORY_KEY_STRING);
+                });
         logger.info("Repo names having the given commit are successfully saved in an array");
 
         SdkGitHubClient sdkGitHubClient = new SdkGitHubClient(gitHubToken);
 
         //        for running through the repoName Array
-        IntStream.range(0, repoLocation.length).filter(i -> StringUtils.contains(repoLocation[i], "wso2/")).forEach(i -> {
-            //clearing all the data in the current fileNames and lineRangesChanged arraylists for each repository
-            //authorNames.clear();
-            fileNames.clear();
-            lineRangesChanged.clear();
-            patchString.clear();
-            Map<String, ArrayList<String>> mapWithFileNamesAndPatch = null;
-            try {
-                mapWithFileNamesAndPatch = sdkGitHubClient.getFilesChanged(repoLocation[i], commitHash);
-            } catch (CodeQualityMatricesException e) {
-                logger.error(e.getMessage(), e.getCause());    // as exceptions cannot be thrown inside a lambda expression
-                System.exit(2);
-            }
-            fileNames = mapWithFileNamesAndPatch.get("fileNames");
-            patchString = mapWithFileNamesAndPatch.get("patchString");
-            saveRelaventEditLineNumbers(fileNames, patchString);
-            try {
-                iterateOverFileChanges(repoLocation[i], commitHash, gitHubToken);
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e.getCause());  // as exceptions cannot be thrown inside a lambda expression
-                System.exit(3);
-            }
-        });
+        IntStream.range(0, repoLocation.length)
+                .filter(i -> StringUtils.contains(repoLocation[i], "wso2/"))
+                .forEach(i -> {
+                    //clearing all the data in the current fileNames and lineRangesChanged arraylists for each repository
+                    //authorNames.clear();
+                    fileNames.clear();
+                    lineRangesChanged.clear();
+                    patchString.clear();
+                    Map<String, ArrayList<String>> mapWithFileNamesAndPatch = null;
+                    try {
+                        mapWithFileNamesAndPatch = sdkGitHubClient.getFilesChanged(repoLocation[i], commitHash);
+                    } catch (CodeQualityMatricesException e) {
+                        logger.error(e.getMessage(), e.getCause());    // as exceptions cannot be thrown inside a lambda expression
+                        System.exit(2);
+                    }
+                    fileNames = mapWithFileNamesAndPatch.get("fileNames");
+                    patchString = mapWithFileNamesAndPatch.get("patchString");
+                    saveRelaventEditLineNumbers(fileNames, patchString);
+                    try {
+                        iterateOverFileChanges(repoLocation[i], commitHash, gitHubToken);
+                    } catch (Exception e) {
+                        logger.error(e.getMessage(), e.getCause());  // as exceptions cannot be thrown inside a lambda expression
+                        System.exit(3);
+                    }
+                });
 
         // for printing the author names and commit hashes for a certain commit.
         System.out.println(authorNames);
@@ -171,33 +176,36 @@ public class ChangesFinder {
         //filtering only the line ranges that are modified and saving to a string array
 
         // cannot ues parallel streams here as the order of the line changes must be preserved
-        patchString.stream().map(patch -> StringUtils.substringsBetween(patch, "@@ ", " @@")).forEach(lineChanges -> {
-            //filtering the lines ranges that existed in the previous file, that exists in the new file and saving them in to the same array
-            IntStream.range(0, lineChanges.length).forEach(j -> {
-                //@@ -22,7 +22,7 @@
-                String tempString = lineChanges[j];
-                String lineRangeInTheOldFileBeingModified = StringUtils.substringBetween(tempString, "-", " +");      // for taking the authors and commit hashes of the previous lines
-                String lineRangeInTheNewFileResultedFromModification = StringUtils.substringAfter(tempString, "+");  // for taking the parent commit
+        patchString.stream()
+                .map(patch -> StringUtils.substringsBetween(patch, "@@ ", " @@"))
+                .forEach(lineChanges -> {
+                    //filtering the lines ranges that existed in the previous file, that exists in the new file and saving them in to the same array
+                    IntStream.range(0, lineChanges.length)
+                            .forEach(j -> {
+                                //@@ -22,7 +22,7 @@
+                                String tempString = lineChanges[j];
+                                String lineRangeInTheOldFileBeingModified = StringUtils.substringBetween(tempString, "-", " +");      // for taking the authors and commit hashes of the previous lines
+                                String lineRangeInTheNewFileResultedFromModification = StringUtils.substringAfter(tempString, "+");  // for taking the parent commit
 
-                int intialLineNoInOldFile = Integer.parseInt(StringUtils.substringBefore(lineRangeInTheOldFileBeingModified, ","));
-                int tempEndLineNoInOldFile = Integer.parseInt(StringUtils.substringAfter(lineRangeInTheOldFileBeingModified, ","));
-                int endLineNoOfOldFile;
-                if (intialLineNoInOldFile != 0) {
-                    // to filterout the newly created files
-                    endLineNoOfOldFile = intialLineNoInOldFile + (tempEndLineNoInOldFile - 1);
-                } else {
-                    endLineNoOfOldFile = tempEndLineNoInOldFile;
-                }
-                int intialLineNoInNewFile = Integer.parseInt(StringUtils.substringBefore(lineRangeInTheNewFileResultedFromModification, ","));
-                int tempEndLineNoInNewFile = Integer.parseInt(StringUtils.substringAfter(lineRangeInTheNewFileResultedFromModification, ","));
-                int endLineNoOfNewFile = intialLineNoInNewFile + (tempEndLineNoInNewFile - 1);
-                // storing the line ranges that are being modified in the same array by replacing values
-                lineChanges[j] = intialLineNoInOldFile + "," + endLineNoOfOldFile + "/" + intialLineNoInNewFile + "," + endLineNoOfNewFile;
-            });
-            ArrayList<String> tempArrayList = new ArrayList<>(Arrays.asList(lineChanges));
-            //adding to the array list which keep track of the line ranges being changed
-            lineRangesChanged.add(tempArrayList);
-        });
+                                int intialLineNoInOldFile = Integer.parseInt(StringUtils.substringBefore(lineRangeInTheOldFileBeingModified, ","));
+                                int tempEndLineNoInOldFile = Integer.parseInt(StringUtils.substringAfter(lineRangeInTheOldFileBeingModified, ","));
+                                int endLineNoOfOldFile;
+                                if (intialLineNoInOldFile != 0) {
+                                    // to filterout the newly created files
+                                    endLineNoOfOldFile = intialLineNoInOldFile + (tempEndLineNoInOldFile - 1);
+                                } else {
+                                    endLineNoOfOldFile = tempEndLineNoInOldFile;
+                                }
+                                int intialLineNoInNewFile = Integer.parseInt(StringUtils.substringBefore(lineRangeInTheNewFileResultedFromModification, ","));
+                                int tempEndLineNoInNewFile = Integer.parseInt(StringUtils.substringAfter(lineRangeInTheNewFileResultedFromModification, ","));
+                                int endLineNoOfNewFile = intialLineNoInNewFile + (tempEndLineNoInNewFile - 1);
+                                // storing the line ranges that are being modified in the same array by replacing values
+                                lineChanges[j] = intialLineNoInOldFile + "," + endLineNoOfOldFile + "/" + intialLineNoInNewFile + "," + endLineNoOfNewFile;
+                            });
+                    ArrayList<String> tempArrayList = new ArrayList<>(Arrays.asList(lineChanges));
+                    //adding to the array list which keep track of the line ranges being changed
+                    lineRangesChanged.add(tempArrayList);
+                });
         System.out.println("done saving file names and their relevant modification line ranges");
         System.out.println(fileNames);
         System.out.println(lineRangesChanged + "\n");
@@ -218,28 +226,29 @@ public class ChangesFinder {
         String repositoryName = StringUtils.substringAfter(repoLocation, "/");
         //        iterating over the fileNames arraylist for the given commit
         //         cannot use parallel streams here as the order of the file names is important in the process
-        fileNames.stream().forEach(fileName -> {
-            int index = fileNames.indexOf(fileName);
-            // the relevant arraylist of changed lines for that file
-            ArrayList<String> arrayListOfRelevantChangedLines = lineRangesChanged.get(index);
-            commitHashesOfTheParent = new HashSet<>();   // for storing the parent commit hashes for all the line ranges of the relevant file
-            graphqlApiJsonObject.put("query", "{repository(owner:\"" + owner + "\",name:\"" + repositoryName + "\"){object(expression:\"" + commitHash + "\"){ ... on Commit{blame(path:\"" + fileName + "\"){ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }");
-            JSONObject rootJsonObject = null;
-            try {
-                //            calling the graphql API for getting blame information for the current file and saving it in a location.
-                rootJsonObject = (JSONObject) graphQlApiCaller.callGraphQlApi(graphqlApiJsonObject, gitHubToken);
-            } catch (CodeQualityMatricesException e) {
-                logger.error(e.getMessage(), e.getCause());     // as exceptions cannot be thrown inside lambda expression
-                System.exit(1);
-            }
-            //            reading the above saved output for the current selected file name
-            readBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLines, false);
+        fileNames.stream()
+                .forEach(fileName -> {
+                    int index = fileNames.indexOf(fileName);
+                    // the relevant arraylist of changed lines for that file
+                    ArrayList<String> arrayListOfRelevantChangedLines = lineRangesChanged.get(index);
+                    commitHashesOfTheParent = new HashSet<>();   // for storing the parent commit hashes for all the line ranges of the relevant file
+                    graphqlApiJsonObject.put("query", "{repository(owner:\"" + owner + "\",name:\"" + repositoryName + "\"){object(expression:\"" + commitHash + "\"){ ... on Commit{blame(path:\"" + fileName + "\"){ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }");
+                    JSONObject rootJsonObject = null;
+                    try {
+                        //            calling the graphql API for getting blame information for the current file and saving it in a location.
+                        rootJsonObject = (JSONObject) graphQlApiCaller.callGraphQlApi(graphqlApiJsonObject, gitHubToken);
+                    } catch (CodeQualityMatricesException e) {
+                        logger.error(e.getMessage(), e.getCause());     // as exceptions cannot be thrown inside lambda expression
+                        System.exit(1);
+                    }
+                    //            reading the above saved output for the current selected file name
+                    readBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLines, false);
 
-            // parent commit hashes are stored in the arraylist for the given file
+                    // parent commit hashes are stored in the arraylist for the given file
 
-            iterateOverToFindAuthors(owner, repositoryName, fileName, arrayListOfRelevantChangedLines, gitHubToken);
-            logger.info("Authors of the bug lines of code which are being fixed from the given patch are saved successfully to authorNames SET");
-        });
+                    iterateOverToFindAuthors(owner, repositoryName, fileName, arrayListOfRelevantChangedLines, gitHubToken);
+                    logger.info("Authors of the bug lines of code which are being fixed from the given patch are saved successfully to authorNames SET");
+                });
     }
 
     /**
@@ -261,93 +270,95 @@ public class ChangesFinder {
 
         //getting the starting line no of the range of lines that are modified from the patch
         // parallel streams are not used in here as the order of the arraylist is important in the process
-        arrayListOfRelevantChangedLines.stream().forEach(lineRanges -> {
-            int startingLineNo;
-            int endLineNo;
-            String oldFileRange = StringUtils.substringBefore(lineRanges, "/");
-            String newFileRange = StringUtils.substringAfter(lineRanges, "/");
-            // need to skip the newly created files from taking the blame as they contain no previous commits
-            if (!oldFileRange.equals("0,0")) {
-                if (gettingPr) {
-                    // need to consider the line range in the old file for finding authors and reviewers
-                    startingLineNo = Integer.parseInt(StringUtils.substringBefore(oldFileRange, ","));
-                    endLineNo = Integer.parseInt(StringUtils.substringAfter(oldFileRange, ","));
-                } else {
-                    // need to consider the line range in the new file resulted from applying the commit for finding parent commits
-
-                    startingLineNo = Integer.parseInt(StringUtils.substringBefore(newFileRange, ","));
-                    endLineNo = Integer.parseInt(StringUtils.substringAfter(newFileRange, ","));
-                }
-
-                // as it is required to create a new Map for finding the recent commit for each line range
-                Map<Integer, ArrayList<Integer>> mapForStoringAgeAndIndex = new HashMap<Integer, ArrayList<Integer>>();
-
-                //checking line by line by iterating the startinLineNo
-                while (endLineNo >= startingLineNo) {
-                    // since the index value is required for later processing "for loop" is used for iteration
-                    for (int i = 0; i < rangeJSONArray.length(); i++) {
-                        JSONObject rangeJSONObject = (JSONObject) rangeJSONArray.get(i);
-                        int tempStartingLineNo = (int) rangeJSONObject.get(GITHUB_GRAPHQL_API_STARTING_LINE_KEY_STRING);
-                        int tempEndingLineNo = (int) rangeJSONObject.get(GITHUB_GRAPHQL_API_ENDING_LINE_KEY_STRING);
-
-                        //checking whether the line belongs to that line range group
-                        if ((tempStartingLineNo <= startingLineNo) && (tempEndingLineNo >= startingLineNo)) {
-                            // so the relevant startingLineNo belongs in this line range in other words in this JSONObject
-                            if (!gettingPr) {
-                                int age = (int) rangeJSONObject.get(GITHUB_GRAPHQL_API_AGE_KEY_STRING);
-                                // storing the age field with relevant index of the JSONObject
-                                mapForStoringAgeAndIndex.putIfAbsent(age, new ArrayList<Integer>());
-                                if (!mapForStoringAgeAndIndex.get(age).contains(i)) {
-                                    mapForStoringAgeAndIndex.get(age).add(i);   // adding if the index is not present in the array list for the relevant age
-                                }
-
-                            } else {
-                                //for saving the author names of commiters
-                                JSONObject commitJSONObject = (JSONObject) rangeJSONObject.get(GITHUB_GRAPHQL_API_COMMIT_KEY_STRING);
-
-                                JSONObject authorJSONObject = (JSONObject) commitJSONObject.get(GITHUB_GRAPHQL_API_AUTHOR_KEY_STRING);
-                                String nameOfTheAuthor = (String) authorJSONObject.get(GITHUB_GRAPHQL_API_NAME_KEY_STRING);
-                                authorNames.add(nameOfTheAuthor);       // authors are added to the Set
-
-                                String urlOfCommit = (String) commitJSONObject.get(GITHUB_GRAPHQL_API_URL_KEY_STRING);
-                                String commitHashForPRReview = StringUtils.substringAfter(urlOfCommit, "commit/");
-                                commitHashObtainedForPRReview.add(commitHashForPRReview);
-                            }
-                            break;
+        arrayListOfRelevantChangedLines.stream()
+                .forEach(lineRanges -> {
+                    int startingLineNo;
+                    int endLineNo;
+                    String oldFileRange = StringUtils.substringBefore(lineRanges, "/");
+                    String newFileRange = StringUtils.substringAfter(lineRanges, "/");
+                    // need to skip the newly created files from taking the blame as they contain no previous commits
+                    if (!oldFileRange.equals("0,0")) {
+                        if (gettingPr) {
+                            // need to consider the line range in the old file for finding authors and reviewers
+                            startingLineNo = Integer.parseInt(StringUtils.substringBefore(oldFileRange, ","));
+                            endLineNo = Integer.parseInt(StringUtils.substringAfter(oldFileRange, ","));
                         } else {
-                            continue;
+                            // need to consider the line range in the new file resulted from applying the commit for finding parent commits
+
+                            startingLineNo = Integer.parseInt(StringUtils.substringBefore(newFileRange, ","));
+                            endLineNo = Integer.parseInt(StringUtils.substringAfter(newFileRange, ","));
                         }
+
+                        // as it is required to create a new Map for finding the recent commit for each line range
+                        Map<Integer, ArrayList<Integer>> mapForStoringAgeAndIndex = new HashMap<Integer, ArrayList<Integer>>();
+
+                        //checking line by line by iterating the startinLineNo
+                        while (endLineNo >= startingLineNo) {
+                            // since the index value is required for later processing, without Java 8 features "for loop" is used for iteration
+                            for (int i = 0; i < rangeJSONArray.length(); i++) {
+                                JSONObject rangeJSONObject = (JSONObject) rangeJSONArray.get(i);
+                                int tempStartingLineNo = (int) rangeJSONObject.get(GITHUB_GRAPHQL_API_STARTING_LINE_KEY_STRING);
+                                int tempEndingLineNo = (int) rangeJSONObject.get(GITHUB_GRAPHQL_API_ENDING_LINE_KEY_STRING);
+
+                                //checking whether the line belongs to that line range group
+                                if ((tempStartingLineNo <= startingLineNo) && (tempEndingLineNo >= startingLineNo)) {
+                                    // so the relevant startingLineNo belongs in this line range in other words in this JSONObject
+                                    if (!gettingPr) {
+                                        int age = (int) rangeJSONObject.get(GITHUB_GRAPHQL_API_AGE_KEY_STRING);
+                                        // storing the age field with relevant index of the JSONObject
+                                        mapForStoringAgeAndIndex.putIfAbsent(age, new ArrayList<Integer>());
+                                        if (!mapForStoringAgeAndIndex.get(age).contains(i)) {
+                                            mapForStoringAgeAndIndex.get(age).add(i);   // adding if the index is not present in the array list for the relevant age
+                                        }
+
+                                    } else {
+                                        //for saving the author names of commiters
+                                        JSONObject commitJSONObject = (JSONObject) rangeJSONObject.get(GITHUB_GRAPHQL_API_COMMIT_KEY_STRING);
+
+                                        JSONObject authorJSONObject = (JSONObject) commitJSONObject.get(GITHUB_GRAPHQL_API_AUTHOR_KEY_STRING);
+                                        String nameOfTheAuthor = (String) authorJSONObject.get(GITHUB_GRAPHQL_API_NAME_KEY_STRING);
+                                        authorNames.add(nameOfTheAuthor);       // authors are added to the Set
+
+                                        String urlOfCommit = (String) commitJSONObject.get(GITHUB_GRAPHQL_API_URL_KEY_STRING);
+                                        String commitHashForPRReview = StringUtils.substringAfter(urlOfCommit, "commit/");
+                                        commitHashObtainedForPRReview.add(commitHashForPRReview);
+                                    }
+                                    break;
+                                } else {
+                                    continue;
+                                }
+                            }
+                            startingLineNo++;   // to check for other line numbers
+                        }
+
+                        //for the above line range getting the lastest commit which modified the lines
+                        if (!gettingPr) {
+                            //converting the map into a treeMap to get it ordered
+                            TreeMap<Integer, ArrayList<Integer>> treeMap = new TreeMap<>(mapForStoringAgeAndIndex);
+                            int minimumKeyOfMapForStoringAgeAndIndex = treeMap.firstKey(); // getting the minimum key
+                            //getting the relevant JSONObject indexes which consists of the recent commit with in the relevant line range
+                            ArrayList<Integer> indexesOfJsonObjectForRecentCommit = mapForStoringAgeAndIndex.get(minimumKeyOfMapForStoringAgeAndIndex);
+                            // the order of the indexesOfJsonObjectForRecentCommit is not important as we only need to get the parent commit hashes
+                            indexesOfJsonObjectForRecentCommit.parallelStream()
+                                    .forEach(index -> {
+                                        JSONObject rangeJSONObject = (JSONObject) rangeJSONArray.get(index);
+                                        JSONObject commitJSONObject = (JSONObject) rangeJSONObject.get(GITHUB_GRAPHQL_API_COMMIT_KEY_STRING);
+                                        JSONObject historyJSONObject = (JSONObject) commitJSONObject.get(GITHUB_GRAPHQL_API_HISTORY_KEY_STRING);
+                                        JSONArray edgesJSONArray = (JSONArray) historyJSONObject.get(GITHUB_GRAPHQL_API_EDGE_KEY_STRING);
+                                        //getting the second json object from the array as it contain the commit of the parent which modified the above line range
+                                        JSONObject edgeJSONObject = (JSONObject) edgesJSONArray.get(1);
+                                        JSONObject nodeJSONObject = (JSONObject) edgeJSONObject.get(GITHUB_GRAPHQL_API_NODE_KEY_STRING);
+                                        String urlOfTheParentCommit = (String) nodeJSONObject.get(GITHUB_GRAPHQL_API_URL_KEY_STRING);       // this contain the URL of the parent commit
+                                        String commitHash = (String) StringUtils.substringAfter(urlOfTheParentCommit, "commit/");
+                                        commitHashesOfTheParent.add(commitHash);
+
+                                    });
+                            logger.info("Parent Commits hashes of the lines which are being fixed by the patch are saved to commitHashesOfTheParent SET successfully ");
+                        }
+
                     }
-                    startingLineNo++;   // to check for other line numbers
-                }
 
-                //for the above line range getting the lastest commit which modified the lines
-                if (!gettingPr) {
-                    //converting the map into a treeMap to get it ordered
-                    TreeMap<Integer, ArrayList<Integer>> treeMap = new TreeMap<>(mapForStoringAgeAndIndex);
-                    int minimumKeyOfMapForStoringAgeAndIndex = treeMap.firstKey(); // getting the minimum key
-                    //getting the relevant JSONObject indexes which consists of the recent commit with in the relevant line range
-                    ArrayList<Integer> indexesOfJsonObjectForRecentCommit = mapForStoringAgeAndIndex.get(minimumKeyOfMapForStoringAgeAndIndex);
-                    // the order of the indexesOfJsonObjectForRecentCommit is not important as we only need to get the parent commit hashes
-                    indexesOfJsonObjectForRecentCommit.parallelStream().forEach(index -> {
-                        JSONObject rangeJSONObject = (JSONObject) rangeJSONArray.get(index);
-                        JSONObject commitJSONObject = (JSONObject) rangeJSONObject.get(GITHUB_GRAPHQL_API_COMMIT_KEY_STRING);
-                        JSONObject historyJSONObject = (JSONObject) commitJSONObject.get(GITHUB_GRAPHQL_API_HISTORY_KEY_STRING);
-                        JSONArray edgesJSONArray = (JSONArray) historyJSONObject.get(GITHUB_GRAPHQL_API_EDGE_KEY_STRING);
-                        //getting the second json object from the array as it contain the commit of the parent which modified the above line range
-                        JSONObject edgeJSONObject = (JSONObject) edgesJSONArray.get(1);
-                        JSONObject nodeJSONObject = (JSONObject) edgeJSONObject.get(GITHUB_GRAPHQL_API_NODE_KEY_STRING);
-                        String urlOfTheParentCommit = (String) nodeJSONObject.get(GITHUB_GRAPHQL_API_URL_KEY_STRING);       // this contain the URL of the parent commit
-                        String commitHash = (String) StringUtils.substringAfter(urlOfTheParentCommit, "commit/");
-                        commitHashesOfTheParent.add(commitHash);
-
-                    });
-                    logger.info("Parent Commits hashes of the lines which are being fixed by the patch are saved to commitHashesOfTheParent SET successfully ");
-                }
-
-            }
-
-        });
+                });
     }
 
     /**
@@ -363,17 +374,18 @@ public class ChangesFinder {
 
         // calling the graphql api to get the blame details of the current file for the parent commits (That is found by filtering in the graqhQL output)
         //as the order is not important in here parallel streams are used
-        commitHashesOfTheParent.parallelStream().forEach(parentCommitHashForCallingGraphQl -> {
-            graphqlApiJsonObject.put("query", "{repository(owner:\"" + owner + "\",name:\"" + repositoryName + "\"){object(expression:\"" + parentCommitHashForCallingGraphQl + "\"){ ... on Commit{blame(path:\"" + fileName + "\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }");
-            JSONObject rootJsonObject = null;
-            try {
-                rootJsonObject = (JSONObject) graphQlApiCaller.callGraphQlApi(graphqlApiJsonObject, gitHubToken);
-                readBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLines, true);
-            } catch (CodeQualityMatricesException e) {
-                logger.error(e.getMessage(), e.getCause());
-                System.exit(1);
-            }
-        });
+        commitHashesOfTheParent.parallelStream()
+                .forEach(parentCommitHashForCallingGraphQl -> {
+                    graphqlApiJsonObject.put("query", "{repository(owner:\"" + owner + "\",name:\"" + repositoryName + "\"){object(expression:\"" + parentCommitHashForCallingGraphQl + "\"){ ... on Commit{blame(path:\"" + fileName + "\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }");
+                    JSONObject rootJsonObject = null;
+                    try {
+                        rootJsonObject = (JSONObject) graphQlApiCaller.callGraphQlApi(graphqlApiJsonObject, gitHubToken);
+                        readBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLines, true);
+                    } catch (CodeQualityMatricesException e) {
+                        logger.error(e.getMessage(), e.getCause());
+                        System.exit(1);
+                    }
+                });
     }
 }
 

@@ -57,7 +57,9 @@ public class Pmt {
         logger.info(" The commits hashes obtained from WSO2 PMT are successfully saved to an array");
         System.out.println("The commit Ids are");
         //            for printing all the commits ID associated with a patch
-        IntStream.range(0, patchInformation_svnRevisionpublic.length).mapToObj(i -> patchInformation_svnRevisionpublic[i]).forEach(System.out::println);
+        IntStream.range(0, patchInformation_svnRevisionpublic.length)
+                .mapToObj(i -> patchInformation_svnRevisionpublic[i])
+                .forEach(System.out::println);
         System.out.println();
 
         //to prevent from internaal representation by returning referecnce to mutable object
@@ -89,6 +91,7 @@ public class Pmt {
 
     /**
      * This method is used to obtain a sequential stream
+     *
      * @param array JSON array that a sequential stream should be obtained from
      * @return a sequential stream created from the supplied JSON Array
      */
