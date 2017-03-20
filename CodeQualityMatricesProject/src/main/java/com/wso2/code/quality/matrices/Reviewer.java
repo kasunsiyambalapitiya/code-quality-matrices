@@ -94,8 +94,9 @@ public class Reviewer {
             JSONObject rootJsonObject = null;
             try {
                 rootJsonObject = (JSONObject) restApiCaller.callApi(getSearchPullReqeustAPI(), githubToken, false, true);
-            } catch (Exception e) {
-                System.out.println(e.getMessage() + " cause " + e.getCause());
+            } catch (CodeQualityMatricesException e) {
+                logger.error(e.getMessage(),e.getCause());
+                System.exit(1);
             }
             // reading thus saved json file
             if (rootJsonObject != null) {
@@ -171,7 +172,7 @@ public class Reviewer {
 
         for (Map.Entry m : mapContainingPRNoAgainstRepoName.entrySet()) {
             String productLocation = (String) m.getKey();
-            @SuppressWarnings("unchecked")
+
             Set<Integer> prNumbers = (Set<Integer>) m.getValue();
 
             prNumbers.stream().forEach(prNumber -> {
@@ -179,8 +180,9 @@ public class Reviewer {
                 JSONArray reviewJsonArray = null;
                 try {
                     reviewJsonArray = (JSONArray) restApiCaller.callApi(getPullRequestReviewAPIUrl(), githubToken, false, true);
-                } catch (Exception e) {
-                    System.out.println(e.getMessage() + "cause" + e.getCause());
+                } catch (CodeQualityMatricesException e) {
+                    logger.error(e.getMessage(),e.getCause());
+                    System.exit(1);
                 }
                 // for reading the output JSON from above and adding the reviewers to the Set
                 if (reviewJsonArray != null) {
