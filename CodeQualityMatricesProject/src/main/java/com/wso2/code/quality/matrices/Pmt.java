@@ -94,7 +94,7 @@ public class Pmt {
      * @param array JSON array that a sequential stream should be obtained from
      * @return a sequential stream created from the supplied JSON Array
      */
-    private static Stream<Object> arrayToStream(JSONArray array) {
+    public static Stream<Object> arrayToStream(JSONArray array) {
         return StreamSupport.stream(array.spliterator(), false);
     }
 
