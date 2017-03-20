@@ -122,6 +122,8 @@ public class ChangeFinder {
             try {
                 mapWithFileNamesAndPatch = sdkGitHubClient.getFilesChanged(repoLocation[i], commitHash);
             } catch (Exception e) {
+
+                // here
                 System.out.println(e.getMessage() + "cause" + e.getCause());
             }
             fileNames = mapWithFileNamesAndPatch.get("fileNames");
@@ -209,6 +211,7 @@ public class ChangeFinder {
                 //            calling the graphql API for getting blame information for the current file and saving it in a location.
                 rootJsonObject = (JSONObject) graphQlApiCaller.callGraphQlApi(graphqlApiJsonObject, gitHubToken);
             } catch (CodeQualityMatricesException e) {
+                //check here
                 System.out.println(e.getMessage() + "cause" + e.getCause());            }
             //            reading the above saved output for the current selected file name
             readBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLines, false);
@@ -244,12 +247,8 @@ public class ChangeFinder {
             int endLineNo;
             String oldFileRange = StringUtils.substringBefore(lineRanges, "/");
             String newFileRange = StringUtils.substringAfter(lineRanges, "/");
-            // need to skip the newly created files from taking the blame
-            if (oldFileRange.equals("0,0")) {
-                return;
-            }
-            //non newly created files
-            else {
+            // need to skip the newly created files from taking the blame as they contain no previous commits
+            if (!oldFileRange.equals("0,0")) {
                 if (gettingPr) {
                     // need to consider the line range in the old file for finding authors and reviewers
                     startingLineNo = Integer.parseInt(StringUtils.substringBefore(oldFileRange, ","));
@@ -267,6 +266,24 @@ public class ChangeFinder {
                 //checking line by line by iterating the startinLineNo
                 while (endLineNo >= startingLineNo) {
                     //running through the rangeJSONArray
+//                    IntStream.range(0,rangeJSONArray.length()).forEach(j->{
+//                        JSONObject rangeJSONObject = (JSONObject) rangeJSONArray.get(j);
+//                        int tempStartingLineNo = (int) rangeJSONObject.get("startingLine");
+//                        int tempEndingLineNo = (int) rangeJSONObject.get("endingLine");
+//
+//                        //checking whether the line belongs to that line range group
+//                        if ((tempStartingLineNo <= startingLineNo) && (tempEndingLineNo >= startingLineNo)) {
+//                            // so the relevant startingLineNo belongs in this line range in other words in this JSONObject
+//                            if (!gettingPr) {
+//                                int age = (int) rangeJSONObject.get("age");
+//                                // storing the age field with relevant index of the JSONObject
+//                                mapForStoringAgeAndIndex.putIfAbsent(age, new ArrayList<Integer>());
+//                                if (!mapForStoringAgeAndIndex.get(age).contains(j)) {
+//                                    mapForStoringAgeAndIndex.get(age).add(j);   // adding if the index is not present in the array list for the relevant age
+//                                }
+//
+//                    });
+
                     for (int i = 0; i < rangeJSONArray.length(); i++) {
                         JSONObject rangeJSONObject = (JSONObject) rangeJSONArray.get(i);
                         int tempStartingLineNo = (int) rangeJSONObject.get("startingLine");
@@ -326,7 +343,9 @@ public class ChangeFinder {
                     });
                     logger.info("Parent Commits hashes of the lines which are being fixed by the patch are saved to commitHashesOfTheParent SET successfully ");
                 }
+
             }
+
         });
     }
 
