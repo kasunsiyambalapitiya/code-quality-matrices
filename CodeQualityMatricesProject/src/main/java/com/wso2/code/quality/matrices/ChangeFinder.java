@@ -52,6 +52,28 @@ public class ChangeFinder {
     GraphQlApiCaller graphQlApiCaller = new GraphQlApiCaller();
 
     private static final Logger logger = Logger.getLogger(ChangeFinder.class);
+    // constants for accessing the Github API responses
+    private static final String GITHUB_SEARCH_API_ITEMS_KEY_STRING="items";
+    private static final String GITHUB_SEARCH_API_REPOSITORY_KEY_STRING="repository";
+    private static final String GITHUB_SEARCH_API_FULL_NAME_OF_REPOSITORY_KEY_STRING="full_name";
+    private static final String GITHUB_GRAPHQL_API_STARTING_LINE_KEY_STRING="startingLine";
+    private static final String GITHUB_GRAPHQL_API_ENDING_LINE_KEY_STRING="endingLine";
+    private static final String GITHUB_GRAPHQL_API_AGE_KEY_STRING="age";
+    private static final String GITHUB_GRAPHQL_API_DATA_KEY_STRING="data";
+    private static final String GITHUB_GRAPHQL_API_REPOSITORY_KEY_STRING="repository";
+    private static final String GITHUB_GRAPHQL_API_OBJECT_KEY_STRING="object";
+    private static final String GITHUB_GRAPHQL_API_BLAME_KEY_STRING="blame";
+    private static final String GITHUB_GRAPHQL_API_RANGES_KEY_STRING="ranges";
+    private static final String GITHUB_GRAPHQL_API_COMMIT_KEY_STRING="commit";
+    private static final String GITHUB_GRAPHQL_API_AUTHOR_KEY_STRING="author";
+    private static final String GITHUB_GRAPHQL_API_NAME_KEY_STRING="name";
+    private static final String GITHUB_GRAPHQL_API_URL_KEY_STRING="url";
+    private static final String GITHUB_GRAPHQL_API_HISTORY_KEY_STRING="history";
+    private static final String GITHUB_GRAPHQL_API_EDGE_KEY_STRING="edges";
+    private static final String GITHUB_GRAPHQL_API_NODE_KEY_STRING="node";
+
+
+
 
     public String getUrlForSearchingCommits() {
         return urlForObtainingCommits;
@@ -98,14 +120,14 @@ public class ChangeFinder {
      */
 
     public void saveRepoNamesInAnArray(JSONObject rootJsonObject, String commitHash, String gitHubToken) throws CodeQualityMatricesException {
-        JSONArray jsonArrayOfItems = (JSONArray) rootJsonObject.get("items");
+        JSONArray jsonArrayOfItems = (JSONArray) rootJsonObject.get(GITHUB_SEARCH_API_ITEMS_KEY_STRING);
         // setting the size of the repoLocationArray
         repoLocation = new String[jsonArrayOfItems.length()];
         //adding the repo name to the array
         IntStream.range(0, jsonArrayOfItems.length()).forEach(i -> {
             JSONObject jsonObject = (JSONObject) jsonArrayOfItems.get(i);
-            JSONObject repositoryJsonObject = (JSONObject) jsonObject.get("repository");
-            repoLocation[i] = (String) repositoryJsonObject.get("full_name");
+            JSONObject repositoryJsonObject = (JSONObject) jsonObject.get(GITHUB_SEARCH_API_REPOSITORY_KEY_STRING);
+            repoLocation[i] = (String) repositoryJsonObject.get(GITHUB_SEARCH_API_FULL_NAME_OF_REPOSITORY_KEY_STRING);
         });
         logger.info("Repo names having the given commit are successfully saved in an array");
 
@@ -234,11 +256,11 @@ public class ChangeFinder {
     public void readBlameReceivedForAFile(JSONObject rootJsonObject, ArrayList<String> arrayListOfRelevantChangedLines, boolean gettingPr) {
 
         //running a iterator for fileName arrayList to get the location of the above saved file
-        JSONObject dataJSONObject = (JSONObject) rootJsonObject.get("data");
-        JSONObject repositoryJSONObect = (JSONObject) dataJSONObject.get("repository");
-        JSONObject objectJSONObject = (JSONObject) repositoryJSONObect.get("object");
-        JSONObject blameJSONObject = (JSONObject) objectJSONObject.get("blame");
-        JSONArray rangeJSONArray = (JSONArray) blameJSONObject.get("ranges");
+        JSONObject dataJSONObject = (JSONObject) rootJsonObject.get(GITHUB_GRAPHQL_API_DATA_KEY_STRING);
+        JSONObject repositoryJSONObect = (JSONObject) dataJSONObject.get(GITHUB_GRAPHQL_API_REPOSITORY_KEY_STRING);
+        JSONObject objectJSONObject = (JSONObject) repositoryJSONObect.get(GITHUB_GRAPHQL_API_OBJECT_KEY_STRING);
+        JSONObject blameJSONObject = (JSONObject) objectJSONObject.get(GITHUB_GRAPHQL_API_BLAME_KEY_STRING);
+        JSONArray rangeJSONArray = (JSONArray) blameJSONObject.get(GITHUB_GRAPHQL_API_RANGES_KEY_STRING);
 
         //getting the starting line no of the range of lines that are modified from the patch
         // parallel streams are not used in here as the order of the arraylist is important in the process
@@ -265,17 +287,17 @@ public class ChangeFinder {
 
                 //checking line by line by iterating the startinLineNo
                 while (endLineNo >= startingLineNo) {
-                    // since the index value is required for later processing for loop is used for iteration
+                    // since the index value is required for later processing "for loop" is used for iteration
                     for (int i = 0; i < rangeJSONArray.length(); i++) {
                         JSONObject rangeJSONObject = (JSONObject) rangeJSONArray.get(i);
-                        int tempStartingLineNo = (int) rangeJSONObject.get("startingLine");
-                        int tempEndingLineNo = (int) rangeJSONObject.get("endingLine");
+                        int tempStartingLineNo = (int) rangeJSONObject.get(GITHUB_GRAPHQL_API_STARTING_LINE_KEY_STRING);
+                        int tempEndingLineNo = (int) rangeJSONObject.get(GITHUB_GRAPHQL_API_ENDING_LINE_KEY_STRING);
 
                         //checking whether the line belongs to that line range group
                         if ((tempStartingLineNo <= startingLineNo) && (tempEndingLineNo >= startingLineNo)) {
                             // so the relevant startingLineNo belongs in this line range in other words in this JSONObject
                             if (!gettingPr) {
-                                int age = (int) rangeJSONObject.get("age");
+                                int age = (int) rangeJSONObject.get(GITHUB_GRAPHQL_API_AGE_KEY_STRING);
                                 // storing the age field with relevant index of the JSONObject
                                 mapForStoringAgeAndIndex.putIfAbsent(age, new ArrayList<Integer>());
                                 if (!mapForStoringAgeAndIndex.get(age).contains(i)) {
@@ -284,13 +306,13 @@ public class ChangeFinder {
 
                             } else {
                                 //for saving the author names of commiters
-                                JSONObject commitJSONObject = (JSONObject) rangeJSONObject.get("commit");
+                                JSONObject commitJSONObject = (JSONObject) rangeJSONObject.get(GITHUB_GRAPHQL_API_COMMIT_KEY_STRING);
 
-                                JSONObject authorJSONObject = (JSONObject) commitJSONObject.get("author");
-                                String nameOfTheAuthor = (String) authorJSONObject.get("name");
+                                JSONObject authorJSONObject = (JSONObject) commitJSONObject.get(GITHUB_GRAPHQL_API_AUTHOR_KEY_STRING);
+                                String nameOfTheAuthor = (String) authorJSONObject.get(GITHUB_GRAPHQL_API_NAME_KEY_STRING);
                                 authorNames.add(nameOfTheAuthor);       // authors are added to the Set
 
-                                String urlOfCommit = (String) commitJSONObject.get("url");
+                                String urlOfCommit = (String) commitJSONObject.get(GITHUB_GRAPHQL_API_URL_KEY_STRING);
                                 String commitHashForPRReview = StringUtils.substringAfter(urlOfCommit, "commit/");
                                 commitHashObtainedForPRReview.add(commitHashForPRReview);
                             }
@@ -312,13 +334,13 @@ public class ChangeFinder {
                     // the order of the indexesOfJsonObjectForRecentCommit is not important as we only need to get the parent commit hashes
                     indexesOfJsonObjectForRecentCommit.parallelStream().forEach(index -> {
                         JSONObject rangeJSONObject = (JSONObject) rangeJSONArray.get(index);
-                        JSONObject commitJSONObject = (JSONObject) rangeJSONObject.get("commit");
-                        JSONObject historyJSONObject = (JSONObject) commitJSONObject.get("history");
-                        JSONArray edgesJSONArray = (JSONArray) historyJSONObject.get("edges");
+                        JSONObject commitJSONObject = (JSONObject) rangeJSONObject.get(GITHUB_GRAPHQL_API_COMMIT_KEY_STRING);
+                        JSONObject historyJSONObject = (JSONObject) commitJSONObject.get(GITHUB_GRAPHQL_API_HISTORY_KEY_STRING);
+                        JSONArray edgesJSONArray = (JSONArray) historyJSONObject.get(GITHUB_GRAPHQL_API_EDGE_KEY_STRING);
                         //getting the second json object from the array as it contain the commit of the parent which modified the above line range
                         JSONObject edgeJSONObject = (JSONObject) edgesJSONArray.get(1);
-                        JSONObject nodeJSONObject = (JSONObject) edgeJSONObject.get("node");
-                        String urlOfTheParentCommit = (String) nodeJSONObject.get("url");       // this contain the URL of the parent commit
+                        JSONObject nodeJSONObject = (JSONObject) edgeJSONObject.get(GITHUB_GRAPHQL_API_NODE_KEY_STRING);
+                        String urlOfTheParentCommit = (String) nodeJSONObject.get(GITHUB_GRAPHQL_API_URL_KEY_STRING);       // this contain the URL of the parent commit
                         String commitHash = (String) StringUtils.substringAfter(urlOfTheParentCommit, "commit/");
                         commitHashesOfTheParent.add(commitHash);
 
