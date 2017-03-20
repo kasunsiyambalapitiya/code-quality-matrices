@@ -33,14 +33,14 @@ import java.util.Set;
  * This class is used to find the revierwers of the buggy lines of code
  */
 
-public class Reviewers extends BlameCommit {
+public class Reviewer {
 
     String searchPullReqeustAPIUrl;
     String pullRequestReviewAPIUrl;
     Set<String> approvedReviewers = new HashSet<String>();      // to store the reviewed and approved users of the pull requests
     Set<String> commentedReviewers = new HashSet<String>();     // to store the reviewed and commented users of the pull requests
 
-    private static final Logger logger = Logger.getLogger(Reviewers.class);
+    private static final Logger logger = Logger.getLogger(Reviewer.class);
 
     public String getSearchPullReqeustAPI() {
         return searchPullReqeustAPIUrl;
@@ -73,7 +73,7 @@ public class Reviewers extends BlameCommit {
      * @param commitHashObtainedForPRReview commit hash Set for finding the pull requests
      * @param githubToken                   github token for accessing github REST API
      */
-    public void findingReviewers(Set<String> commitHashObtainedForPRReview, String githubToken) {
+    public void findReviewers(Set<String> commitHashObtainedForPRReview, String githubToken, RestApiCaller restApiCaller) {
         Iterator commitHashObtainedForPRReviewIterator = commitHashObtainedForPRReview.iterator();
         while (commitHashObtainedForPRReviewIterator.hasNext()) {
             String commitHashForFindingReviewers = (String) commitHashObtainedForPRReviewIterator.next();
@@ -81,17 +81,17 @@ public class Reviewers extends BlameCommit {
             // calling the github search API
             JSONObject rootJsonObject = null;
             try {
-                rootJsonObject = (JSONObject) callingTheAPI(getSearchPullReqeustAPI(), githubToken, false, true);
+                rootJsonObject = (JSONObject) restApiCaller.callApi(getSearchPullReqeustAPI(), githubToken, false, true);
             } catch (Exception e) {
-                System.out.println(e.getMessage() + "cause" + e.getCause());
+                System.out.println(e.getMessage() + " cause " + e.getCause());
             }
             // reading thus saved json file
             if (rootJsonObject != null) {
-                savingPrNumberAndRepoName(rootJsonObject);
+                savePrNumberAndRepoName(rootJsonObject);
             }
         }
         logger.info("PR numbers which introduce bug lines of code with their relevant repository are saved successfully to mapContainingPRNoAgainstRepoName map");
-        savingReviewersToList(githubToken);
+        saveReviewersToList(githubToken,restApiCaller);
         logger.info("List of approved reviwers and comment users of the PRs which introduce bug lines to repository are saved in commentedReviewers and approvedReviewers list ");
         // printing the list of reviewers of pull requests
         printReviewUsers();
@@ -103,7 +103,7 @@ public class Reviewers extends BlameCommit {
      *
      * @param rootJsonObject JSONObject received from github search API
      */
-    public void savingPrNumberAndRepoName(JSONObject rootJsonObject) {
+    public void savePrNumberAndRepoName(JSONObject rootJsonObject) {
         JSONArray itemsJsonArray = (JSONArray) rootJsonObject.get("items");
 
         for (int i = 0; i < itemsJsonArray.length(); i++) {
@@ -127,7 +127,7 @@ public class Reviewers extends BlameCommit {
      *
      * @param githubToken github token for accessing github REST API
      */
-    public void savingReviewersToList(String githubToken) {
+    public void saveReviewersToList(String githubToken, RestApiCaller restApiCaller) {
 
         for (Map.Entry m : mapContainingPRNoAgainstRepoName.entrySet()) {
             String productLocation = (String) m.getKey();
@@ -139,13 +139,13 @@ public class Reviewers extends BlameCommit {
                 setPullRequestReviewAPIUrl(productLocation, prNumber);
                 JSONArray rootJsonArray = null;
                 try {
-                    rootJsonArray = (JSONArray) callingTheAPI(getPullRequestReviewAPIUrl(), githubToken, false, true);
+                    rootJsonArray = (JSONArray) restApiCaller.callApi(getPullRequestReviewAPIUrl(), githubToken, false, true);
                 } catch (Exception e) {
                     System.out.println(e.getMessage() + "cause" + e.getCause());
                 }
                 // for reading the output JSON from above and adding the reviewers to the Set
                 if (rootJsonArray != null) {
-                    readingTheReviewOutJSON(rootJsonArray, productLocation, prNumber);
+                    readTheReviewOutJSON(rootJsonArray, productLocation, prNumber);
                 }
             }
         }
@@ -158,7 +158,7 @@ public class Reviewers extends BlameCommit {
      * @param productLocation Product Location for printing the error message when there are no reviewers and a commented users
      * @param prNumber        relevant PR number for finding the reviewers and commenters
      */
-    public void readingTheReviewOutJSON(JSONArray reviewJsonArray, String productLocation, int prNumber) {
+    public void readTheReviewOutJSON(JSONArray reviewJsonArray, String productLocation, int prNumber) {
 
         if (reviewJsonArray.length() != 0) {
 
