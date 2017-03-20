@@ -23,7 +23,6 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -35,10 +34,11 @@ import java.util.TreeMap;
 import java.util.stream.IntStream;
 
 /**
- * This class is used for getting the blame information on relevant lines changeed from the given patch
+ * This class is used for getting the blame information on relevant lines changed from the given patch
+ * @since 1.0.0
  */
 
-public class BlameCommit extends RestApiCaller {
+public class ChangeFinder {
 
     private String urlForObtainingCommits, urlForGetingFilesChanged;
     protected ArrayList<String> fileNames = new ArrayList<String>();
@@ -47,11 +47,11 @@ public class BlameCommit extends RestApiCaller {
     JSONObject graphqlApiJsonObject = new JSONObject();
     Set<String> commitHashesOfTheParent;
     Set<String> authorNames = new HashSet<String>();    //as the authors are for all the commits that exists in the relevant patch
-    protected Set<String> commitHashObtainedForPRReview = new HashSet<String>();  //  relevant commits in old file that need to find the PR Reviewers
+    protected Set<String> commitHashObtainedForPRReview = new HashSet<String>();  //  relevant commits in old file that need to find the PR Reviewer
     private String repoLocation[];
     GraphQlApiCaller graphQlApiCaller = new GraphQlApiCaller();
 
-    private static final Logger logger = Logger.getLogger(BlameCommit.class);
+    private static final Logger logger = Logger.getLogger(ChangeFinder.class);
 
     public String getUrlForSearchingCommits() {
         return urlForObtainingCommits;
@@ -69,14 +69,14 @@ public class BlameCommit extends RestApiCaller {
      * @param restApiCaller          Instance of the RestApiCaller class for accessing the REST APIs
      * @return a Set <String> containing the commit hashes that needs to be checked for reviewers
      */
-    public Set obtainingRepoNamesForCommitHashes(String gitHubToken, String[] commitsInTheGivenPatch, RestApiCaller restApiCaller) {
+    public Set obtainRepoNamesForCommitHashes(String gitHubToken, String[] commitsInTheGivenPatch, RestApiCaller restApiCaller) {
 
         //calling the API calling method
         IntStream.range(0, commitsInTheGivenPatch.length).mapToObj(i -> commitsInTheGivenPatch[i]).forEach(commitHash -> {
             setUrlForSearchingCommits(commitHash);
             JSONObject jsonObject = null;
             try {
-                jsonObject = (JSONObject) restApiCaller.callingTheAPI(getUrlForSearchingCommits(), gitHubToken, true, false);
+                jsonObject = (JSONObject) restApiCaller.callApi(getUrlForSearchingCommits(), gitHubToken, true, false);
             } catch (Exception e) {
                 System.out.println(e.getMessage() + "cause" + e.getCause());
             }
@@ -109,7 +109,7 @@ public class BlameCommit extends RestApiCaller {
         });
         logger.info("Repo names having the given commit are successfully saved in an array");
 
-        GitHubAuthentication gitHubAuthentication = new GitHubAuthentication(gitHubToken);
+        SdkGitHubClient sdkGitHubClient = new SdkGitHubClient(gitHubToken);
 
         //        for running through the repoName Array
         IntStream.range(0, repoLocation.length).filter(i -> StringUtils.contains(repoLocation[i], "wso2/")).forEach(i -> {
@@ -120,15 +120,15 @@ public class BlameCommit extends RestApiCaller {
             patchString.clear();
             Map<String, ArrayList<String>> mapWithFileNamesAndPatch = null;
             try {
-                mapWithFileNamesAndPatch = gitHubAuthentication.gettingFilesChanged(repoLocation[i], commitHash);
+                mapWithFileNamesAndPatch = sdkGitHubClient.getFilesChanged(repoLocation[i], commitHash);
             } catch (Exception e) {
                 System.out.println(e.getMessage() + "cause" + e.getCause());
             }
             fileNames = mapWithFileNamesAndPatch.get("fileNames");
             patchString = mapWithFileNamesAndPatch.get("patchString");
-            savingRelaventEditLineNumbers(fileNames, patchString);
+            saveRelaventEditLineNumbers(fileNames, patchString);
             try {
-                iteratingOver(repoLocation[i], commitHash, gitHubToken);
+                iterateOverFileChanges(repoLocation[i], commitHash, gitHubToken);
             } catch (Exception e) {
                 System.out.println(e.getMessage() + "cause" + e.getCause());
             }
@@ -147,7 +147,7 @@ public class BlameCommit extends RestApiCaller {
      * @param patchString Array list having the patch string value for each of the file being changed
      */
 
-    public void savingRelaventEditLineNumbers(ArrayList<String> fileNames, ArrayList<String> patchString) {
+    public void saveRelaventEditLineNumbers(ArrayList<String> fileNames, ArrayList<String> patchString) {
         //filtering only the line ranges that are modified and saving to a string array
 
         // cannot ues parallel streams here as the order of the line changes must be preserved
@@ -191,7 +191,7 @@ public class BlameCommit extends RestApiCaller {
      * @param commitHash   current selected repository
      * @param gitHubToken  github token for accessing github GraphQL API
      */
-    public void iteratingOver(String repoLocation, String commitHash, String gitHubToken) {
+    public void iterateOverFileChanges(String repoLocation, String commitHash, String gitHubToken) {
 
         // filtering the owner and the repository name from the repoLocation
         String owner = StringUtils.substringBefore(repoLocation, "/");
@@ -207,15 +207,15 @@ public class BlameCommit extends RestApiCaller {
             JSONObject rootJsonObject = null;
             try {
                 //            calling the graphql API for getting blame information for the current file and saving it in a location.
-                rootJsonObject = (JSONObject) graphQlApiCaller.callingGraphQl(graphqlApiJsonObject, gitHubToken);
+                rootJsonObject = (JSONObject) graphQlApiCaller.callGraphQlApi(graphqlApiJsonObject, gitHubToken);
             } catch (CodeQualityMatricesException e) {
                 System.out.println(e.getMessage() + "cause" + e.getCause());            }
             //            reading the above saved output for the current selected file name
-            readingTheBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLines, false);
+            readBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLines, false);
 
             // parent commit hashes are stored in the arraylist for the given file
 
-            iteratingOverForFindingAuthors(owner, repositoryName, fileName, arrayListOfRelevantChangedLines, gitHubToken);
+            iterateOverToFindAuthors(owner, repositoryName, fileName, arrayListOfRelevantChangedLines, gitHubToken);
             logger.info("Authors of the bug lines of code which are being fixed from the given patch are saved successfully to authorNames SET");
         });
     }
@@ -228,7 +228,7 @@ public class BlameCommit extends RestApiCaller {
      * @param arrayListOfRelevantChangedLines arraylist containing the changed line ranges of the current selected file
      * @param gettingPr                       should be true if running this method for finding the authors of buggy lines which are being fixed from  the patch
      */
-    public void readingTheBlameReceivedForAFile(JSONObject rootJsonObject, ArrayList<String> arrayListOfRelevantChangedLines, boolean gettingPr) {
+    public void readBlameReceivedForAFile(JSONObject rootJsonObject, ArrayList<String> arrayListOfRelevantChangedLines, boolean gettingPr) {
 
         //running a iterator for fileName arrayList to get the location of the above saved file
         JSONObject dataJSONObject = (JSONObject) rootJsonObject.get("data");
@@ -339,7 +339,7 @@ public class BlameCommit extends RestApiCaller {
      * @param arrayListOfRelevantChangedLines arraylist containing the changed line ranges of the current selected file
      * @param gitHubToken                     github token for accessing github GraphQL API
      */
-    public void iteratingOverForFindingAuthors(String owner, String repositoryName, String fileName, ArrayList<String> arrayListOfRelevantChangedLines, String gitHubToken) {
+    public void iterateOverToFindAuthors(String owner, String repositoryName, String fileName, ArrayList<String> arrayListOfRelevantChangedLines, String gitHubToken) {
 
         // calling the graphql api to get the blame details of the current file for the parent commits (That is found by filtering in the graqhQL output)
         //as the order is not important in here parallel streams are used
@@ -347,8 +347,8 @@ public class BlameCommit extends RestApiCaller {
             graphqlApiJsonObject.put("query", "{repository(owner:\"" + owner + "\",name:\"" + repositoryName + "\"){object(expression:\"" + parentCommitHashForCallingGraphQl + "\"){ ... on Commit{blame(path:\"" + fileName + "\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }");
             JSONObject rootJsonObject = null;
             try {
-                rootJsonObject = (JSONObject) graphQlApiCaller.callingGraphQl(graphqlApiJsonObject, gitHubToken);
-                readingTheBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLines, true);
+                rootJsonObject = (JSONObject) graphQlApiCaller.callGraphQlApi(graphqlApiJsonObject, gitHubToken);
+                readBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLines, true);
             } catch (CodeQualityMatricesException e) {
                 System.out.println(e.getMessage() + "cause" + e.getCause());            }
         });

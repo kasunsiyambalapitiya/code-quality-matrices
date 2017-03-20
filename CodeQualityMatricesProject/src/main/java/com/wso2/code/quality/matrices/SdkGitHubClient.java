@@ -38,16 +38,16 @@ import java.util.Map;
  * @since 1.0.0
  */
 
-public class GitHubAuthentication {
+public class SdkGitHubClient {
     protected GitHubClient gitHubClient = null;
     protected CommitService commitService = null;
     protected RepositoryService repositoryService = null;
     protected ArrayList<String> fileNames = new ArrayList<String>();
     protected ArrayList<String> patchString = new ArrayList<String>();
 
-    private static final Logger logger = Logger.getLogger(GitHubAuthentication.class);
+    private static final Logger logger = Logger.getLogger(SdkGitHubClient.class);
 
-    GitHubAuthentication(String githubToken) {
+    SdkGitHubClient(String githubToken) {
         gitHubClient = new GitHubClient();
         gitHubClient.setOAuth2Token(githubToken);
         commitService = new CommitService(gitHubClient);
@@ -62,7 +62,7 @@ public class GitHubAuthentication {
      * @param commitHash     The querying commit hash
      * @return a map containg arraylist of file changed and their relevant patch
      */
-    public Map<String, ArrayList<String>> gettingFilesChanged(String repositoryName, String commitHash) throws CodeQualityMatricesException {
+    public Map<String, ArrayList<String>> getFilesChanged(String repositoryName, String commitHash) throws CodeQualityMatricesException {
         Map<String, ArrayList<String>> mapWithFileNamesAndPatches = new HashMap<>();
         try {
             IRepositoryIdProvider iRepositoryIdProvider = () -> repositoryName;
