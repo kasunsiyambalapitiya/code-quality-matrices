@@ -41,7 +41,7 @@ import java.util.stream.IntStream;
 
 public class ChangesFinder {
 
-    private String urlForObtainingCommits, urlForGetingFilesChanged;
+    private String urlForObtainingCommits;
     protected ArrayList<String> fileNames = new ArrayList<String>();
     protected ArrayList<String> patchString = new ArrayList<>();
     protected List<ArrayList<String>> lineRangesChanged = new ArrayList<ArrayList<String>>();      // for saving the line no that are changed
