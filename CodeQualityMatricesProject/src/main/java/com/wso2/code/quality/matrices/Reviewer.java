@@ -104,22 +104,6 @@ public class Reviewer {
             }
         });
 
-//        Iterator commitHashObtainedForPRReviewIterator = commitHashObtainedForPRReview.iterator();
-//        while (commitHashObtainedForPRReviewIterator.hasNext()) {
-//            String commitHashForFindingReviewers = (String) commitHashObtainedForPRReviewIterator.next();
-//            setSearchPullReqeustAPI(commitHashForFindingReviewers);
-//            // calling the github search API
-//            JSONObject rootJsonObject = null;
-//            try {
-//                rootJsonObject = (JSONObject) restApiCaller.callApi(getSearchPullReqeustAPI(), githubToken, false, true);
-//            } catch (Exception e) {
-//                System.out.println(e.getMessage() + " cause " + e.getCause());
-//            }
-//            // reading thus saved json file
-//            if (rootJsonObject != null) {
-//                savePrNumberAndRepoName(rootJsonObject);
-//            }
-//        }
         logger.info("PR numbers which introduce bug lines of code with their relevant repository are saved successfully to mapContainingPRNoAgainstRepoName map");
         saveReviewersToList(githubToken, restApiCaller);
         logger.info("List of approved reviwers and comment users of the PRs which introduce bug lines to repository are saved in commentedReviewers and approvedReviewers list ");
@@ -146,21 +130,6 @@ public class Reviewer {
                 mapContainingPRNoAgainstRepoName.get(repositoryLocation).add(pullRequetNumber);  // since SET is there we do not need to check for availability of the key in the map
             }
         });
-
-//        for (int i = 0; i < itemsJsonArray.length(); i++) {
-//            JSONObject prJsonObject = (JSONObject) itemsJsonArray.get(i);
-//            // filtering only the closed repositories
-//            if (((String) prJsonObject.get("state")).equals("closed")) {
-//                String repositoryUrl = (String) prJsonObject.get("repository_url");
-//                String repositoryLocation = StringUtils.substringAfter(repositoryUrl, "https://api.github.com/repos/");
-//                if (repositoryLocation.contains("wso2/")) {
-//                    // to filter out only the repositories belongs to wso2
-//                    int pullRequetNumber = (int) prJsonObject.get("number");
-//                    mapContainingPRNoAgainstRepoName.putIfAbsent(repositoryLocation, new HashSet<Integer>()); // put the repo name key only if it does not exists in the map
-//                    mapContainingPRNoAgainstRepoName.get(repositoryLocation).add(pullRequetNumber);  // since SET is there we do not need to check for availability of the key in the map
-//                }
-//            }
-//        }
     }
 
     /**
@@ -191,22 +160,6 @@ public class Reviewer {
 
 
             });
-
-//            Iterator prNumberIterator = prNumbers.iterator();
-//            while (prNumberIterator.hasNext()) {
-//                int prNumber = (int) prNumberIterator.next();
-//                setPullRequestReviewAPIUrl(productLocation, prNumber);
-//                JSONArray rootJsonArray = null;
-//                try {
-//                    rootJsonArray = (JSONArray) restApiCaller.callApi(getPullRequestReviewAPIUrl(), githubToken, false, true);
-//                } catch (Exception e) {
-//                    System.out.println(e.getMessage() + "cause" + e.getCause());
-//                }
-//                // for reading the output JSON from above and adding the reviewers to the Set
-//                if (rootJsonArray != null) {
-//                    readTheReviewOutJSON(rootJsonArray, productLocation, prNumber);
-//                }
-//            }
         }
     }
 
@@ -227,20 +180,6 @@ public class Reviewer {
                     addRelevantUsersToList(reviewJsonObject);
                 }
             }
-//            for (int i = 0; i < reviewJsonArray.length(); i++) {
-//                JSONObject reviewJsonObject = (JSONObject) reviewJsonArray.get(i);
-//                if ((reviewJsonObject.get("state")).equals("APPROVED")) {
-//
-//                    JSONObject userJsonObject = (JSONObject) reviewJsonObject.get("user");
-//                    String approvedReviwer = (String) userJsonObject.get("login");
-//                    approvedReviewers.add(approvedReviwer);         // adding the approved user to the Set
-//
-//                } else if ((reviewJsonObject.get("state")).equals("COMMENTED")) {
-//                    JSONObject userJsonObject = (JSONObject) reviewJsonObject.get("user");
-//                    String commentedReviwer = (String) userJsonObject.get("login");
-//                    commentedReviewers.add(commentedReviwer);        // adding the commented user to the Set
-//                }
-//            }
         } else {
             System.out.println("There are no records of reviews for pull request: " + prNumber + " on " + productLocation + " repository");
         }
