@@ -69,10 +69,11 @@ public class SdkGitHubClient {
             RepositoryCommit repositoryCommit = commitService.getCommit(iRepositoryIdProvider, commitHash);
             List<CommitFile> filesChanged = repositoryCommit.getFiles();
             // this can be run parallely as patchString of a file will always be in the same index as the file
-            filesChanged.parallelStream().forEach(commitFile -> {
-                fileNames.add(commitFile.getFilename());
-                patchString.add(commitFile.getPatch());
-            });
+            filesChanged.parallelStream()
+                    .forEach(commitFile -> {
+                        fileNames.add(commitFile.getFilename());
+                        patchString.add(commitFile.getPatch());
+                    });
             logger.info("for" + commitHash + " on the " + repositoryName + " repository, files changed and their relevant changed line ranges added to the arraylists successfully");
             mapWithFileNamesAndPatches.put("fileNames", fileNames);
             mapWithFileNamesAndPatches.put("patchString", patchString);
