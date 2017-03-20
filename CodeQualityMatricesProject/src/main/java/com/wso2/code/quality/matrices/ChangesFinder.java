@@ -35,10 +35,11 @@ import java.util.stream.IntStream;
 
 /**
  * This class is used for getting the blame information on relevant lines changed from the given patch
+ *
  * @since 1.0.0
  */
 
-public class ChangeFinder {
+public class ChangesFinder {
 
     private String urlForObtainingCommits, urlForGetingFilesChanged;
     protected ArrayList<String> fileNames = new ArrayList<String>();
@@ -51,28 +52,26 @@ public class ChangeFinder {
     private String repoLocation[];
     GraphQlApiCaller graphQlApiCaller = new GraphQlApiCaller();
 
-    private static final Logger logger = Logger.getLogger(ChangeFinder.class);
+    private static final Logger logger = Logger.getLogger(ChangesFinder.class);
     // constants for accessing the Github API responses
-    private static final String GITHUB_SEARCH_API_ITEMS_KEY_STRING="items";
-    private static final String GITHUB_SEARCH_API_REPOSITORY_KEY_STRING="repository";
-    private static final String GITHUB_SEARCH_API_FULL_NAME_OF_REPOSITORY_KEY_STRING="full_name";
-    private static final String GITHUB_GRAPHQL_API_STARTING_LINE_KEY_STRING="startingLine";
-    private static final String GITHUB_GRAPHQL_API_ENDING_LINE_KEY_STRING="endingLine";
-    private static final String GITHUB_GRAPHQL_API_AGE_KEY_STRING="age";
-    private static final String GITHUB_GRAPHQL_API_DATA_KEY_STRING="data";
-    private static final String GITHUB_GRAPHQL_API_REPOSITORY_KEY_STRING="repository";
-    private static final String GITHUB_GRAPHQL_API_OBJECT_KEY_STRING="object";
-    private static final String GITHUB_GRAPHQL_API_BLAME_KEY_STRING="blame";
-    private static final String GITHUB_GRAPHQL_API_RANGES_KEY_STRING="ranges";
-    private static final String GITHUB_GRAPHQL_API_COMMIT_KEY_STRING="commit";
-    private static final String GITHUB_GRAPHQL_API_AUTHOR_KEY_STRING="author";
-    private static final String GITHUB_GRAPHQL_API_NAME_KEY_STRING="name";
-    private static final String GITHUB_GRAPHQL_API_URL_KEY_STRING="url";
-    private static final String GITHUB_GRAPHQL_API_HISTORY_KEY_STRING="history";
-    private static final String GITHUB_GRAPHQL_API_EDGE_KEY_STRING="edges";
-    private static final String GITHUB_GRAPHQL_API_NODE_KEY_STRING="node";
-
-
+    private static final String GITHUB_SEARCH_API_ITEMS_KEY_STRING = "items";
+    private static final String GITHUB_SEARCH_API_REPOSITORY_KEY_STRING = "repository";
+    private static final String GITHUB_SEARCH_API_FULL_NAME_OF_REPOSITORY_KEY_STRING = "full_name";
+    private static final String GITHUB_GRAPHQL_API_STARTING_LINE_KEY_STRING = "startingLine";
+    private static final String GITHUB_GRAPHQL_API_ENDING_LINE_KEY_STRING = "endingLine";
+    private static final String GITHUB_GRAPHQL_API_AGE_KEY_STRING = "age";
+    private static final String GITHUB_GRAPHQL_API_DATA_KEY_STRING = "data";
+    private static final String GITHUB_GRAPHQL_API_REPOSITORY_KEY_STRING = "repository";
+    private static final String GITHUB_GRAPHQL_API_OBJECT_KEY_STRING = "object";
+    private static final String GITHUB_GRAPHQL_API_BLAME_KEY_STRING = "blame";
+    private static final String GITHUB_GRAPHQL_API_RANGES_KEY_STRING = "ranges";
+    private static final String GITHUB_GRAPHQL_API_COMMIT_KEY_STRING = "commit";
+    private static final String GITHUB_GRAPHQL_API_AUTHOR_KEY_STRING = "author";
+    private static final String GITHUB_GRAPHQL_API_NAME_KEY_STRING = "name";
+    private static final String GITHUB_GRAPHQL_API_URL_KEY_STRING = "url";
+    private static final String GITHUB_GRAPHQL_API_HISTORY_KEY_STRING = "history";
+    private static final String GITHUB_GRAPHQL_API_EDGE_KEY_STRING = "edges";
+    private static final String GITHUB_GRAPHQL_API_NODE_KEY_STRING = "node";
 
 
     public String getUrlForSearchingCommits() {
@@ -99,14 +98,12 @@ public class ChangeFinder {
             JSONObject jsonObject = null;
             try {
                 jsonObject = (JSONObject) restApiCaller.callApi(getUrlForSearchingCommits(), gitHubToken, true, false);
-            } catch (Exception e) {
-                System.out.println(e.getMessage() + "cause" + e.getCause());
-            }
-            try {
-                saveRepoNamesInAnArray(jsonObject, commitHash, gitHubToken);
             } catch (CodeQualityMatricesException e) {
-                logger.error("IO exception occurred when calling the github graphQL API", e);
+                logger.error(e.getMessage(), e.getCause());
+                System.exit(1);
             }
+
+            saveRepoNamesInAnArray(jsonObject, commitHash, gitHubToken);
         });
         return commitHashObtainedForPRReview;
     }
@@ -119,7 +116,7 @@ public class ChangeFinder {
      * @param gitHubToken    github token for accessing the github REST API
      */
 
-    public void saveRepoNamesInAnArray(JSONObject rootJsonObject, String commitHash, String gitHubToken) throws CodeQualityMatricesException {
+    public void saveRepoNamesInAnArray(JSONObject rootJsonObject, String commitHash, String gitHubToken) {
         JSONArray jsonArrayOfItems = (JSONArray) rootJsonObject.get(GITHUB_SEARCH_API_ITEMS_KEY_STRING);
         // setting the size of the repoLocationArray
         repoLocation = new String[jsonArrayOfItems.length()];
@@ -143,10 +140,9 @@ public class ChangeFinder {
             Map<String, ArrayList<String>> mapWithFileNamesAndPatch = null;
             try {
                 mapWithFileNamesAndPatch = sdkGitHubClient.getFilesChanged(repoLocation[i], commitHash);
-            } catch (Exception e) {
-
-                // here
-                System.out.println(e.getMessage() + "cause" + e.getCause());
+            } catch (CodeQualityMatricesException e) {
+                logger.error(e.getMessage(), e.getCause());    // as exceptions cannot be thrown inside a lambda expression
+                System.exit(2);
             }
             fileNames = mapWithFileNamesAndPatch.get("fileNames");
             patchString = mapWithFileNamesAndPatch.get("patchString");
@@ -154,10 +150,10 @@ public class ChangeFinder {
             try {
                 iterateOverFileChanges(repoLocation[i], commitHash, gitHubToken);
             } catch (Exception e) {
-                System.out.println(e.getMessage() + "cause" + e.getCause());
+                logger.error(e.getMessage(), e.getCause());  // as exceptions cannot be thrown inside a lambda expression
+                System.exit(3);
             }
         });
-
 
         // for printing the author names and commit hashes for a certain commit.
         System.out.println(authorNames);
@@ -233,8 +229,9 @@ public class ChangeFinder {
                 //            calling the graphql API for getting blame information for the current file and saving it in a location.
                 rootJsonObject = (JSONObject) graphQlApiCaller.callGraphQlApi(graphqlApiJsonObject, gitHubToken);
             } catch (CodeQualityMatricesException e) {
-                //check here
-                System.out.println(e.getMessage() + "cause" + e.getCause());            }
+                logger.error(e.getMessage(), e.getCause());     // as exceptions cannot be thrown inside lambda expression
+                System.exit(1);
+            }
             //            reading the above saved output for the current selected file name
             readBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLines, false);
 
@@ -373,7 +370,9 @@ public class ChangeFinder {
                 rootJsonObject = (JSONObject) graphQlApiCaller.callGraphQlApi(graphqlApiJsonObject, gitHubToken);
                 readBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLines, true);
             } catch (CodeQualityMatricesException e) {
-                System.out.println(e.getMessage() + "cause" + e.getCause());            }
+                logger.error(e.getMessage(), e.getCause());
+                System.exit(1);
+            }
         });
     }
 }
