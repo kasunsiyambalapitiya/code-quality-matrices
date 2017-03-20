@@ -21,12 +21,13 @@ package com.wso2.code.quality.matrices;
 /**
  * The exception class for all Code Quality Matrices project related exceptions.
  *
- *@since 1.0.0
+ * @since 1.0.0
  */
 public class CodeQualityMatricesException extends Exception {
     public CodeQualityMatricesException(String message) {
         super(message);
     }
+
     public CodeQualityMatricesException(String message, Throwable cause) {
         super(message, cause);
     }
