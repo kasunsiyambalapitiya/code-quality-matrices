@@ -42,17 +42,15 @@ public class Reviewer {
     private static final Logger logger = Logger.getLogger(Reviewer.class);
 
     //constants for accessing github API
-    private static final String GITHUB_REVIEW_API_STATE_KEY="state";
-    private static final String GITHUB_REVIEW_API_APPROVED_KEY="APPROVED";
-    private static final String GITHUB_REVIEW_API_COMMENTED_KEY="COMMENTED";
-    private static final String GITHUB_REVIEW_API_LOGIN_KEY="login";
-    private static final String GITHUB_REVIEW_API_USER_KEY="user";
-    private static final String GITHUB_REVIEW_API_ITEMS_KEY="items";
-    private static final String GITHUB_REVIEW_API_REPOSITORY_URL_KEY="repository_url";
-    private static final String GITHUB_REVIEW_API_NUMBER_KEY="number";
-    private static final String GITHUB_REVIEW_API_CLOSED_STATE_KEY ="closed";
-
-
+    private static final String GITHUB_REVIEW_API_STATE_KEY = "state";
+    private static final String GITHUB_REVIEW_API_APPROVED_KEY = "APPROVED";
+    private static final String GITHUB_REVIEW_API_COMMENTED_KEY = "COMMENTED";
+    private static final String GITHUB_REVIEW_API_LOGIN_KEY = "login";
+    private static final String GITHUB_REVIEW_API_USER_KEY = "user";
+    private static final String GITHUB_REVIEW_API_ITEMS_KEY = "items";
+    private static final String GITHUB_REVIEW_API_REPOSITORY_URL_KEY = "repository_url";
+    private static final String GITHUB_REVIEW_API_NUMBER_KEY = "number";
+    private static final String GITHUB_REVIEW_API_CLOSED_STATE_KEY = "closed";
 
 
     public String getSearchPullReqeustAPI() {
@@ -88,21 +86,22 @@ public class Reviewer {
      */
     public void findReviewers(Set<String> commitHashObtainedForPRReview, String githubToken, RestApiCaller restApiCaller) {
 
-        commitHashObtainedForPRReview.stream().forEach(commitHashForFindingReviewers -> {
-            setSearchPullReqeustAPI(commitHashForFindingReviewers);
-            // calling the github search API
-            JSONObject rootJsonObject = null;
-            try {
-                rootJsonObject = (JSONObject) restApiCaller.callApi(getSearchPullReqeustAPI(), githubToken, false, true);
-            } catch (CodeQualityMatricesException e) {
-                logger.error(e.getMessage(),e.getCause());
-                System.exit(1);
-            }
-            // reading thus saved json file
-            if (rootJsonObject != null) {
-                savePrNumberAndRepoName(rootJsonObject);
-            }
-        });
+        commitHashObtainedForPRReview.stream()
+                .forEach(commitHashForFindingReviewers -> {
+                    setSearchPullReqeustAPI(commitHashForFindingReviewers);
+                    // calling the github search API
+                    JSONObject rootJsonObject = null;
+                    try {
+                        rootJsonObject = (JSONObject) restApiCaller.callApi(getSearchPullReqeustAPI(), githubToken, false, true);
+                    } catch (CodeQualityMatricesException e) {
+                        logger.error(e.getMessage(), e.getCause());
+                        System.exit(1);
+                    }
+                    // reading thus saved json file
+                    if (rootJsonObject != null) {
+                        savePrNumberAndRepoName(rootJsonObject);
+                    }
+                });
 
         logger.info("PR numbers which introduce bug lines of code with their relevant repository are saved successfully to mapContainingPRNoAgainstRepoName map");
         saveReviewersToList(githubToken, restApiCaller);
@@ -120,16 +119,19 @@ public class Reviewer {
     public void savePrNumberAndRepoName(JSONObject rootJsonObject) {
         JSONArray itemsJsonArray = (JSONArray) rootJsonObject.get(GITHUB_REVIEW_API_ITEMS_KEY);
 
-        Pmt.arrayToStream(itemsJsonArray).map(JSONObject.class::cast).filter(o -> o.get(GITHUB_REVIEW_API_STATE_KEY).equals(GITHUB_REVIEW_API_CLOSED_STATE_KEY)).forEach(prJsonObject -> {
-            String repositoryUrl = (String) prJsonObject.get(GITHUB_REVIEW_API_REPOSITORY_URL_KEY);
-            String repositoryLocation = StringUtils.substringAfter(repositoryUrl, "https://api.github.com/repos/");
-            if (repositoryLocation.contains("wso2/")) {
-                // to filter out only the repositories belongs to wso2
-                int pullRequetNumber = (int) prJsonObject.get(GITHUB_REVIEW_API_NUMBER_KEY);
-                mapContainingPRNoAgainstRepoName.putIfAbsent(repositoryLocation, new HashSet<Integer>()); // put the repo name key only if it does not exists in the map
-                mapContainingPRNoAgainstRepoName.get(repositoryLocation).add(pullRequetNumber);  // since SET is there we do not need to check for availability of the key in the map
-            }
-        });
+        Pmt.arrayToStream(itemsJsonArray)
+                .map(JSONObject.class::cast)
+                .filter(o -> o.get(GITHUB_REVIEW_API_STATE_KEY).equals(GITHUB_REVIEW_API_CLOSED_STATE_KEY))
+                .forEach(prJsonObject -> {
+                    String repositoryUrl = (String) prJsonObject.get(GITHUB_REVIEW_API_REPOSITORY_URL_KEY);
+                    String repositoryLocation = StringUtils.substringAfter(repositoryUrl, "https://api.github.com/repos/");
+                    if (repositoryLocation.contains("wso2/")) {
+                        // to filter out only the repositories belongs to wso2
+                        int pullRequetNumber = (int) prJsonObject.get(GITHUB_REVIEW_API_NUMBER_KEY);
+                        mapContainingPRNoAgainstRepoName.putIfAbsent(repositoryLocation, new HashSet<Integer>()); // put the repo name key only if it does not exists in the map
+                        mapContainingPRNoAgainstRepoName.get(repositoryLocation).add(pullRequetNumber);  // since SET is there we do not need to check for availability of the key in the map
+                    }
+                });
     }
 
     /**
@@ -144,22 +146,22 @@ public class Reviewer {
 
             Set<Integer> prNumbers = (Set<Integer>) m.getValue();
 
-            prNumbers.stream().forEach(prNumber -> {
-                setPullRequestReviewAPIUrl(productLocation, prNumber);
-                JSONArray reviewJsonArray = null;
-                try {
-                    reviewJsonArray = (JSONArray) restApiCaller.callApi(getPullRequestReviewAPIUrl(), githubToken, false, true);
-                } catch (CodeQualityMatricesException e) {
-                    logger.error(e.getMessage(),e.getCause());
-                    System.exit(1);
-                }
-                // for reading the output JSON from above and adding the reviewers to the Set
-                if (reviewJsonArray != null) {
-                    readTheReviewOutJSON(reviewJsonArray, productLocation, prNumber);
-                }
+            prNumbers.stream()
+                    .forEach(prNumber -> {
+                        setPullRequestReviewAPIUrl(productLocation, prNumber);
+                        JSONArray reviewJsonArray = null;
+                        try {
+                            reviewJsonArray = (JSONArray) restApiCaller.callApi(getPullRequestReviewAPIUrl(), githubToken, false, true);
+                        } catch (CodeQualityMatricesException e) {
+                            logger.error(e.getMessage(), e.getCause());
+                            System.exit(1);
+                        }
+                        // for reading the output JSON from above and adding the reviewers to the Set
+                        if (reviewJsonArray != null) {
+                            readTheReviewOutJSON(reviewJsonArray, productLocation, prNumber);
+                        }
 
-
-            });
+                    });
         }
     }
 
@@ -187,10 +189,11 @@ public class Reviewer {
 
     /**
      * This method is used for saving the relevant reviewers and commented users to relevant Sets
-     * @param reviewJsonObject  jsonObject received from readTheReviewOutJSON method
+     *
+     * @param reviewJsonObject jsonObject received from readTheReviewOutJSON method
      */
 
-    public void addRelevantUsersToList(JSONObject reviewJsonObject ){
+    public void addRelevantUsersToList(JSONObject reviewJsonObject) {
         if ((reviewJsonObject.get(GITHUB_REVIEW_API_STATE_KEY)).equals(GITHUB_REVIEW_API_APPROVED_KEY)) {
 
             JSONObject userJsonObject = (JSONObject) reviewJsonObject.get(GITHUB_REVIEW_API_USER_KEY);
