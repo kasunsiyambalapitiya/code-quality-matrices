@@ -44,7 +44,7 @@ public class RestApiCaller {
      * calling the relevant API and saving the output to a file
      *
      * @param URL                 url of the REST API to be called
-     * @param accessToken               either the WSO2 PMT access accessToken or giihub.com access accessToken
+     * @param accessToken         either the WSO2 PMT access accessToken or giihub.com access accessToken
      * @param requireCommitHeader should be true for accessing the github commit search API and false otherwise
      * @param requireReviewHeader should be true for accessing the github review API or false otherwise
      */
@@ -115,13 +115,15 @@ public class RestApiCaller {
                 try {
                     httpResponse.close();
                 } catch (IOException e) {
-                    throw new CodeQualityMatricesException("IOException occurred when closing the HttpResponse", e);                }
+                    throw new CodeQualityMatricesException("IOException occurred when closing the HttpResponse", e);
+                }
             }
             if (httpclient != null) {
                 try {
                     httpclient.close();
                 } catch (IOException e) {
-                    throw new CodeQualityMatricesException("IOException occurred when closing the HttpClient", e);                }
+                    throw new CodeQualityMatricesException("IOException occurred when closing the HttpClient", e);
+                }
             }
         }
         return returnedObject;

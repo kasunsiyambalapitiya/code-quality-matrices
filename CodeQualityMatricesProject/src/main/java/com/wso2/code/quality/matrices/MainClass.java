@@ -44,7 +44,7 @@ public class MainClass {
         try {
             jsonArray = (JSONArray) restApiCaller.callApi(pmtUrl, pmtToken, false, false);
         } catch (CodeQualityMatricesException e) {
-            logger.error(e.getMessage(),e.getCause());
+            logger.error(e.getMessage(), e.getCause());
             System.exit(1);
         }
         logger.info("JSON response is received successfully from WSO2 PMT for the given patch " + args[1]);
@@ -66,7 +66,7 @@ public class MainClass {
 
         Reviewer reviewer = new Reviewer();
         if (commitHashObtainedForPRReview != null) {
-            reviewer.findReviewers(commitHashObtainedForPRReview, gitHubToken,restApiCaller);
+            reviewer.findReviewers(commitHashObtainedForPRReview, gitHubToken, restApiCaller);
         }
     }
 }
