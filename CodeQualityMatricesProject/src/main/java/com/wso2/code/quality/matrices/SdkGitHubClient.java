@@ -77,7 +77,6 @@ public class SdkGitHubClient {
             mapWithFileNamesAndPatches.put("fileNames", fileNames);
             mapWithFileNamesAndPatches.put("patchString", patchString);
         } catch (IOException e) {
-            logger.error("IO Exception occurred when getting the commit with the given SHA form the given repository ", e);
             throw new CodeQualityMatricesException("IO Exception occurred when getting the commit with the given SHA form the given repository ", e);
         }
         return mapWithFileNamesAndPatches;

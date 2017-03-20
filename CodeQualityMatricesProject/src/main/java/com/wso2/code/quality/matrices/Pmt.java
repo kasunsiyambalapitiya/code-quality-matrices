@@ -91,6 +91,7 @@ public class Pmt {
     }
 
     /**
+     * This method is used to obtain a sequential stream
      * @param array JSON array that a sequential stream should be obtained from
      * @return a sequential stream created from the supplied JSON Array
      */
