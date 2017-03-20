@@ -52,7 +52,7 @@ public class GraphQlApiCaller {
      * @return Depending on the content return a JSONObject or a JSONArray
      * @throws IOException
      */
-    public Object callingGraphQl(JSONObject queryObject, String gitHubToken) throws CodeQualityMatricesException {
+    public Object callGraphQlApi(JSONObject queryObject, String gitHubToken) throws CodeQualityMatricesException {
 
         CloseableHttpClient client = null;
         CloseableHttpResponse response = null;

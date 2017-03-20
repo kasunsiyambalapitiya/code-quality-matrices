@@ -42,31 +42,31 @@ public class MainClass {
         RestApiCaller restApiCaller = new RestApiCaller();
         JSONArray jsonArray = null;
         try {
-            jsonArray = (JSONArray) restApiCaller.callingTheAPI(pmtUrl, pmtToken, false, false);
+            jsonArray = (JSONArray) restApiCaller.callApi(pmtUrl, pmtToken, false, false);
         } catch (Exception e) {
+            //Check these
             System.out.println(e.getMessage() + "cause" + e.getCause());
-
         }
         logger.info("JSON response is received successfully from WSO2 PMT for the given patch " + args[1]);
 
         Pmt pmt = new Pmt();
         String[] commitsInTheGivenPatch = null;
         if (jsonArray != null) {
-            commitsInTheGivenPatch = pmt.getThePublicGitCommitId(jsonArray);
+            commitsInTheGivenPatch = pmt.getPublicGitCommitHashes(jsonArray);
         }
         logger.info("Commits received from WSO2 PMT are saved in an array successfully");
 
         String gitHubToken = args[2];
-        BlameCommit blameCommit = new BlameCommit();
+        ChangeFinder changeFinder = new ChangeFinder();
         Set<String> commitHashObtainedForPRReview = null;
         if (commitsInTheGivenPatch != null) {
-            commitHashObtainedForPRReview = blameCommit.obtainingRepoNamesForCommitHashes(gitHubToken, commitsInTheGivenPatch, restApiCaller);
+            commitHashObtainedForPRReview = changeFinder.obtainRepoNamesForCommitHashes(gitHubToken, commitsInTheGivenPatch, restApiCaller);
         }
         logger.info("Author commits that introduce bug lines of code to the repository are saved in commitHashObtainedForPRReview SET successfully");
 
-        Reviewers reviewers = new Reviewers();
+        Reviewer reviewer = new Reviewer();
         if (commitHashObtainedForPRReview != null) {
-            reviewers.findingReviewers(commitHashObtainedForPRReview, gitHubToken);
+            reviewer.findReviewers(commitHashObtainedForPRReview, gitHubToken,restApiCaller);
         }
     }
 }

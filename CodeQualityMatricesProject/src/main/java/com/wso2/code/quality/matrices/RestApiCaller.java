@@ -44,12 +44,12 @@ public class RestApiCaller {
      * calling the relevant API and saving the output to a file
      *
      * @param URL                 url of the REST API to be called
-     * @param token               either the WSO2 PMT access token or giihub.com access token
+     * @param accessToken               either the WSO2 PMT access accessToken or giihub.com access accessToken
      * @param requireCommitHeader should be true for accessing the github commit search API and false otherwise
      * @param requireReviewHeader should be true for accessing the github review API or false otherwise
      */
 
-    public Object callingTheAPI(String URL, String token, boolean requireCommitHeader, boolean requireReviewHeader) throws CodeQualityMatricesException {
+    public Object callApi(String URL, String accessToken, boolean requireCommitHeader, boolean requireReviewHeader) throws CodeQualityMatricesException {
 
         BufferedReader bufferedReader = null;
         CloseableHttpClient httpclient = null;
@@ -60,9 +60,9 @@ public class RestApiCaller {
             httpclient = HttpClients.createDefault();
             HttpGet httpGet = new HttpGet(URL);
 
-            if (token != null) {
+            if (accessToken != null) {
 
-                httpGet.addHeader("Authorization", "Bearer " + token);        // passing the token for the API call
+                httpGet.addHeader("Authorization", "Bearer " + accessToken);        // passing the accessToken for the API call
             }
 
             //as the accept header is needed for the review API since it is still in preview mode   
