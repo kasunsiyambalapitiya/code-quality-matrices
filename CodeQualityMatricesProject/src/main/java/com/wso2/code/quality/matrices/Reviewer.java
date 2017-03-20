@@ -41,6 +41,20 @@ public class Reviewer {
 
     private static final Logger logger = Logger.getLogger(Reviewer.class);
 
+    //constants for accessing github API
+    private static final String GITHUB_REVIEW_API_STATE_KEY="state";
+    private static final String GITHUB_REVIEW_API_APPROVED_KEY="APPROVED";
+    private static final String GITHUB_REVIEW_API_COMMENTED_KEY="COMMENTED";
+    private static final String GITHUB_REVIEW_API_LOGIN_KEY="login";
+    private static final String GITHUB_REVIEW_API_USER_KEY="user";
+    private static final String GITHUB_REVIEW_API_ITEMS_KEY="items";
+    private static final String GITHUB_REVIEW_API_REPOSITORY_URL_KEY="repository_url";
+    private static final String GITHUB_REVIEW_API_NUMBER_KEY="number";
+    private static final String GITHUB_REVIEW_API_CLOSED_STATE_KEY ="closed";
+
+
+
+
     public String getSearchPullReqeustAPI() {
         return searchPullReqeustAPIUrl;
     }
@@ -119,14 +133,14 @@ public class Reviewer {
      * @param rootJsonObject JSONObject received from github search API
      */
     public void savePrNumberAndRepoName(JSONObject rootJsonObject) {
-        JSONArray itemsJsonArray = (JSONArray) rootJsonObject.get("items");
+        JSONArray itemsJsonArray = (JSONArray) rootJsonObject.get(GITHUB_REVIEW_API_ITEMS_KEY);
 
-        Pmt.arrayToStream(itemsJsonArray).map(JSONObject.class::cast).filter(o -> o.get("state").equals("closed")).forEach(prJsonObject -> {
-            String repositoryUrl = (String) prJsonObject.get("repository_url");
+        Pmt.arrayToStream(itemsJsonArray).map(JSONObject.class::cast).filter(o -> o.get(GITHUB_REVIEW_API_STATE_KEY).equals(GITHUB_REVIEW_API_CLOSED_STATE_KEY)).forEach(prJsonObject -> {
+            String repositoryUrl = (String) prJsonObject.get(GITHUB_REVIEW_API_REPOSITORY_URL_KEY);
             String repositoryLocation = StringUtils.substringAfter(repositoryUrl, "https://api.github.com/repos/");
             if (repositoryLocation.contains("wso2/")) {
                 // to filter out only the repositories belongs to wso2
-                int pullRequetNumber = (int) prJsonObject.get("number");
+                int pullRequetNumber = (int) prJsonObject.get(GITHUB_REVIEW_API_NUMBER_KEY);
                 mapContainingPRNoAgainstRepoName.putIfAbsent(repositoryLocation, new HashSet<Integer>()); // put the repo name key only if it does not exists in the map
                 mapContainingPRNoAgainstRepoName.get(repositoryLocation).add(pullRequetNumber);  // since SET is there we do not need to check for availability of the key in the map
             }
@@ -236,15 +250,15 @@ public class Reviewer {
      */
 
     public void addRelevantUsersToList(JSONObject reviewJsonObject ){
-        if ((reviewJsonObject.get("state")).equals("APPROVED")) {
+        if ((reviewJsonObject.get(GITHUB_REVIEW_API_STATE_KEY)).equals(GITHUB_REVIEW_API_APPROVED_KEY)) {
 
-            JSONObject userJsonObject = (JSONObject) reviewJsonObject.get("user");
-            String approvedReviwer = (String) userJsonObject.get("login");
+            JSONObject userJsonObject = (JSONObject) reviewJsonObject.get(GITHUB_REVIEW_API_USER_KEY);
+            String approvedReviwer = (String) userJsonObject.get(GITHUB_REVIEW_API_LOGIN_KEY);
             approvedReviewers.add(approvedReviwer);         // adding the approved user to the Set
 
-        } else if ((reviewJsonObject.get("state")).equals("COMMENTED")) {
-            JSONObject userJsonObject = (JSONObject) reviewJsonObject.get("user");
-            String commentedReviwer = (String) userJsonObject.get("login");
+        } else if ((reviewJsonObject.get(GITHUB_REVIEW_API_STATE_KEY)).equals(GITHUB_REVIEW_API_COMMENTED_KEY)) {
+            JSONObject userJsonObject = (JSONObject) reviewJsonObject.get(GITHUB_REVIEW_API_USER_KEY);
+            String commentedReviwer = (String) userJsonObject.get(GITHUB_REVIEW_API_LOGIN_KEY);
             commentedReviewers.add(commentedReviwer);        // adding the commented user to the Set
         }
     }
