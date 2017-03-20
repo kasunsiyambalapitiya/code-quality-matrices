@@ -67,14 +67,11 @@ public class GraphQlApiCaller {
             httpPost.setEntity(entity);
             response = client.execute(httpPost);
         } catch (UnsupportedEncodingException e) {
-            logger.error("Encoding error occured before calling the github graphQL API", e);
-            throw new CodeQualityMatricesException("Encoding error occured before calling the github graphQL API",e);
+            throw new CodeQualityMatricesException("Encoding error occured before calling the github graphQL API", e);
         } catch (ClientProtocolException e) {
-            logger.error("Client protocol exception occurred when calling the github graphQL API", e);
-           throw new CodeQualityMatricesException("Client protocol exception occurred when calling the github graphQL API",e);
+            throw new CodeQualityMatricesException("Client protocol exception occurred when calling the github graphQL API", e);
         } catch (IOException e) {
-            logger.error("IO Exception occured when calling the github graphQL API", e);
-           throw new CodeQualityMatricesException("IO Exception occured when calling the github graphQL API",e);
+            throw new CodeQualityMatricesException("IO Exception occured when calling the github graphQL API", e);
         }
 
         BufferedReader bufferedReader = null;
@@ -87,27 +84,30 @@ public class GraphQlApiCaller {
             }
 
             String jsonText = stringBuilder.toString();
+            logger.info("The response received from the Github GraphQL converted to a JSON text successfully");
+
             Object json = new JSONTokener(jsonText).nextValue();     // gives an object http://stackoverflow.com/questions/14685777/how-to-check-if-response-from-server-is-jsonaobject-or-jsonarray
 
             if (json instanceof JSONObject) {
                 JSONObject jsonObject = (JSONObject) json;
                 returnedObject = jsonObject;
+                logger.info("JSONObject was returned successfully after calling the GraphQL API");
             } else if (json instanceof JSONArray) {
                 JSONArray jsonArray = (JSONArray) json;
                 returnedObject = jsonArray;
+                logger.info("JSONArray was returned successfully after calling the GraphQL API");
+
             }
 
             //            System.out.println(stringBuilder.toString());
         } catch (Exception e) {
-            logger.error("Exception occured when reading the response received from github graphQL API", e);
-            throw new CodeQualityMatricesException("Exception occured when reading the response received from github graphQL API",e);
+            throw new CodeQualityMatricesException("Exception occurred when reading the response received from github graphQL API", e);
         } finally {
             if (bufferedReader != null) {
                 try {
                     bufferedReader.close();
                 } catch (IOException e) {
-                    logger.error("IOException occured when closing the buffered reader",e);
-                    throw new CodeQualityMatricesException("IOException occured when closing the buffered reader",e);
+                    throw new CodeQualityMatricesException("IOException occurred when closing the buffered reader", e);
                 }
             }
         }

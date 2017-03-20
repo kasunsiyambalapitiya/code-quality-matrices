@@ -97,10 +97,9 @@ public class RestApiCaller {
             logger.info("JSON response is passed after calling the given REST API");
 
         } catch (ClientProtocolException e) {
-            logger.error("ClientProtocolException when calling the REST API", e);
             throw new CodeQualityMatricesException("ClientProtocolException when calling the REST API", e);
+
         } catch (IOException e) {
-            logger.error("IOException occurred when calling the REST API");
             throw new CodeQualityMatricesException("IOException occurred when calling the REST API", e);
         } finally {
 
@@ -108,7 +107,6 @@ public class RestApiCaller {
                 try {
                     bufferedReader.close();
                 } catch (IOException e) {
-                    logger.error("IOException occurred when closing the BufferedReader");
                     throw new CodeQualityMatricesException("IOException occurred when closing the BufferedReader", e);
                 }
             }
@@ -117,14 +115,12 @@ public class RestApiCaller {
                 try {
                     httpResponse.close();
                 } catch (IOException e) {
-                    logger.error("IOException occurred when closing the HttpResponse");
                     throw new CodeQualityMatricesException("IOException occurred when closing the HttpResponse", e);                }
             }
             if (httpclient != null) {
                 try {
                     httpclient.close();
                 } catch (IOException e) {
-                    logger.error("IOException occurred when closing the HttpClient");
                     throw new CodeQualityMatricesException("IOException occurred when closing the HttpClient", e);                }
             }
         }

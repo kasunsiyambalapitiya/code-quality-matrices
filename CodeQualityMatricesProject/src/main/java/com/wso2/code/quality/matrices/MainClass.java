@@ -37,15 +37,15 @@ public class MainClass {
         String pmtToken = args[0];
         String patchId = args[1];
 
-        String pmtUrl = "http://umt.private.wso2.com:9765/codequalitymatricesapi/1.0.0//properties?path=/_system/governance/patchs/" + patchId;
+        String pmtUrl = "http://umt.private.wso2.com:8765/codequalitymatricesapi/1.0.0//properties?path=/_system/governance/patchs/" + patchId;
 
         RestApiCaller restApiCaller = new RestApiCaller();
         JSONArray jsonArray = null;
         try {
             jsonArray = (JSONArray) restApiCaller.callApi(pmtUrl, pmtToken, false, false);
-        } catch (Exception e) {
-            //Check these
-            System.out.println(e.getMessage() + "cause" + e.getCause());
+        } catch (CodeQualityMatricesException e) {
+            logger.error(e.getMessage(),e.getCause());
+            System.exit(1);
         }
         logger.info("JSON response is received successfully from WSO2 PMT for the given patch " + args[1]);
 
@@ -57,10 +57,10 @@ public class MainClass {
         logger.info("Commits received from WSO2 PMT are saved in an array successfully");
 
         String gitHubToken = args[2];
-        ChangeFinder changeFinder = new ChangeFinder();
+        ChangesFinder changesFinder = new ChangesFinder();
         Set<String> commitHashObtainedForPRReview = null;
         if (commitsInTheGivenPatch != null) {
-            commitHashObtainedForPRReview = changeFinder.obtainRepoNamesForCommitHashes(gitHubToken, commitsInTheGivenPatch, restApiCaller);
+            commitHashObtainedForPRReview = changesFinder.obtainRepoNamesForCommitHashes(gitHubToken, commitsInTheGivenPatch, restApiCaller);
         }
         logger.info("Author commits that introduce bug lines of code to the repository are saved in commitHashObtainedForPRReview SET successfully");
 
