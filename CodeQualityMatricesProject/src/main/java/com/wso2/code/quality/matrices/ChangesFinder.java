@@ -325,7 +325,7 @@ public class ChangesFinder {
                                     }
                                     break;
                                 } else {
-                                    continue;
+                                    continue;   // to skip to the next JSON Object in the rangeJSONArray
                                 }
                             }
                             startingLineNo++;   // to check for other line numbers
@@ -350,7 +350,7 @@ public class ChangesFinder {
                                         JSONObject nodeJSONObject = (JSONObject) edgeJSONObject.get(GITHUB_GRAPHQL_API_NODE_KEY_STRING);
                                         String urlOfTheParentCommit = (String) nodeJSONObject.get(GITHUB_GRAPHQL_API_URL_KEY_STRING);       // this contain the URL of the parent commit
                                         String commitHash = (String) StringUtils.substringAfter(urlOfTheParentCommit, "commit/");
-                                        commitHashesOfTheParent.add(commitHash);
+                                        commitHashesOfTheParent.add(commitHash);    // commitHashesof the parent for the selected file
 
                                     });
                             logger.info("Parent Commits hashes of the lines which are being fixed by the patch are saved to commitHashesOfTheParent SET successfully ");
