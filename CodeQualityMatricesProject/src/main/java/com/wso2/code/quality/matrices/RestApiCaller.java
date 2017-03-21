@@ -76,25 +76,43 @@ public class RestApiCaller {
             }
 
             httpResponse = httpclient.execute(httpGet);
-            bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent(), "UTF-8"));
-            StringBuilder stringBuilder = new StringBuilder();
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuilder.append(line);
-            }
+            int responseCode = httpResponse.getStatusLine().getStatusCode();     // to get the response code
 
-            // creating a JSON object from the response
-            String JSONText = stringBuilder.toString();
-            Object json = new JSONTokener(JSONText).nextValue();    // gives an object http://stackoverflow.com/questions/14685777/how-to-check-if-response-from-server-is-jsonaobject-or-jsonarray
+            switch (responseCode) {
+                case 200:
+                    //success
+                    bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent(), "UTF-8"));
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(line);
+                    }
 
-            if (json instanceof JSONObject) {
-                JSONObject jsonObject = (JSONObject) json;
-                returnedObject = jsonObject;
-            } else if (json instanceof JSONArray) {
-                JSONArray jsonArray = (JSONArray) json;
-                returnedObject = jsonArray;
+                    // creating a JSON object from the response
+                    String JSONText = stringBuilder.toString();
+                    Object json = new JSONTokener(JSONText).nextValue();    // gives an object http://stackoverflow.com/questions/14685777/how-to-check-if-response-from-server-is-jsonaobject-or-jsonarray
+
+                    if (json instanceof JSONObject) {
+                        JSONObject jsonObject = (JSONObject) json;
+                        returnedObject = jsonObject;
+                    } else if (json instanceof JSONArray) {
+                        JSONArray jsonArray = (JSONArray) json;
+                        returnedObject = jsonArray;
+                    }
+                    logger.info("JSON response is passed after calling the given REST API");
+                    break;
+                case 401:
+                    // to handle Response code 401: Unauthorized
+                    throw new CodeQualityMatricesException("Response code 401 : Git hub access token is invalid");
+                case 403:
+                    // to handle invalid credentials
+                    throw new CodeQualityMatricesException("Response Code:403 Invalid Credentials, insert a correct token for PMT");
+                case 404:
+                    // to handle invalid patch
+                    throw new CodeQualityMatricesException("Response Code 404: Patch not found, enter a valid patch");
+                default:
+                    returnedObject = null;
             }
-            logger.info("JSON response is passed after calling the given REST API");
 
         } catch (ClientProtocolException e) {
             throw new CodeQualityMatricesException("ClientProtocolException when calling the REST API", e);
@@ -102,7 +120,6 @@ public class RestApiCaller {
         } catch (IOException e) {
             throw new CodeQualityMatricesException("IOException occurred when calling the REST API", e);
         } finally {
-
             if (bufferedReader != null) {
                 try {
                     bufferedReader.close();
@@ -110,7 +127,6 @@ public class RestApiCaller {
                     throw new CodeQualityMatricesException("IOException occurred when closing the BufferedReader", e);
                 }
             }
-
             if (httpResponse != null) {
                 try {
                     httpResponse.close();
