@@ -77,6 +77,7 @@ public class SdkGitHubClient {
             logger.info("for" + commitHash + " on the " + repositoryName + " repository, files changed and their relevant changed line ranges added to the arraylists successfully");
             mapWithFileNamesAndPatches.put("fileNames", fileNames);
             mapWithFileNamesAndPatches.put("patchString", patchString);
+            logger.info("map with the modified file names with their relevant modified line ranges are saved successfully");
         } catch (IOException e) {
             throw new CodeQualityMatricesException("IO Exception occurred when getting the commit with the given SHA form the given repository ", e);
         }
