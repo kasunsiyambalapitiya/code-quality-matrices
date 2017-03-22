@@ -182,7 +182,7 @@ public class ChangesFinder {
                     //filtering the lines ranges that existed in the previous file, that exists in the new file and saving them in to the same array
                     IntStream.range(0, lineChanges.length)
                             .forEach(j -> {
-                                //@@ -22,7 +22,7 @@
+                                //@@ -22,7 +22,7 @@ => -22,7 +22,7 => 22,28/22,28
                                 String tempString = lineChanges[j];
                                 String lineRangeInTheOldFileBeingModified = StringUtils.substringBetween(tempString, "-", " +");      // for taking the authors and commit hashes of the previous lines
                                 String lineRangeInTheNewFileResultedFromModification = StringUtils.substringAfter(tempString, "+");  // for taking the parent commit
@@ -230,23 +230,22 @@ public class ChangesFinder {
                 .forEach(fileName -> {
                     int index = fileNames.indexOf(fileName);
                     // the relevant arraylist of changed lines for that file
-                    ArrayList<String> arrayListOfRelevantChangedLines = lineRangesChanged.get(index);
+                    ArrayList<String> arrayListOfRelevantChangedLinesOfSelectedFile = lineRangesChanged.get(index);
                     commitHashesMapOfTheParent = new HashMap<>(); // for storing the parent commit hashes for all the changed line ranges of the relevant file
                     graphqlApiJsonObject.put("query", "{repository(owner:\"" + owner + "\",name:\"" + repositoryName + "\"){object(expression:\"" + commitHash + "\"){ ... on Commit{blame(path:\"" + fileName + "\"){ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }");
                     JSONObject rootJsonObject = null;
                     try {
-                        //            calling the graphql API for getting blame information for the current file and saving it in a location.
+                        //            calling the graphql API for getting blame information for the current file.
                         rootJsonObject = (JSONObject) graphQlApiCaller.callGraphQlApi(graphqlApiJsonObject, gitHubToken);
                     } catch (CodeQualityMatricesException e) {
                         logger.error(e.getMessage(), e.getCause());     // as exceptions cannot be thrown inside lambda expression
                         System.exit(1);
                     }
                     //            reading the above saved output for the current selected file name
-                    readBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLines, false, null);
+                    readBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLinesOfSelectedFile, false, null);
+                    logger.info("Parent Commits hashes of the lines which are being fixed by the patch in file " + fileName + " are saved to commitHashesMapOfTheParent map successfully ");
 
-                    // parent commit hashes are stored in the arraylist for the given file
-
-                    iterateOverToFindAuthors(owner, repositoryName, fileName, arrayListOfRelevantChangedLines, gitHubToken);
+                    iterateOverToFindAuthors(owner, repositoryName, fileName, arrayListOfRelevantChangedLinesOfSelectedFile, gitHubToken);
                     logger.info("Authors of the bug lines of code which are being fixed from the given patch are saved successfully to authorNames SET");
                 });
     }
@@ -255,11 +254,11 @@ public class ChangesFinder {
      * Reading the blame received for a current selected file name and insert the parent commits of the changed lines,
      * relevant authors and the relevant commits hashes to look for the reviewers of those line ranges
      *
-     * @param rootJsonObject                  JSONObject containing blame information for current selected file
-     * @param arrayListOfRelevantChangedLines arraylist containing the changed line ranges of the current selected file
-     * @param gettingPr                       should be true if running this method for finding the authors of buggy lines which are being fixed from  the patch
+     * @param rootJsonObject                                JSONObject containing blame information for current selected file
+     * @param arrayListOfRelevantChangedLinesOfSelectedFile arraylist containing the changed line ranges of the current selected file
+     * @param gettingPr                                     should be true if running this method for finding the authors of buggy lines which are being fixed from  the patch
      */
-    public void readBlameReceivedForAFile(JSONObject rootJsonObject, ArrayList<String> arrayListOfRelevantChangedLines, boolean gettingPr, String oldRange) {
+    public void readBlameReceivedForAFile(JSONObject rootJsonObject, ArrayList<String> arrayListOfRelevantChangedLinesOfSelectedFile, boolean gettingPr, String oldRange) {
 
         //running a iterator for fileName arrayList to get the location of the above saved file
         JSONObject dataJSONObject = (JSONObject) rootJsonObject.get(GITHUB_GRAPHQL_API_DATA_KEY_STRING);
@@ -270,7 +269,7 @@ public class ChangesFinder {
 
         //getting the starting line no of the range of lines that are modified from the patch
         // parallel streams are not used in here as the order of the arraylist is important in the process
-        arrayListOfRelevantChangedLines.stream()
+        arrayListOfRelevantChangedLinesOfSelectedFile.stream()
                 .forEach(lineRanges -> {
                     int startingLineNo = 0;
                     int endLineNo = 0;
@@ -286,15 +285,14 @@ public class ChangesFinder {
                             // need to consider the line range in the new file resulted from applying the commit, for finding parent commits
                             startingLineNo = Integer.parseInt(StringUtils.substringBefore(newFileRange, ","));
                             endLineNo = Integer.parseInt(StringUtils.substringAfter(newFileRange, ","));
-                        }
-                        else{
+                        } else {
                             return; // to skip the to the next iteration if oldRange != oldFileRange when finding authornames and commits for obtaining PRs
                         }
 
-                        // as it is required to create a new Map for finding the recent commit for each line range
+                        // as a new mapForStoringAgeAndIndex map should be available for each line range to find the most recent change
                         Map<Integer, ArrayList<Integer>> mapForStoringAgeAndIndex = new HashMap<Integer, ArrayList<Integer>>();
 
-                        //checking line by line by iterating the startinLineNo
+                        //checking line by line by iterating the startingLineNo
                         while (endLineNo >= startingLineNo) {
                             // since the index value is required for later processing, without Java 8 features "for loop" is used for iteration
                             for (int i = 0; i < rangeJSONArray.length(); i++) {
@@ -338,7 +336,7 @@ public class ChangesFinder {
                             //converting the map into a treeMap to get it ordered
                             TreeMap<Integer, ArrayList<Integer>> treeMap = new TreeMap<>(mapForStoringAgeAndIndex);
                             int minimumKeyOfMapForStoringAgeAndIndex = treeMap.firstKey(); // getting the minimum key
-                            //getting the relevant JSONObject indexes which consists of the recent commit with in the relevant line range
+                            //getting the relevant JSONObject indexes which consists of the recent change with in the relevant line range
                             ArrayList<Integer> indexesOfJsonObjectForRecentCommit = mapForStoringAgeAndIndex.get(minimumKeyOfMapForStoringAgeAndIndex);
                             // the order of the indexesOfJsonObjectForRecentCommit is not important as we only need to get the parent commit hashes
                             indexesOfJsonObjectForRecentCommit.parallelStream()
@@ -359,7 +357,6 @@ public class ChangesFinder {
                                             commitHashesMapOfTheParent.get(oldFileRange).add(commitHash);
                                         }
                                     });
-                            logger.info("Parent Commits hashes of the lines which are being fixed by the patch are saved to commitHashesOfTheParent SET successfully ");
                         }
 
                     }
@@ -370,14 +367,13 @@ public class ChangesFinder {
     /**
      * Finding the authors of the commits
      *
-     * @param owner                           owner of the repository
-     * @param repositoryName                  repository name
-     * @param fileName                        name of the file which is required to get blame details
-     * @param arrayListOfRelevantChangedLines arraylist containing the changed line ranges of the current selected file
-     * @param gitHubToken                     github token for accessing github GraphQL API
+     * @param owner                                         owner of the repository
+     * @param repositoryName                                repository name
+     * @param fileName                                      name of the file which is required to get blame details
+     * @param arrayListOfRelevantChangedLinesOfSelectedFile arraylist containing the changed line ranges of the current selected file
+     * @param gitHubToken                                   github token for accessing github GraphQL API
      */
-    public void iterateOverToFindAuthors(String owner, String repositoryName, String fileName, ArrayList<String> arrayListOfRelevantChangedLines, String gitHubToken) {
-
+    public void iterateOverToFindAuthors(String owner, String repositoryName, String fileName, ArrayList<String> arrayListOfRelevantChangedLinesOfSelectedFile, String gitHubToken) {
 
         for (Map.Entry m : commitHashesMapOfTheParent.entrySet()) {
             String oldRange = (String) m.getKey();
@@ -388,29 +384,13 @@ public class ChangesFinder {
                         JSONObject rootJsonObject = null;
                         try {
                             rootJsonObject = (JSONObject) graphQlApiCaller.callGraphQlApi(graphqlApiJsonObject, gitHubToken);
-                            readBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLines, true, oldRange);
+                            readBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLinesOfSelectedFile, true, oldRange);
                         } catch (CodeQualityMatricesException e) {
                             logger.error(e.getMessage(), e.getCause());
                             System.exit(1);
                         }
                     });
-
         }
-
-        // calling the graphql api to get the blame details of the current file for the parent commits (That is found by filtering in the graqhQL output)
-        //as the order is not important in here parallel streams are used
-//        commitHashesOfTheParent.parallelStream()
-//                .forEach(parentCommitHashForCallingGraphQl -> {
-//                    graphqlApiJsonObject.put("query", "{repository(owner:\"" + owner + "\",name:\"" + repositoryName + "\"){object(expression:\"" + parentCommitHashForCallingGraphQl + "\"){ ... on Commit{blame(path:\"" + fileName + "\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }");
-//                    JSONObject rootJsonObject = null;
-//                    try {
-//                        rootJsonObject = (JSONObject) graphQlApiCaller.callGraphQlApi(graphqlApiJsonObject, gitHubToken);
-//                        readBlameReceivedForAFile(rootJsonObject, arrayListOfRelevantChangedLines, true);
-//                    } catch (CodeQualityMatricesException e) {
-//                        logger.error(e.getMessage(), e.getCause());
-//                        System.exit(1);
-//                    }
-//                });
     }
 }
 
