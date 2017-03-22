@@ -143,9 +143,7 @@ public class Reviewer {
 
         for (Map.Entry m : mapContainingPRNoAgainstRepoName.entrySet()) {
             String productLocation = (String) m.getKey();
-
             Set<Integer> prNumbers = (Set<Integer>) m.getValue();
-
             prNumbers.stream()
                     .forEach(prNumber -> {
                         setPullRequestReviewAPIUrl(productLocation, prNumber);
@@ -175,15 +173,22 @@ public class Reviewer {
     public void readTheReviewOutJSON(JSONArray reviewJsonArray, String productLocation, int prNumber) {
 
         if (reviewJsonArray.length() != 0) {
-            for (Object object : reviewJsonArray) {
-                if (object instanceof JSONObject) {
-                    JSONObject reviewJsonObject = (JSONObject) object;
+            Pmt.arrayToStream(reviewJsonArray)
+                    .map(JSONObject.class::cast)
+                    .forEach(reviewJsonObject->{
+                        addRelevantUsersToList(reviewJsonObject);
+                    });
 
-                    addRelevantUsersToList(reviewJsonObject);
-                }
-            }
+//            for (Object object : reviewJsonArray) {
+//                if (object instanceof JSONObject) {
+//                    JSONObject reviewJsonObject = (JSONObject) object;
+//
+//
+//                }
+//            }
         } else {
             System.out.println("There are no records of reviews for pull request: " + prNumber + " on " + productLocation + " repository");
+            logger.info("There are no records of reviews for pull request: " + prNumber + " on " + productLocation + " repository");
         }
     }
 
