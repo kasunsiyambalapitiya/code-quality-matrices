@@ -65,13 +65,13 @@ public class Pmt {
                 .forEach(System.out::println);
         System.out.println();
 
-        //to prevent from internaal representation by returning referecnce to mutable object
+        //to prevent from internal representation by returning referecnce to mutable object
         String clonedPatchInformation_svnRevisionpublic[] = patchInformation_svnRevisionpublic.clone();
         return clonedPatchInformation_svnRevisionpublic;
     }
 
     /**
-     * This method returns the commit hashes belongs to the given patch in as a list of Strings
+     * This returns the commit hashes belongs to the given patch in as a list of Strings.
      *
      * @param array jsonarray containing the output received from WSO2 PMT for the given patch
      * @return a List containing the commit hashes that belongs to the given patch

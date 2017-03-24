@@ -103,7 +103,7 @@ public class RestApiCaller {
                     break;
                 case 401:
                     // to handle Response code 401: Unauthorized
-                    throw new CodeQualityMatricesException("Response code 401 : Git hub access token is invalid");
+                    throw new CodeQualityMatricesException("Response code 401 : Github access token is invalid");
                 case 403:
                     // to handle invalid credentials
                     throw new CodeQualityMatricesException("Response Code:403 Invalid Credentials, insert a correct token for PMT");
