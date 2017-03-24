@@ -63,13 +63,13 @@ public class SdkGitHubClient {
      * @return a map containg arraylist of file changed and their relevant patch
      */
     public Map<String, ArrayList<String>> getFilesChanged(String repositoryName, String commitHash) throws CodeQualityMatricesException {
-        Map<String, ArrayList<String>> mapWithFileNamesAndPatches = new HashMap<>();
+        Map<String, ArrayList<String>> fileNamesAndPatches = new HashMap<>();
         try {
             IRepositoryIdProvider iRepositoryIdProvider = () -> repositoryName;
             RepositoryCommit repositoryCommit = commitService.getCommit(iRepositoryIdProvider, commitHash);
             List<CommitFile> filesChanged = repositoryCommit.getFiles();
-            ArrayList<String> tempFileNames=new ArrayList<>();
-            ArrayList<String> tempPatchString= new ArrayList<>();
+            ArrayList<String> tempFileNames = new ArrayList<>();
+            ArrayList<String> tempPatchString = new ArrayList<>();
 
             // this can be run parallely as patchString of a file will always be in the same index as the file
             filesChanged.parallelStream()
@@ -78,12 +78,12 @@ public class SdkGitHubClient {
                         tempPatchString.add(commitFile.getPatch());
                     });
             logger.info("for" + commitHash + " on the " + repositoryName + " repository, files changed and their relevant changed line ranges added to the arraylists successfully");
-            mapWithFileNamesAndPatches.put("fileNames", tempFileNames);
-            mapWithFileNamesAndPatches.put("patchString", tempPatchString);
+            fileNamesAndPatches.put("fileNames", tempFileNames);
+            fileNamesAndPatches.put("patchString", tempPatchString);
             logger.info("map with the modified file names with their relevant modified line ranges are saved successfully");
         } catch (IOException e) {
             throw new CodeQualityMatricesException("IO Exception occurred when getting the commit with the given SHA form the given repository ", e);
         }
-        return mapWithFileNamesAndPatches;
+        return fileNamesAndPatches;
     }
 }

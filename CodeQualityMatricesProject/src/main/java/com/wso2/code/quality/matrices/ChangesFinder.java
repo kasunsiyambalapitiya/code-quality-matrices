@@ -44,7 +44,7 @@ public class ChangesFinder {
     private String urlForObtainingCommits;
     protected ArrayList<String> fileNames = new ArrayList<String>();
     protected ArrayList<String> patchString = new ArrayList<>();
-    protected List<ArrayList<String>> lineRangesChanged = new ArrayList<ArrayList<String>>();      // for saving the line no that are changed
+    protected List<ArrayList<String>> changedLineRanges = new ArrayList<ArrayList<String>>();      // for saving the line no that are changed
     JSONObject graphqlApiJsonObject = new JSONObject();
     Map<String, Set<String>> commitHashesMapOfTheParent;
     Set<String> authorNames = new HashSet<String>();    //as the authors are for all the commits that exists in the relevant patch
@@ -137,10 +137,10 @@ public class ChangesFinder {
         IntStream.range(0, repoLocation.length)
                 .filter(i -> StringUtils.contains(repoLocation[i], "wso2/"))
                 .forEach(i -> {
-                    //clearing all the data in the current fileNames and lineRangesChanged arraylists for each repository
+                    //clearing all the data in the current fileNames and changedLineRanges arraylists for each repository
                     //authorNames.clear();
                     fileNames.clear();
-                    lineRangesChanged.clear();
+                    changedLineRanges.clear();
                     patchString.clear();
                     Map<String, ArrayList<String>> mapWithFileNamesAndPatch = null;
                     try {
@@ -204,11 +204,11 @@ public class ChangesFinder {
                             });
                     ArrayList<String> tempArrayList = new ArrayList<>(Arrays.asList(lineChanges));
                     //adding to the array list which keep track of the line ranges being changed
-                    lineRangesChanged.add(tempArrayList);
+                    changedLineRanges.add(tempArrayList);
                 });
         System.out.println("done saving file names and their relevant modification line ranges");
         System.out.println(fileNames);
-        System.out.println(lineRangesChanged + "\n");
+        System.out.println(changedLineRanges + "\n");
     }
 
     /**
@@ -230,7 +230,7 @@ public class ChangesFinder {
                 .forEach(fileName -> {
                     int index = fileNames.indexOf(fileName);
                     // the relevant arraylist of changed lines for that file
-                    ArrayList<String> arrayListOfRelevantChangedLinesOfSelectedFile = lineRangesChanged.get(index);
+                    ArrayList<String> arrayListOfRelevantChangedLinesOfSelectedFile = changedLineRanges.get(index);
                     commitHashesMapOfTheParent = new HashMap<>(); // for storing the parent commit hashes for all the changed line ranges of the relevant file
                     graphqlApiJsonObject.put("query", "{repository(owner:\"" + owner + "\",name:\"" + repositoryName + "\"){object(expression:\"" + commitHash + "\"){ ... on Commit{blame(path:\"" + fileName + "\"){ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }");
                     JSONObject rootJsonObject = null;
