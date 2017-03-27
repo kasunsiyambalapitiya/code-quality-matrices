@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**
- * This class is used to call the REST API of both WSO2 PMT and github.com
+ * This class is used to callApi the REST API of both WSO2 PMT and github.com
  */
 
 public class RestApiCaller {
@@ -62,7 +62,7 @@ public class RestApiCaller {
 
             if (accessToken != null) {
 
-                httpGet.addHeader("Authorization", "Bearer " + accessToken);        // passing the accessToken for the API call
+                httpGet.addHeader("Authorization", "Bearer " + accessToken);        // passing the accessToken for the API callApi
             }
 
             //as the accept header is needed for the review API since it is still in preview mode   
