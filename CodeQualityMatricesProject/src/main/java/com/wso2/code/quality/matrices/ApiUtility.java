@@ -45,7 +45,7 @@ public final class ApiUtility {
         CloseableHttpClient httpClient = null;
         CloseableHttpResponse httpResponse = null;
         httpClient = HttpClients.createDefault();
-        String JSONText = null;
+        String jsonText = null;
 
         try {
             httpResponse = httpClient.execute(httpGet);
@@ -61,7 +61,7 @@ public final class ApiUtility {
                     stringBuilder.append(line);
                 }
                 // creating a JSON object from the response
-                JSONText = stringBuilder.toString();
+                jsonText = stringBuilder.toString();
 
 
             } else {
@@ -95,6 +95,6 @@ public final class ApiUtility {
                 }
             }
         }
-        return JSONText;
+        return jsonText;
     }
 }
