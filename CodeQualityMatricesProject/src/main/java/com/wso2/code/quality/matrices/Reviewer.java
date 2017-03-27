@@ -75,7 +75,7 @@ public class Reviewer {
         this.pullRequestReviewAPIUrl = "https://api.github.com/repos/" + repoLocation + "/pulls/" + pullRequestNumber + "/reviews";
     }
 
-    // map for storing the pull requests numbers against their repository
+    // map for storing the pull requests numbers against their Repository
     Map<String, Set<Integer>> mapContainingPRNoAgainstRepoName = new HashMap<String, Set<Integer>>();
 
     /**
@@ -103,9 +103,9 @@ public class Reviewer {
                     }
                 });
 
-        logger.info("PR numbers which introduce bug lines of code with their relevant repository are saved successfully to mapContainingPRNoAgainstRepoName map");
+        logger.info("PR numbers which introduce bug lines of code with their relevant Repository are saved successfully to mapContainingPRNoAgainstRepoName map");
         saveReviewersToList(githubToken, restApiCaller);
-        logger.info("List of approved reviwers and comment users of the PRs which introduce bug lines to repository are saved in commentedReviewers and approvedReviewers list ");
+        logger.info("List of approved reviwers and comment users of the PRs which introduce bug lines to Repository are saved in commentedReviewers and approvedReviewers list ");
         // printing the list of reviewers of pull requests
         printReviewUsers();
         logger.info("Names of approved reviewers and commented reviewers are printed successfully");
@@ -187,8 +187,8 @@ public class Reviewer {
 //                }
 //            }
         } else {
-            System.out.println("There are no records of reviews for pull request: " + prNumber + " on " + productLocation + " repository");
-            logger.info("There are no records of reviews for pull request: " + prNumber + " on " + productLocation + " repository");
+            System.out.println("There are no records of reviews for pull request: " + prNumber + " on " + productLocation + " Repository");
+            logger.info("There are no records of reviews for pull request: " + prNumber + " on " + productLocation + " Repository");
         }
     }
 
