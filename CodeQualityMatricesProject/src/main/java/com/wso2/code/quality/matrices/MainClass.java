@@ -90,7 +90,7 @@ public class MainClass {
 //            if (commitsInTheGivenPatch != null) {
 //                commitHashObtainedForPRReview = changesFinder.obtainRepoNamesForCommitHashes(gitHubToken, commitsInTheGivenPatch, restApiCaller);
 //            }
-//            logger.info("Author commits that introduce bug lines of code to the repository are saved in commitHashObtainedForPRReview SET successfully");
+//            logger.info("Author commits that introduce bug lines of code to the Repository are saved in commitHashObtainedForPRReview SET successfully");
 //
 //            Reviewer reviewer = new Reviewer();
 //            if (commitHashObtainedForPRReview != null) {
