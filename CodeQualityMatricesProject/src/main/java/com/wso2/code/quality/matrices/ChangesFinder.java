@@ -18,6 +18,7 @@
 
 package com.wso2.code.quality.matrices;
 
+import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -55,7 +56,7 @@ public class ChangesFinder {
     private static final Logger logger = Logger.getLogger(ChangesFinder.class);
     // constants for accessing the Github API responses
     private static final String GITHUB_API_ITEMS = "items";
-    private static final String GITHUB_API_REPOSITORY = "repository";
+    private static final String GITHUB_API_REPOSITORY = "Repository";
     private static final String GITHUB_API_FULL_NAME_OF_REPOSITORY = "full_name";
     private static final String GITHUB_API_STARTING_LINE = "startingLine";
     private static final String GITHUB_API_ENDING_LINE = "endingLine";
@@ -128,9 +129,39 @@ public class ChangesFinder {
     //============================================
 
     public void saveRepoNamesInAnArray(String jsonText, String commitHash, String gitHubToken) {
+        List<String> repoLocation = new ArrayList<>();
+        Gson gson = new Gson();
+        SearchCommitPojo searchCommitPojo = gson.fromJson(jsonText, SearchCommitPojo.class);
+        searchCommitPojo.getItems().forEach(recordItem -> {
+            repoLocation.add(recordItem.getRepository().getFull_name());
+
+        });
+        logger.info("Repo names having the given commit are successfully saved in an array");
+        SdkGitHubClient sdkGitHubClient = new SdkGitHubClient(gitHubToken);
+
+        repoLocation.stream()
+                .filter(repositoryName -> StringUtils.contains(repositoryName, "wso2/"))
+                .forEach(repositoryName -> {
+                    //clearing all the data in the current fileNames and changedLineRanges arraylists for each Repository
+                    //authorNames.clear();
+                    fileNames.clear();
+                    changedLineRanges.clear();
+                    patchString.clear();
+                    Map<String, ArrayList<String>> fileNamesAndPatches = null;
+                    try {
+                        fileNamesAndPatches = sdkGitHubClient.getFilesChanged(repositoryName, commitHash);
+                    } catch (CodeQualityMatricesException e) {
+                        logger.error(e.getMessage(), e.getCause());    // as exceptions cannot be thrown inside a lambda expression
+                    }
+                    fileNames = fileNamesAndPatches.get("fileNames");
+                    patchString = fileNamesAndPatches.get("patchString");
+                    saveRelaventEditLineNumbers(fileNames, patchString);
+
+
+                });
+
 
     }
-
 
 
     /**
@@ -160,7 +191,7 @@ public class ChangesFinder {
         IntStream.range(0, repoLocation.length)
                 .filter(i -> StringUtils.contains(repoLocation[i], "wso2/"))
                 .forEach(i -> {
-                    //clearing all the data in the current fileNames and changedLineRanges arraylists for each repository
+                    //clearing all the data in the current fileNames and changedLineRanges arraylists for each Repository
                     //authorNames.clear();
                     fileNames.clear();
                     changedLineRanges.clear();
@@ -204,9 +235,9 @@ public class ChangesFinder {
                 .forEach(lineChanges -> {
                     //filtering the lines ranges that existed in the previous file, that exists in the new file and saving them in to the same array
                     IntStream.range(0, lineChanges.length)
-                            .forEach(j -> {
+                            .forEach(index -> {
                                 //@@ -22,7 +22,7 @@ => -22,7 +22,7 => 22,28/22,28
-                                String tempString = lineChanges[j];
+                                String tempString = lineChanges[index];
                                 String lineRangeInTheOldFileBeingModified = StringUtils.substringBetween(tempString, "-", " +");      // for taking the authors and commit hashes of the previous lines
                                 String lineRangeInTheNewFileResultedFromModification = StringUtils.substringAfter(tempString, "+");  // for taking the parent commit
 
@@ -223,7 +254,7 @@ public class ChangesFinder {
                                 int tempEndLineNoInNewFile = Integer.parseInt(StringUtils.substringAfter(lineRangeInTheNewFileResultedFromModification, ","));
                                 int endLineNoOfNewFile = intialLineNoInNewFile + (tempEndLineNoInNewFile - 1);
                                 // storing the line ranges that are being modified in the same array by replacing values
-                                lineChanges[j] = intialLineNoInOldFile + "," + endLineNoOfOldFile + "/" + intialLineNoInNewFile + "," + endLineNoOfNewFile;
+                                lineChanges[index] = intialLineNoInOldFile + "," + endLineNoOfOldFile + "/" + intialLineNoInNewFile + "," + endLineNoOfNewFile;
                             });
                     ArrayList<String> tempArrayList = new ArrayList<>(Arrays.asList(lineChanges));
                     //adding to the array list which keep track of the line ranges being changed
@@ -238,24 +269,23 @@ public class ChangesFinder {
      * This method will iterate over the saved filenames and their relevant changed line ranges and calls the github graphQL API
      * for getting blame details for each of the files
      *
-     * @param repoLocation current selected repository
-     * @param commitHash   current selected repository
+     * @param repoLocation current selected Repository
+     * @param commitHash   current selected Repository
      * @param gitHubToken  github token for accessing github GraphQL API
      */
     public void iterateOverFileChanges(String repoLocation, String commitHash, String gitHubToken) {
 
-        // filtering the owner and the repository name from the repoLocation
+        // filtering the owner and the Repository name from the repoLocation
         String owner = StringUtils.substringBefore(repoLocation, "/");
         String repositoryName = StringUtils.substringAfter(repoLocation, "/");
         //        iterating over the fileNames arraylist for the given commit
         //         cannot use parallel streams here as the order of the file names is important in the process
-        fileNames.stream()
-                .forEach(fileName -> {
+        fileNames.forEach(fileName -> {
                     int index = fileNames.indexOf(fileName);
                     // the relevant arraylist of changed lines for that file
                     ArrayList<String> arrayListOfRelevantChangedLinesOfSelectedFile = changedLineRanges.get(index);
                     commitHashesOfParent = new HashMap<>(); // for storing the parent commit hashes for all the changed line ranges of the relevant file
-                    graphqlApiJsonObject.put("query", "{repository(owner:\"" + owner + "\",name:\"" + repositoryName + "\"){object(expression:\"" + commitHash + "\"){ ... on Commit{blame(path:\"" + fileName + "\"){ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }");
+                    graphqlApiJsonObject.put("query", "{Repository(owner:\"" + owner + "\",name:\"" + repositoryName + "\"){object(expression:\"" + commitHash + "\"){ ... on Commit{blame(path:\"" + fileName + "\"){ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } author { name email } } } } } } } }");
                     JSONObject rootJsonObject = null;
                     try {
                         //            calling the graphql API for getting blame information for the current file.
@@ -390,8 +420,8 @@ public class ChangesFinder {
     /**
      * Finding the authors of the commits
      *
-     * @param owner                                         owner of the repository
-     * @param repositoryName                                repository name
+     * @param owner                                         owner of the Repository
+     * @param repositoryName                                Repository name
      * @param fileName                                      name of the file which is required to get blame details
      * @param arrayListOfRelevantChangedLinesOfSelectedFile arraylist containing the changed line ranges of the current selected file
      * @param gitHubToken                                   github token for accessing github GraphQL API
@@ -403,7 +433,7 @@ public class ChangesFinder {
             Set<String> commitHashes = (Set<String>) m.getValue();
             commitHashes.parallelStream()
                     .forEach(parentCommitHashForCallingGraphQl -> {
-                        graphqlApiJsonObject.put("query", "{repository(owner:\"" + owner + "\",name:\"" + repositoryName + "\"){object(expression:\"" + parentCommitHashForCallingGraphQl + "\"){ ... on Commit{blame(path:\"" + fileName + "\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }");
+                        graphqlApiJsonObject.put("query", "{Repository(owner:\"" + owner + "\",name:\"" + repositoryName + "\"){object(expression:\"" + parentCommitHashForCallingGraphQl + "\"){ ... on Commit{blame(path:\"" + fileName + "\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }");
                         JSONObject rootJsonObject = null;
                         try {
                             rootJsonObject = (JSONObject) graphQlApiCaller.callGraphQlApi(graphqlApiJsonObject, gitHubToken);

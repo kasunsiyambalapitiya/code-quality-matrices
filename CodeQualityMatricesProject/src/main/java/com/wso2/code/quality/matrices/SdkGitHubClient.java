@@ -42,8 +42,6 @@ public class SdkGitHubClient {
     protected GitHubClient gitHubClient = null;
     protected CommitService commitService = null;
     protected RepositoryService repositoryService = null;
-    protected ArrayList<String> fileNames = new ArrayList<String>();
-    protected ArrayList<String> patchString = new ArrayList<String>();
 
     private static final Logger logger = Logger.getLogger(SdkGitHubClient.class);
 
@@ -56,9 +54,9 @@ public class SdkGitHubClient {
 
     /**
      * This method is used for saving the files changed and their relevant changed line ranges from
-     * the given commit in the given repository
+     * the given commit in the given Repository
      *
-     * @param repositoryName The repository name that contain the given commit hash
+     * @param repositoryName The Repository name that contain the given commit hash
      * @param commitHash     The querying commit hash
      * @return a map containg arraylist of file changed and their relevant patch
      */
@@ -77,12 +75,13 @@ public class SdkGitHubClient {
                         tempFileNames.add(commitFile.getFilename());
                         tempPatchString.add(commitFile.getPatch());
                     });
-            logger.info("for" + commitHash + " on the " + repositoryName + " repository, files changed and their relevant changed line ranges added to the arraylists successfully");
+            logger.info("for" + commitHash + " on the " + repositoryName + " Repository, files changed and their relevant changed line ranges added to the arraylists successfully");
             fileNamesAndPatches.put("fileNames", tempFileNames);
             fileNamesAndPatches.put("patchString", tempPatchString);
             logger.info("map with the modified file names with their relevant modified line ranges are saved successfully");
         } catch (IOException e) {
-            throw new CodeQualityMatricesException("IO Exception occurred when getting the commit with the given SHA form the given repository ", e);
+            throw new CodeQualityMatricesException("IO Exception occurred when getting the commit of given SHA from " +
+                    "the given Repository ", e);
         }
         return fileNamesAndPatches;
     }
