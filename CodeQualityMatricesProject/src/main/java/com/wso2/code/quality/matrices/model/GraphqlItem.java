@@ -18,16 +18,16 @@
 
 package com.wso2.code.quality.matrices.model;
 
-import java.util.List;
+public class GraphqlItem {
 
-public class History {
-    private List<Edge> edges;
+    private Repository repository;
 
-    public List<Edge> getEdges() {
-        return edges;
+    public Repository getRepository() {
+        return repository;
     }
 
-    public void setEdges(List<Edge> edges) {
-        this.edges = edges;
+    public void setRepository(Repository Repository) {
+        this.repository = Repository;
     }
 }
+
