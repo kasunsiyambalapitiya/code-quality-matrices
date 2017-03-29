@@ -18,24 +18,14 @@
 
 package com.wso2.code.quality.matrices.model;
 
-public class Author {
-    private String name;
-    private String email;
+public class GraphqlNode {
+    private String url;
 
-    public String getName() {
-        return name;
+    public String getUrl() {
+        return url;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
+    public void setUrl(String url) {
+        this.url = url;
     }
 }
-

@@ -22,7 +22,7 @@ import java.util.List;
 
 public class SearchApiResponse {
     private int total_count;
-    private List<Item> items;
+    private List<GraphqlItem> items;
 
     public int getTotal_count() {
         return total_count;
@@ -32,11 +32,11 @@ public class SearchApiResponse {
         this.total_count = total_count;
     }
 
-    public List<Item> getItems() {
+    public List<GraphqlItem> getItems() {
         return items;
     }
 
-    public void setItems(List<Item> Items) {
+    public void setItems(List<GraphqlItem> Items) {
         this.items = Items;
     }
 }

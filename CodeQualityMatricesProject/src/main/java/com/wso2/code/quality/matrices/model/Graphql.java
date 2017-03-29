@@ -51,6 +51,7 @@ public class Graphql implements Serializable {
     public void setGraphqlInputWithoutHistory(String owner, String repositoryName, String
             parentCommitHashForCallingGraphQl, String fileName) {
         this.graphqlInputWithoutHistory = "{repository(owner:\"" + owner + "\",name:\"" + repositoryName + "\")" +
-                "{object(expression:\"" + parentCommitHashForCallingGraphQl + "\"){ ... on Commit{blame(path:\"" + fileName + "\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }";
+                "{object(expression:\"" + parentCommitHashForCallingGraphQl + "\"){ ... on Commit{blame(path:\"" +
+                fileName + "\"){ranges{startingLine endingLine age commit{ url author { name email } } } } } } } }";
     }
 }

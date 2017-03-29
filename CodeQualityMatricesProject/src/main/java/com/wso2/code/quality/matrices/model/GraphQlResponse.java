@@ -19,13 +19,13 @@
 package com.wso2.code.quality.matrices.model;
 
 public class GraphQlResponse {
-    private Data data;
+    private GraphqlData data;
 
-    public Data getData() {
+    public GraphqlData getData() {
         return data;
     }
 
-    public void setData(Data data) {
+    public void setData(GraphqlData data) {
         this.data = data;
     }
 
