@@ -18,14 +18,14 @@
 
 package com.wso2.code.quality.matrices.model;
 
-public class Node {
-    private String url;
+public class GraphqlEdge {
+    private GraphqlNode node;
 
-    public String getUrl() {
-        return url;
+    public GraphqlNode getNode() {
+        return node;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setNode(GraphqlNode node) {
+        this.node = node;
     }
 }

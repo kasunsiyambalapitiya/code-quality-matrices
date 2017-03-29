@@ -22,7 +22,7 @@ public class GraphqlRange {
     private int startingLine;
     private int endingLine;
     private int age;
-    private Commit commit;
+    private GraphqlCommit commit;
 
     public int getStartingLine() {
         return startingLine;
@@ -48,11 +48,11 @@ public class GraphqlRange {
         this.age = age;
     }
 
-    public Commit getCommit() {
+    public GraphqlCommit getCommit() {
         return commit;
     }
 
-    public void setCommit(Commit commit) {
+    public void setCommit(GraphqlCommit commit) {
         this.commit = commit;
     }
 }

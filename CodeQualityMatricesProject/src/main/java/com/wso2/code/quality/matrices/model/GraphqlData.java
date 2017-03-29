@@ -18,32 +18,14 @@
 
 package com.wso2.code.quality.matrices.model;
 
-public class Commit {
-    private Author author;
-    private History history;
-    private String url;
+public class GraphqlData {
+    private GraphqlRepository repository;
 
-    public Author getAuthor() {
-        return author;
+    public GraphqlRepository getRepository() {
+        return repository;
     }
 
-    public void setAuthor(Author author) {
-        this.author = author;
-    }
-
-    public History getHistory() {
-        return history;
-    }
-
-    public void setHistory(History history) {
-        this.history = history;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public String getUrl() {
-        return url;
+    public void setRepository(GraphqlRepository repository) {
+        this.repository = repository;
     }
 }
