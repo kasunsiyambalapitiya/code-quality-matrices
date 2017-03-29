@@ -18,14 +18,24 @@
 
 package com.wso2.code.quality.matrices.model;
 
-public class Edge {
-    private Node node;
+public class GraphqlAuthor {
+    private String name;
+    private String email;
 
-    public Node getNode() {
-        return node;
+    public String getName() {
+        return name;
     }
 
-    public void setNode(Node node) {
-        this.node = node;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }
+
