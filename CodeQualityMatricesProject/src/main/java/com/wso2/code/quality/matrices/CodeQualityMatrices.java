@@ -24,6 +24,7 @@ import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -52,16 +53,16 @@ public class CodeQualityMatrices {
      */
     public void execute() {
         try {
-            ChangesFinder changesFinder= new ChangesFinder();
+            ChangesFinder changesFinder = new ChangesFinder();
             List<String> commitHashes = findCommitHashesInPatch();
-            changesFinder.obtainRepoNamesForCommitHashes(gitHubToken,commitHashes);
+            Set<String> authorCommits = changesFinder.obtainRepoNamesForCommitHashes(gitHubToken, commitHashes);
+            System.out.println("Author Commits"+authorCommits);
 
 
         } catch (CodeQualityMatricesException e) {
             logger.error(e.getMessage(), e);
 
         }
-        System.out.println();
 
 
     }
