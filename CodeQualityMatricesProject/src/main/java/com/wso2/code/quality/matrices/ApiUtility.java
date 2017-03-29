@@ -21,6 +21,7 @@ package com.wso2.code.quality.matrices;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.log4j.Logger;
@@ -28,6 +29,7 @@ import org.apache.log4j.Logger;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 
 /**
  * This is a utility class for calling APIs
@@ -65,7 +67,7 @@ public final class ApiUtility {
 
 
             } else {
-                throw new CodeQualityMatricesException("Error occurred while calling the API, the reponse code is " +
+                throw new CodeQualityMatricesException("Error occurred while calling the API, the response code is " +
                         responseCode);
             }
         } catch (ClientProtocolException e) {
@@ -95,6 +97,67 @@ public final class ApiUtility {
                 }
             }
         }
+        return jsonText;
+    }
+
+    public static String callGraphQlApi(HttpPost httpPost) throws CodeQualityMatricesException {
+        BufferedReader bufferedReader = null;
+        CloseableHttpClient httpClient = null;
+        CloseableHttpResponse httpResponse = null;
+        httpClient = HttpClients.createDefault();
+        String jsonText = null;
+
+        try {
+            httpResponse = httpClient.execute(httpPost);
+            int responseCode = httpResponse.getStatusLine().getStatusCode();
+            if (responseCode == 200) {
+                bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent(),
+                        "UTF-8"));
+                String line;
+                StringBuilder stringBuilder = new StringBuilder();
+                while ((line = bufferedReader.readLine()) != null) {
+                    stringBuilder.append(line);
+                }
+                jsonText = stringBuilder.toString();
+                logger.info("The response received from the Github GraphQL converted to a JSON text successfully");
+
+            } else {
+                throw new CodeQualityMatricesException("Error occurred while calling the API, the response code is " +
+                        responseCode);
+
+            }
+
+        } catch (UnsupportedEncodingException e) {
+            throw new CodeQualityMatricesException("Encoding error occured before calling the github graphQL API", e);
+        } catch (ClientProtocolException e) {
+            throw new CodeQualityMatricesException("Client protocol exception occurred when calling the github graphQL API", e);
+        } catch (IOException e) {
+            throw new CodeQualityMatricesException("A problem or the connection was aborted while executing the httpPost", e);
+        } finally {
+            if (bufferedReader != null) {
+                try {
+                    bufferedReader.close();
+                } catch (IOException e) {
+                    throw new CodeQualityMatricesException("IOException occurred when closing the buffered reader", e);
+                }
+            }
+            if (httpResponse != null) {
+                try {
+                    httpResponse.close();
+                } catch (IOException e) {
+                    logger.error("IOException occurred when closing the HttpResponse", e);
+                }
+            }
+            if (httpClient != null) {
+                try {
+                    httpClient.close();
+                } catch (IOException e) {
+                    logger.error("IOException occurred when closing the HttpClient", e);
+                }
+            }
+
+        }
+
         return jsonText;
     }
 }
