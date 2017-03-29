@@ -86,15 +86,15 @@ public class MainClass {
 //
 //
 //            ChangesFinder changesFinder = new ChangesFinder();
-//            Set<String> commitHashObtainedForPRReview = null;
+//            Set<String> authorCommits = null;
 //            if (commitsInTheGivenPatch != null) {
-//                commitHashObtainedForPRReview = changesFinder.obtainRepoNamesForCommitHashes(gitHubToken, commitsInTheGivenPatch, restApiCaller);
+//                authorCommits = changesFinder.obtainRepoNamesForCommitHashes(gitHubToken, commitsInTheGivenPatch, restApiCaller);
 //            }
-//            logger.info("Author commits that introduce bug lines of code to the Repository are saved in commitHashObtainedForPRReview SET successfully");
+//            logger.info("Author commits that introduce bug lines of code to the Repository are saved in authorCommits SET successfully");
 //
 //            Reviewer reviewer = new Reviewer();
-//            if (commitHashObtainedForPRReview != null) {
-//                reviewer.findReviewers(commitHashObtainedForPRReview, gitHubToken, restApiCaller);
+//            if (authorCommits != null) {
+//                reviewer.findReviewers(authorCommits, gitHubToken, restApiCaller);
 //            }
 //        } else {
 //            logger.error("at least one of the command line arguments are null.");
