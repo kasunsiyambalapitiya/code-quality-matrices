@@ -23,7 +23,7 @@ package com.wso2.code.quality.matrices;
  *
  * @since 1.0.0
  */
-public class CodeQualityMatricesException extends Exception {
+class CodeQualityMatricesException extends Exception {
     public CodeQualityMatricesException(String message) {
         super(message);
     }

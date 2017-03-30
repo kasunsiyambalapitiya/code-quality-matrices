@@ -38,10 +38,10 @@ import java.util.Map;
  * @since 1.0.0
  */
 
-public class SdkGitHubClient {
-    protected GitHubClient gitHubClient = null;
-    protected CommitService commitService = null;
-    protected RepositoryService repositoryService = null;
+class SdkGitHubClient {
+    private GitHubClient gitHubClient = null;
+    private CommitService commitService = null;
+    private RepositoryService repositoryService = null;
 
     private static final Logger logger = Logger.getLogger(SdkGitHubClient.class);
 

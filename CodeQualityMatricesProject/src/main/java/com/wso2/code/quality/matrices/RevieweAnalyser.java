@@ -37,11 +37,11 @@ import java.util.Set;
  * @since 1.0.0
  */
 
-public class RevieweAnalyser {
+class RevieweAnalyser {
 
-    private Set<String> approvedReviewers = new HashSet<>();      // to store the reviewed and approved users of the pull
+    private final Set<String> approvedReviewers = new HashSet<>();      // to store the reviewed and approved users of the pull
     // requests
-    private Set<String> commentedReviewers = new HashSet<>();     // to store the reviewed and commented users of the pull
+    private final Set<String> commentedReviewers = new HashSet<>();     // to store the reviewed and commented users of the pull
     // requests
 
     private static final Logger logger = Logger.getLogger(RevieweAnalyser.class);
@@ -50,8 +50,8 @@ public class RevieweAnalyser {
     private static final String GITHUB_REVIEW_APPROVED = "APPROVED";
     private static final String GITHUB_REVIEW_COMMENTED = "COMMENTED";
     private static final String GITHUB_REVIEW_API_CLOSED_STATE = "closed";
-    private GithubApiCaller githubApiCaller = new GithubApiCaller();
-    private Gson gson = new Gson();
+    private final GithubApiCaller githubApiCaller = new GithubApiCaller();
+    private final Gson gson = new Gson();
 
     /**
      * This is used to identify the pull requests that introduce the given commit to the code base.
@@ -62,7 +62,7 @@ public class RevieweAnalyser {
     public void findReviewers(Set<String> authorCommits, String githubToken) {
 
         authorCommits.forEach(commitHash -> {
-            String jsonText = null;
+            String jsonText;
 
             try {
                 jsonText = githubApiCaller.callSearchIssueApi(commitHash, githubToken);
@@ -82,7 +82,7 @@ public class RevieweAnalyser {
      * @return a map of pull requests againt their repository name
      * @throws CodeQualityMatricesException
      */
-    public Map<String, Set<Integer>> savePrNumberAndRepoName(String jsonText) throws CodeQualityMatricesException {
+    private Map<String, Set<Integer>> savePrNumberAndRepoName(String jsonText) throws CodeQualityMatricesException {
 
         // map for storing the pull requests numbers against their Repository
         Map<String, Set<Integer>> prNoWithRepoName = new HashMap<>();
@@ -116,7 +116,7 @@ public class RevieweAnalyser {
      *                         relevant reposiory
      * @param githubToken      Github access token for accessing github API
      */
-    public void saveReviewers(Map<String, Set<Integer>> prNoWithRepoName, String githubToken) {
+    private void saveReviewers(Map<String, Set<Integer>> prNoWithRepoName, String githubToken) {
 
         for (Map.Entry entry : prNoWithRepoName.entrySet()) {
             String repositoryName = (String) entry.getKey();
