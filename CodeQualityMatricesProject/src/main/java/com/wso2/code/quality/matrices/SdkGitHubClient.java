@@ -38,7 +38,7 @@ import java.util.Map;
  * @since 1.0.0
  */
 
-class SdkGitHubClient {
+public class SdkGitHubClient {
     private GitHubClient gitHubClient = null;
     private CommitService commitService = null;
     private RepositoryService repositoryService = null;
@@ -60,14 +60,14 @@ class SdkGitHubClient {
      * @param commitHash     The querying commit hash
      * @return a map containg arraylist of file changed and their relevant patch
      */
-    public Map<String, ArrayList<String>> getFilesChanged(String repositoryName, String commitHash) throws CodeQualityMatricesException {
-        Map<String, ArrayList<String>> fileNamesAndPatches = new HashMap<>();
+    public Map<String, List<String>> getFilesChanged(String repositoryName, String commitHash) throws CodeQualityMatricesException {
+        Map<String, List<String>> fileNamesAndPatches = new HashMap<>();
         try {
             IRepositoryIdProvider iRepositoryIdProvider = () -> repositoryName;
             RepositoryCommit repositoryCommit = commitService.getCommit(iRepositoryIdProvider, commitHash);
             List<CommitFile> filesChanged = repositoryCommit.getFiles();
-            ArrayList<String> tempFileNames = new ArrayList<>();
-            ArrayList<String> tempPatchString = new ArrayList<>();
+            List<String> tempFileNames = new ArrayList<>();
+            List<String> tempPatchString = new ArrayList<>();
 
             // this can be run parallely as patchString of a file will always be in the same index as the file
             filesChanged.parallelStream()

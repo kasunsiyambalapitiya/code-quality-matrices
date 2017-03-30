@@ -30,7 +30,7 @@ import java.io.UnsupportedEncodingException;
  *
  * @since 1.0.0
  */
-class GithubApiCaller {
+public class GithubApiCaller {
     private HttpGet httpGet;
 
     /**

@@ -37,14 +37,14 @@ import java.util.Set;
  * @since 1.0.0
  */
 
-class RevieweAnalyser {
+public class ReviewAnalyser {
 
     private final Set<String> approvedReviewers = new HashSet<>();      // to store the reviewed and approved users of the pull
     // requests
     private final Set<String> commentedReviewers = new HashSet<>();     // to store the reviewed and commented users of the pull
     // requests
 
-    private static final Logger logger = Logger.getLogger(RevieweAnalyser.class);
+    private static final Logger logger = Logger.getLogger(ReviewAnalyser.class);
 
     //constants for filtering github API responses
     private static final String GITHUB_REVIEW_APPROVED = "APPROVED";

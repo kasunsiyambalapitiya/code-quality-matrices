@@ -44,11 +44,11 @@ import java.util.stream.IntStream;
  * @since 1.0.0
  */
 
-class ChangesFinder {
+public class ChangesFinder {
 
-    private ArrayList<String> fileNames = new ArrayList<>();
-    private ArrayList<String> patchString = new ArrayList<>();
-    private final List<ArrayList<String>> changedLineRanges = new ArrayList<>();      // for saving the line no that are changed
+    private List<String> fileNames = new ArrayList<>();
+    private List<String> patchString = new ArrayList<>();
+    private final List<List<String>> changedLineRanges = new ArrayList<>();      // for saving the line no that are changed
     private final JSONObject jsonStructure = new JSONObject();
     private Map<String, Set<String>> parentCommitHashes;
     private Set<String> authorNames = new HashSet<>();    //authors of the bug lines fixed from the patch
@@ -110,7 +110,7 @@ class ChangesFinder {
                     fileNames.clear();
                     changedLineRanges.clear();
                     patchString.clear();
-                    Map<String, ArrayList<String>> fileNamesWithPatcheString = null;
+                    Map<String, List<String>> fileNamesWithPatcheString = null;
                     try {
                         fileNamesWithPatcheString = sdkGitHubClient.getFilesChanged(repositoryName, commitHash);
                     } catch (CodeQualityMatricesException e) {
@@ -140,7 +140,7 @@ class ChangesFinder {
      * @param patchString Array list having the patch string value for each of the file being changed
      */
 
-    private void saveRelaventEditLineNumbers(ArrayList<String> fileNames, ArrayList<String> patchString) {
+    private void saveRelaventEditLineNumbers(List<String> fileNames, List<String> patchString) {
         //filtering only the line ranges that are modified and saving to a string array
 
         // cannot use parallel streams here as the order of the line changes must be preserved
@@ -170,7 +170,7 @@ class ChangesFinder {
                                 // storing the line ranges that are being modified in the same array by replacing values
                                 lineChanges[index] = intialLineNoInOldFile + "," + endLineNoOfOldFile + "/" + intialLineNoInNewFile + "," + endLineNoOfNewFile;
                             });
-                    ArrayList<String> changedRange = new ArrayList<>(Arrays.asList(lineChanges));
+                    List<String> changedRange = new ArrayList<>(Arrays.asList(lineChanges));
                     //adding to the array list which keep track of the line ranges being changed
                     changedLineRanges.add(changedRange);
                 });
@@ -198,7 +198,7 @@ class ChangesFinder {
         fileNames.forEach(fileName -> {
             int index = fileNames.indexOf(fileName);
             // the relevant arraylist of changed lines for that file
-            ArrayList<String> lineRangesForSelectedFile = changedLineRanges.get(index);
+            List<String> lineRangesForSelectedFile = changedLineRanges.get(index);
             parentCommitHashes = new HashMap<>(); // for storing the parent commit hashes for all the changed line ranges of the relevant file
 
             Graphql graphqlBean = new Graphql();
@@ -238,7 +238,7 @@ class ChangesFinder {
      * @param changedRangesOfSelectedFile arraylist containing the changed line ranges of the current selected file
      */
     private void readBlameForSelectedFile(String jsonText,
-                                          ArrayList<String> changedRangesOfSelectedFile) throws CodeQualityMatricesException {
+                                          List<String> changedRangesOfSelectedFile) throws CodeQualityMatricesException {
 
         GraphQlResponse graphQlResponse;
         try {
@@ -307,7 +307,7 @@ class ChangesFinder {
      * @param lineRangesForSelectedFile arraylist containing the changed line ranges of the current selected file
      * @param gitHubToken               github token for accessing github GraphQL API
      */
-    private void findAuthorCommits(String owner, String repositoryName, String fileName, ArrayList<String> lineRangesForSelectedFile, String gitHubToken) {
+    private void findAuthorCommits(String owner, String repositoryName, String fileName, List<String> lineRangesForSelectedFile, String gitHubToken) {
         for (Map.Entry entry : parentCommitHashes.entrySet()) {
             String oldRange = (String) entry.getKey();
             Set<String> commitHashes = (Set<String>) entry.getValue();
@@ -341,7 +341,7 @@ class ChangesFinder {
      * @param oldRange                  Range to select the correct range for collecting author commits
      * @param lineRangesForSelectedFile arraylist containing the changed line ranges of the current selected file
      */
-    private void saveAuthorCommits(String jsonText, String oldRange, ArrayList<String> lineRangesForSelectedFile) {
+    private void saveAuthorCommits(String jsonText, String oldRange, List<String> lineRangesForSelectedFile) {
 
         GraphQlResponse graphQlResponse = gson.fromJson(jsonText, GraphQlResponse.class);
 
