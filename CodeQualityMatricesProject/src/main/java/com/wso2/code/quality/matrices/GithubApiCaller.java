@@ -32,7 +32,6 @@ import java.io.UnsupportedEncodingException;
  */
 public class GithubApiCaller {
     private HttpGet httpGet;
-    private HttpPost httpPost;
 
     /**
      * This is used for calling the github search REST API.
@@ -112,6 +111,7 @@ public class GithubApiCaller {
     public String callGraphqlApi(JSONObject graphqlJsonStructure, String githubToken) throws
             CodeQualityMatricesException {
         String url = "https://api.github.com/graphql";
+        HttpPost httpPost;
         try {
             httpPost = new HttpPost(url);
             httpPost.addHeader("Authorization", "Bearer " + githubToken);
