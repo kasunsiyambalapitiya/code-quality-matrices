@@ -21,7 +21,7 @@ package com.wso2.code.quality.matrices.model;
 import java.io.Serializable;
 
 /**
- * This is a bean class used to set the json structures for calling the github graphql API
+ * This is a bean class used to set the json input structures for calling the github graphql API.
  *
  * @since 1.0.0
  */
