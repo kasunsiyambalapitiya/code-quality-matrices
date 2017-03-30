@@ -31,21 +31,21 @@ import java.util.Set;
  *
  * @since 1.0.0
  */
-class CodeQualityMatrices {
+public class CodeQualityMatricesExecutor {
     private final String pmtToken;
     private final String patchId;
     private final String gitHubToken;
     private static final String COMMITS_INSIDE_GIVEN_PATCH = "patchInformation_svnRevisionpublic";
-    private final static Logger logger = Logger.getLogger(CodeQualityMatrices.class);
+    private final static Logger logger = Logger.getLogger(CodeQualityMatricesExecutor.class);
 
     /**
-     * This create an instance of CodeQualityMatrices class.
+     * This create an instance of CodeQualityMatricesExecutor class.
      *
      * @param pmtToken    PMT Access Token
      * @param patchId     Patch ID
      * @param gitHubToken Github access token
      */
-    public CodeQualityMatrices(String pmtToken, String patchId, String gitHubToken) {
+    public CodeQualityMatricesExecutor(String pmtToken, String patchId, String gitHubToken) {
         this.pmtToken = pmtToken;
         this.patchId = patchId;
         this.gitHubToken = gitHubToken;
@@ -62,9 +62,9 @@ class CodeQualityMatrices {
             Set<String> authorCommits = changesFinder.obtainRepoNamesForCommitHashes(gitHubToken, commitHashes);
             System.out.println("Author Commits" + authorCommits);
 
-            RevieweAnalyser revieweAnalyser = new RevieweAnalyser();
-            revieweAnalyser.findReviewers(authorCommits, gitHubToken);
-            revieweAnalyser.printReviewUsers();
+            ReviewAnalyser reviewAnalyser = new ReviewAnalyser();
+            reviewAnalyser.findReviewers(authorCommits, gitHubToken);
+            reviewAnalyser.printReviewUsers();
 
             logger.debug("The application executed successfully");
 

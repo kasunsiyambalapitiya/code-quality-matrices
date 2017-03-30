@@ -25,8 +25,8 @@ import org.apache.log4j.Logger;
  * PMT Access token, patch id and github access token
  * should be passed in order as command line arguments when running the application.
  */
-class MainClass {
-    private final static Logger logger = Logger.getLogger(MainClass.class);
+public class Application {
+    private final static Logger logger = Logger.getLogger(Application.class);
 
     public static void main(String[] args) {
         if (args.length == 3) {
@@ -35,8 +35,8 @@ class MainClass {
             String patchId = args[1];
             String gitHubToken = args[2];
 
-            CodeQualityMatrices codeQualityMatrices = new CodeQualityMatrices(pmtToken, patchId, gitHubToken);
-            codeQualityMatrices.execute();
+            CodeQualityMatricesExecutor codeQualityMatricesExecutor = new CodeQualityMatricesExecutor(pmtToken, patchId, gitHubToken);
+            codeQualityMatricesExecutor.execute();
         } else {
             logger.error("Command line arguments were not given correctly to start the execution");
             System.out.println("Please enter PMT Access token, patch id and github access token in order as command " +
