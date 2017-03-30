@@ -75,10 +75,12 @@ public class SdkGitHubClient {
                         tempFileNames.add(commitFile.getFilename());
                         tempPatchString.add(commitFile.getPatch());
                     });
-            logger.info("for" + commitHash + " on the " + repositoryName + " Repository, files changed and their relevant changed line ranges added to the arraylists successfully");
+            logger.debug("for" + commitHash + " on the " + repositoryName + " repository, files changed and their " +
+                    "relevant changed line ranges are added to the arraylists successfully");
             fileNamesAndPatches.put("fileNames", tempFileNames);
             fileNamesAndPatches.put("patchString", tempPatchString);
-            logger.info("map with the modified file names with their relevant modified line ranges are saved successfully");
+            logger.debug("map with the modified file names with their relevant modified line ranges are saved " +
+                    "successfully");
         } catch (IOException e) {
             throw new CodeQualityMatricesException("IO Exception occurred when getting the commit of given SHA from " +
                     "the given Repository ", e);

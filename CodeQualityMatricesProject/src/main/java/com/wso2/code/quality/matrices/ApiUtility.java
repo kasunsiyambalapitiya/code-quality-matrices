@@ -135,7 +135,7 @@ public final class ApiUtility {
                     stringBuilder.append(line);
                 }
                 jsonText = stringBuilder.toString();
-                logger.info("The response received from the Github GraphQL converted to a JSON text successfully");
+                logger.debug("The response received from the Github GraphQL converted to a JSON text successfully");
 
             } else {
                 throw new CodeQualityMatricesException("Error occurred while calling the API, the response code is " +
