@@ -32,7 +32,9 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 
 /**
- * This is a utility class for calling APIs
+ * This is a utility class for calling APIs.
+ *
+ * @since 1.0.0
  */
 public final class ApiUtility {
     // to prevent instantiation
@@ -42,6 +44,13 @@ public final class ApiUtility {
 
     private static Logger logger = Logger.getLogger(ApiUtility.class);
 
+    /**
+     * This is used for calling the REST APIs.
+     *
+     * @param httpGet Instance of the relevant httpGet
+     * @return String representation of the json response
+     * @throws CodeQualityMatricesException
+     */
     public static String callApi(HttpGet httpGet) throws CodeQualityMatricesException {
         BufferedReader bufferedReader = null;
         CloseableHttpClient httpClient = null;
@@ -100,6 +109,13 @@ public final class ApiUtility {
         return jsonText;
     }
 
+    /**
+     * This is used for calling the github graphql API.
+     *
+     * @param httpPost relevant instance of the httpost
+     * @return String representation of the json response
+     * @throws CodeQualityMatricesException
+     */
     public static String callGraphQlApi(HttpPost httpPost) throws CodeQualityMatricesException {
         BufferedReader bufferedReader = null;
         CloseableHttpClient httpClient = null;

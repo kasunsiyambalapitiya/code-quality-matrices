@@ -20,15 +20,22 @@ package com.wso2.code.quality.matrices;
 
 import org.apache.http.client.methods.HttpGet;
 
+/**
+ * This is used for all the WSO2 PMT communications.
+ *
+ * @since 1.0.0
+ */
 public class PmtApiCaller {
     public PmtApiCaller() {
 
     }
 
     /**
-     * @param accessToken
-     * @param patchId
-     * @return
+     * This is used for calling the WSO2 PMT REST API.
+     *
+     * @param accessToken WSO2 PMT access token
+     * @param patchId     Patch Id
+     * @return String representation of the json response
      * @throws CodeQualityMatricesException
      */
     public String callApi(String accessToken, String patchId) throws CodeQualityMatricesException {
