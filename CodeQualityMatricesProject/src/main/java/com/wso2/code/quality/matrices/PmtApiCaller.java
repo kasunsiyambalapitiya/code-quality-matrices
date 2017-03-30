@@ -39,7 +39,8 @@ public class PmtApiCaller {
      * @throws CodeQualityMatricesException
      */
     public String callApi(String accessToken, String patchId) throws CodeQualityMatricesException {
-        String pmtUrl = "http://umt.private.wso2.com:9765/codequalitymatricesapi/1.0.0//properties?path=/_system/governance/patchs/" + patchId;
+        String pmtUrl = "http://umt.private.wso2.com:9765/codequalitymatricesapi/1.0.0//properties?path=/_system/" +
+                "governance/patchs/" + patchId;
         HttpGet httpGet;
         try {
             httpGet = new HttpGet(pmtUrl);

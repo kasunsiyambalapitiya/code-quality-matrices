@@ -19,16 +19,15 @@
 package com.wso2.code.quality.matrices.model;
 
 /**
- * Pojo class used for parsing JSON response received from github graphql API
+ * This is used for storing all the constants used in the Code quality matrices Application
+ *
+ * @since 1.0.0
  */
-public class GraphqlObject {
-    private GraphqlBlame blame;
+public class Constants {
+    public static final String COMMITS_INSIDE_GIVEN_PATCH = "patchInformation_svnRevisionpublic";
+    public static final String GITHUB_REVIEW_APPROVED = "APPROVED";
+    public static final String GITHUB_REVIEW_COMMENTED = "COMMENTED";
+    public static final String GITHUB_REVIEW_API_CLOSED_STATE = "closed";
 
-    public GraphqlBlame getBlame() {
-        return blame;
-    }
 
-    public void setBlame(GraphqlBlame blame) {
-        this.blame = blame;
-    }
 }

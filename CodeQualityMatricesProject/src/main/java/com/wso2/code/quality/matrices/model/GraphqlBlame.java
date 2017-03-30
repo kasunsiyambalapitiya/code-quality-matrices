@@ -20,6 +20,9 @@ package com.wso2.code.quality.matrices.model;
 
 import java.util.List;
 
+/**
+ * Pojo class used for parsing JSON response received from github graphql API
+ */
 public class GraphqlBlame {
 
     private List<GraphqlRange> ranges;
@@ -31,7 +34,4 @@ public class GraphqlBlame {
     public void setRanges(List<GraphqlRange> ranges) {
         this.ranges = ranges;
     }
-
-
 }
-

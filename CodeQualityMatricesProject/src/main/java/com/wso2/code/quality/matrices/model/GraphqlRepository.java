@@ -17,6 +17,10 @@
  */
 
 package com.wso2.code.quality.matrices.model;
+
+/**
+ * Pojo class used for parsing JSON response received from github graphql API
+ */
 public class GraphqlRepository {
     private GraphqlObject object;
 
