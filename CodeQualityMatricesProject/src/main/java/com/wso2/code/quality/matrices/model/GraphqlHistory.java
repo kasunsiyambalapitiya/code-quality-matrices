@@ -20,6 +20,9 @@ package com.wso2.code.quality.matrices.model;
 
 import java.util.List;
 
+/**
+ * Pojo class used for parsing JSON response received from github graphql API
+ */
 public class GraphqlHistory {
     private List<GraphqlEdge> edges;
 

@@ -26,17 +26,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.wso2.code.quality.matrices.model.Constants.COMMITS_INSIDE_GIVEN_PATCH;
+
+
 /**
  * This is used for creating executing the program.
  *
  * @since 1.0.0
  */
 public class CodeQualityMatricesExecutor {
+    private static final Logger logger = Logger.getLogger(CodeQualityMatricesExecutor.class);
+
     private final String pmtToken;
     private final String patchId;
     private final String gitHubToken;
-    private static final String COMMITS_INSIDE_GIVEN_PATCH = "patchInformation_svnRevisionpublic";
-    private final static Logger logger = Logger.getLogger(CodeQualityMatricesExecutor.class);
 
     /**
      * This create an instance of CodeQualityMatricesExecutor class.
@@ -60,7 +63,6 @@ public class CodeQualityMatricesExecutor {
             List<String> commitHashes = findCommitHashesInPatch();
             ChangesFinder changesFinder = new ChangesFinder();
             Set<String> authorCommits = changesFinder.obtainRepoNamesForCommitHashes(gitHubToken, commitHashes);
-            System.out.println("Author Commits" + authorCommits);
 
             ReviewAnalyser reviewAnalyser = new ReviewAnalyser();
             reviewAnalyser.findReviewers(authorCommits, gitHubToken);
@@ -69,7 +71,7 @@ public class CodeQualityMatricesExecutor {
             logger.debug("The application executed successfully");
 
         } catch (CodeQualityMatricesException e) {
-            logger.error(e.getMessage(), e.getCause());
+            logger.debug(e.getMessage(), e.getCause());
         }
     }
 
@@ -101,8 +103,7 @@ public class CodeQualityMatricesExecutor {
                     }
                 }
             }
-            System.out.println("The commit hashes are: ");
-            System.out.println(commitHashes);
+            logger.debug("The commit hashes are: " + commitHashes);
         } else {
             throw new CodeQualityMatricesException("The returned jsonText from PMT API is null");
         }

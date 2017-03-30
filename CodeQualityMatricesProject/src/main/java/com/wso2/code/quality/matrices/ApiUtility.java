@@ -37,12 +37,13 @@ import java.io.UnsupportedEncodingException;
  * @since 1.0.0
  */
 public final class ApiUtility {
+    private static final Logger logger = Logger.getLogger(ApiUtility.class);
+
     // to prevent instantiation
     private ApiUtility() {
 
     }
 
-    private static final Logger logger = Logger.getLogger(ApiUtility.class);
 
     /**
      * This is used for calling the REST APIs.
@@ -88,21 +89,21 @@ public final class ApiUtility {
                 try {
                     bufferedReader.close();
                 } catch (IOException e) {
-                    logger.error("IOException occurred when closing the BufferedReader", e);
+                    logger.debug("IOException occurred when closing the BufferedReader", e);
                 }
             }
             if (httpResponse != null) {
                 try {
                     httpResponse.close();
                 } catch (IOException e) {
-                    logger.error("IOException occurred when closing the HttpResponse", e);
+                    logger.debug("IOException occurred when closing the HttpResponse", e);
                 }
             }
             if (httpClient != null) {
                 try {
                     httpClient.close();
                 } catch (IOException e) {
-                    logger.error("IOException occurred when closing the HttpClient", e);
+                    logger.debug("IOException occurred when closing the HttpClient", e);
                 }
             }
         }
@@ -146,29 +147,31 @@ public final class ApiUtility {
         } catch (UnsupportedEncodingException e) {
             throw new CodeQualityMatricesException("Encoding error occured before calling the github graphQL API", e);
         } catch (ClientProtocolException e) {
-            throw new CodeQualityMatricesException("Client protocol exception occurred when calling the github graphQL API", e);
+            throw new CodeQualityMatricesException("Client protocol exception occurred when calling the github" +
+                    " graphQL API", e);
         } catch (IOException e) {
-            throw new CodeQualityMatricesException("A problem or the connection was aborted while executing the httpPost", e);
+            throw new CodeQualityMatricesException("A problem or the connection was aborted while executing the" +
+                    " httpPost", e);
         } finally {
             if (bufferedReader != null) {
                 try {
                     bufferedReader.close();
                 } catch (IOException e) {
-                    logger.error("IOException occurred when closing the buffered reader", e);
+                    logger.debug("IOException occurred when closing the buffered reader", e);
                 }
             }
             if (httpResponse != null) {
                 try {
                     httpResponse.close();
                 } catch (IOException e) {
-                    logger.error("IOException occurred when closing the HttpResponse", e);
+                    logger.debug("IOException occurred when closing the HttpResponse", e);
                 }
             }
             if (httpClient != null) {
                 try {
                     httpClient.close();
                 } catch (IOException e) {
-                    logger.error("IOException occurred when closing the HttpClient", e);
+                    logger.debug("IOException occurred when closing the HttpClient", e);
                 }
             }
 

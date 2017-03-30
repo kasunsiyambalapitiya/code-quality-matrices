@@ -39,11 +39,12 @@ import java.util.Map;
  */
 
 public class SdkGitHubClient {
+    private static final Logger logger = Logger.getLogger(SdkGitHubClient.class);
+
     private GitHubClient gitHubClient = null;
     private CommitService commitService = null;
     private RepositoryService repositoryService = null;
 
-    private static final Logger logger = Logger.getLogger(SdkGitHubClient.class);
 
     SdkGitHubClient(String githubToken) {
         gitHubClient = new GitHubClient();
@@ -60,7 +61,8 @@ public class SdkGitHubClient {
      * @param commitHash     The querying commit hash
      * @return a map containg arraylist of file changed and their relevant patch
      */
-    public Map<String, List<String>> getFilesChanged(String repositoryName, String commitHash) throws CodeQualityMatricesException {
+    public Map<String, List<String>> getFilesChanged(String repositoryName, String commitHash)
+            throws CodeQualityMatricesException {
         Map<String, List<String>> fileNamesAndPatches = new HashMap<>();
         try {
             IRepositoryIdProvider iRepositoryIdProvider = () -> repositoryName;
@@ -75,11 +77,12 @@ public class SdkGitHubClient {
                         tempFileNames.add(commitFile.getFilename());
                         tempPatchString.add(commitFile.getPatch());
                     });
-            logger.debug("for" + commitHash + " on the " + repositoryName + " repository, files changed and their " +
+            logger.debug("for commit hash" + commitHash + " on the " + repositoryName + " repository, files changed " +
+                    "and their " +
                     "relevant changed line ranges are added to the arraylists successfully");
             fileNamesAndPatches.put("fileNames", tempFileNames);
             fileNamesAndPatches.put("patchString", tempPatchString);
-            logger.debug("map with the modified file names with their relevant modified line ranges are saved " +
+            logger.debug("Modified file names with their relevant modified line ranges are saved to a map " +
                     "successfully");
         } catch (IOException e) {
             throw new CodeQualityMatricesException("IO Exception occurred when getting the commit of given SHA from " +
