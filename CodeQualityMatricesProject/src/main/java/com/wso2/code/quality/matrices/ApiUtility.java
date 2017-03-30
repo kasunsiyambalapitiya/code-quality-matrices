@@ -36,7 +36,7 @@ import java.io.UnsupportedEncodingException;
  *
  * @since 1.0.0
  */
-final class ApiUtility {
+public final class ApiUtility {
     // to prevent instantiation
     private ApiUtility() {
 

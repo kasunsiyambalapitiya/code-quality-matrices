@@ -25,7 +25,7 @@ import org.apache.http.client.methods.HttpGet;
  *
  * @since 1.0.0
  */
-class PmtApiCaller {
+public class PmtApiCaller {
     public PmtApiCaller() {
 
     }
