@@ -38,7 +38,8 @@ import java.util.TreeMap;
 import java.util.stream.IntStream;
 
 /**
- * This class is used for getting the blame information on relevant lines changed from the given patch
+ * This class is used for getting the blame information on relevant changed line ranges on relevant files from the
+ * given patch.
  *
  * @since 1.0.0
  */
@@ -53,6 +54,9 @@ public class ChangesFinder {
     protected Set<String> authorNames = new HashSet<>();    //authors of the bug lines fixed from the patch
     protected Set<String> authorCommits = new HashSet<>();  //  author commits of the bug lines fixed from the patch
 
+    private GithubApiCaller githubApiCaller = new GithubApiCaller();
+    private Gson gson = new Gson();
+
     private static final Logger logger = Logger.getLogger(ChangesFinder.class);
 
     /**
@@ -63,8 +67,7 @@ public class ChangesFinder {
      * @return author commits of the bug lines which are fixed from the given patch
      */
 
-    public Set obtainRepoNamesForCommitHashes(String gitHubToken, List<String> commitHashes) {
-        GithubApiCaller githubApiCaller = new GithubApiCaller();
+    public Set<String> obtainRepoNamesForCommitHashes(String gitHubToken, List<String> commitHashes) {
 
         commitHashes.forEach(commitHash -> {
             try {
@@ -79,26 +82,24 @@ public class ChangesFinder {
     }
 
     /**
-     * Saving the  relevant repo Names in List
+     * Saving the  relevant repository names that contain the given commit hash in a List.
      *
-     * @param jsonText
-     * @param commitHash
-     * @param gitHubToken
+     * @param jsonText    String representation of the json response
+     * @param commitHash  commit hash to be searched for containing WSO2 repositories
+     * @param gitHubToken Github access token for accessing github API
      */
     public void saveRepoNames(String jsonText, String commitHash, String gitHubToken) throws CodeQualityMatricesException {
         List<String> repoLocation = new ArrayList<>();
-        Gson gson = new Gson();
         SearchApiResponse searchCommitPojo;
         try {
             searchCommitPojo = gson.fromJson(jsonText, SearchApiResponse.class);
         } catch (JsonSyntaxException e) {
             throw new CodeQualityMatricesException(e.getMessage(), e.getCause());
         }
-        searchCommitPojo.getItems().forEach(recordItem -> {
-            repoLocation.add(recordItem.getRepository().getFull_name());
+        searchCommitPojo.getItems()
+                .forEach(recordItem -> repoLocation.add(recordItem.getRepository().getFull_name()));
 
-        });
-        logger.info("Repo names having the given commit are successfully saved in an array");
+        logger.info("All the repository names having the given commit are successfully saved in an array");
         SdkGitHubClient sdkGitHubClient = new SdkGitHubClient(gitHubToken);
 
         repoLocation.stream()
@@ -109,14 +110,14 @@ public class ChangesFinder {
                     fileNames.clear();
                     changedLineRanges.clear();
                     patchString.clear();
-                    Map<String, ArrayList<String>> fileNamesAndPatches = null;
+                    Map<String, ArrayList<String>> fileNamesWithPatcheString = null;
                     try {
-                        fileNamesAndPatches = sdkGitHubClient.getFilesChanged(repositoryName, commitHash);
+                        fileNamesWithPatcheString = sdkGitHubClient.getFilesChanged(repositoryName, commitHash);
                     } catch (CodeQualityMatricesException e) {
                         logger.error(e.getMessage(), e.getCause());    // as exceptions cannot be thrown inside a lambda expression
                     }
-                    fileNames = fileNamesAndPatches.get("fileNames");
-                    patchString = fileNamesAndPatches.get("patchString");
+                    fileNames = fileNamesWithPatcheString.get("fileNames");
+                    patchString = fileNamesWithPatcheString.get("patchString");
                     saveRelaventEditLineNumbers(fileNames, patchString);
                     try {
                         iterateOverFileChanges(repositoryName, commitHash, gitHubToken);
@@ -129,7 +130,8 @@ public class ChangesFinder {
     }
 
     /**
-     * This method is used to save the line ranges being modified in a given file to a list and add that list to the root list of
+     * This method is used to save the line ranges being modified in a given file to a list and add that list to the
+     * root list of.
      *
      * @param fileNames   Arraylist of files names that are being affected by the relevant commit
      * @param patchString Array list having the patch string value for each of the file being changed
@@ -165,18 +167,19 @@ public class ChangesFinder {
                                 // storing the line ranges that are being modified in the same array by replacing values
                                 lineChanges[index] = intialLineNoInOldFile + "," + endLineNoOfOldFile + "/" + intialLineNoInNewFile + "," + endLineNoOfNewFile;
                             });
-                    ArrayList<String> tempArrayList = new ArrayList<>(Arrays.asList(lineChanges));
+                    ArrayList<String> changedRange = new ArrayList<>(Arrays.asList(lineChanges));
                     //adding to the array list which keep track of the line ranges being changed
-                    changedLineRanges.add(tempArrayList);
+                    changedLineRanges.add(changedRange);
                 });
         System.out.println("done saving file names and their relevant modification line ranges");
+        logger.debug("done saving file names and their relevant modification line ranges");
         System.out.println(fileNames);
         System.out.println(changedLineRanges + "\n");
     }
 
     /**
-     * This method will iterate over the saved filenames and their relevant changed line ranges and calls the github graphQL API
-     * for getting blame details for each of the files
+     * This will iterate over the saved filenames and their relevant changed line ranges and calls the github graphQL API
+     * for getting blame details for each of the files.
      *
      * @param repoLocation current selected Repository
      * @param commitHash   current selected Repository
@@ -202,16 +205,15 @@ public class ChangesFinder {
             String jsonText = null;
             try {
                 // calling the graphql API for getting blame information for the current file.
-                GithubApiCaller githubApiCaller = new GithubApiCaller();
                 jsonText = githubApiCaller.callGraphqlApi(jsonStructure, gitHubToken);
 
             } catch (CodeQualityMatricesException e) {
                 logger.error(e.getMessage(), e.getCause());     // as exceptions cannot be thrown inside lambda expression
-                System.exit(1);
             }
             //reading the above saved output for the current selected file name
             try {
                 readBlameForSelectedFile(jsonText, lineRangesForSelectedFile);
+                logger.debug("Parent commits are saved for the " + fileName + " for all the modified line ranges");
             } catch (CodeQualityMatricesException e) {
                 logger.error(e.getMessage(), e.getCause());
             }
@@ -227,7 +229,7 @@ public class ChangesFinder {
 
     /**
      * This reads the blame received for the current selected file and insert parent commits of the changed lines
-     * to a list
+     * to a list.
      *
      * @param jsonText                    JSON response of blame of the selected file
      * @param changedRangesOfSelectedFile arraylist containing the changed line ranges of the current selected file
@@ -235,7 +237,6 @@ public class ChangesFinder {
     public void readBlameForSelectedFile(String jsonText,
                                          ArrayList<String> changedRangesOfSelectedFile) throws CodeQualityMatricesException {
 
-        Gson gson = new Gson();
         GraphQlResponse graphQlResponse = null;
         try {
             graphQlResponse = gson.fromJson(jsonText, GraphQlResponse.class);
@@ -288,17 +289,14 @@ public class ChangesFinder {
                 TreeMap<Integer, Set<String>> sortedAgeWithParentCommit = new TreeMap<>(ageWithParentCommit);
                 Set<String> parentCommit = sortedAgeWithParentCommit.get(sortedAgeWithParentCommit.firstKey());
                 parentCommitHashes.put(oldFileRange, parentCommit);
-
             }
-
-
         });
     }
 
 
     /**
      * This is used to find the author and author commits of the buggy lines of code which are been fixed by the
-     * given patch
+     * given patch.
      *
      * @param owner                     owner of the selected epository
      * @param repositoryName            selected repository name
@@ -311,37 +309,37 @@ public class ChangesFinder {
             String oldRange = (String) entry.getKey();
             Set<String> commitHashes = (Set<String>) entry.getValue();
             Graphql graphqlBean = new Graphql();
-            GithubApiCaller githubApiCaller = new GithubApiCaller();
-            commitHashes.parallelStream().forEach(commitHash -> {
+            commitHashes.parallelStream()
+                    .forEach(commitHash -> {
 
-                graphqlBean.setGraphqlInputWithoutHistory(owner, repositoryName, commitHash, fileName);
-                jsonStructure.put("query", graphqlBean.getGraphqlInputWithoutHistory());
-                //         jsonStructure   calling the graphql API for getting blame information for the current file.
+                        graphqlBean.setGraphqlInputWithoutHistory(owner, repositoryName, commitHash, fileName);
+                        jsonStructure.put("query", graphqlBean.getGraphqlInputWithoutHistory());
 
-                String jsonText = null;
-                try {
-                    jsonText = githubApiCaller.callGraphqlApi(jsonStructure, gitHubToken);
-                } catch (CodeQualityMatricesException e) {
-                    logger.debug(e.getMessage(), e.getCause());
-                }
+                        String jsonText = null;
+                        try {
+                            jsonText = githubApiCaller.callGraphqlApi(jsonStructure, gitHubToken);
+                        } catch (CodeQualityMatricesException e) {
+                            logger.debug(e.getMessage(), e.getCause());
+                        }
 
-
-                saveAuthorCommits(jsonText, oldRange, lineRangesForSelectedFile);
-            });
+                        saveAuthorCommits(jsonText, oldRange, lineRangesForSelectedFile);
+                    });
         }
+        logger.debug("author commits and authors of bug lines of code on " + fileName + " file which are been fixed by " +
+                "the given patch are successfully saved to lists");
+
     }
 
     /**
      * This is used to save the authors and author commits of the buggy lines of code which are been fixed by the
-     * given patch, to relevant lists
+     * given patch, to relevant lists.
      *
-     * @param jsonText
-     * @param oldRange
-     * @param lineRangesForSelectedFile
+     * @param jsonText                  String representation of the json response
+     * @param oldRange                  Range to select the correct range for collecting author commits
+     * @param lineRangesForSelectedFile arraylist containing the changed line ranges of the current selected file
      */
     public void saveAuthorCommits(String jsonText, String oldRange, ArrayList<String> lineRangesForSelectedFile) {
 
-        Gson gson = new Gson();
         GraphQlResponse graphQlResponse = gson.fromJson(jsonText, GraphQlResponse.class);
 
         lineRangesForSelectedFile.forEach(lineRange -> {
@@ -350,7 +348,7 @@ public class ChangesFinder {
             String oldFileRange = StringUtils.substringBefore(lineRange, "/");
             // need to skip the newly created files from taking the blame as they contain no previous commits
             if (!oldFileRange.equals("0,0") && oldRange.equals(oldFileRange)) {
-                // need to consider the line range in the old file for finding authors and author commits
+                // need to consider the correct line range in the old file for finding authors and author commits
                 startingLineNo = Integer.parseInt(StringUtils.substringBefore(oldFileRange, ","));
                 endLineNo = Integer.parseInt(StringUtils.substringAfter(oldFileRange, ","));
 
@@ -363,11 +361,11 @@ public class ChangesFinder {
                             .forEach(graphqlRange -> {
 
                                 String authorName = graphqlRange.getCommit().getAuthor().getName();
-                                String authorcommitUrl = StringUtils.substringAfter(graphqlRange.getCommit().getUrl(),
+                                String authorcommit = StringUtils.substringAfter(graphqlRange.getCommit().getUrl(),
                                         "commit/");
 
                                 authorNames.add(authorName); // authors are added to the Set
-                                authorCommits.add(authorcommitUrl); // author commits are added to the set
+                                authorCommits.add(authorcommit); // author commits are added to the set
 
 
                             });

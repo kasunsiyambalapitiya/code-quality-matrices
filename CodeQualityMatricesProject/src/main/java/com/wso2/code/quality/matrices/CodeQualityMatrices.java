@@ -27,7 +27,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * This is used for creating executing the program.
  *
+ * @since 1.0.0
  */
 public class CodeQualityMatrices {
     private String pmtToken;
@@ -37,9 +39,11 @@ public class CodeQualityMatrices {
     private final static Logger logger = Logger.getLogger(CodeQualityMatrices.class);
 
     /**
-     * @param pmtToken
-     * @param patchId
-     * @param gitHubToken
+     * This create an instance of CodeQualityMatrices class.
+     *
+     * @param pmtToken    PMT Access Token
+     * @param patchId     Patch ID
+     * @param gitHubToken Github access token
      */
     public CodeQualityMatrices(String pmtToken, String patchId, String gitHubToken) {
         this.pmtToken = pmtToken;
@@ -49,26 +53,30 @@ public class CodeQualityMatrices {
     }
 
     /**
-     *
+     * This is the entry point to this application.
      */
     public void execute() {
         try {
-            ChangesFinder changesFinder = new ChangesFinder();
             List<String> commitHashes = findCommitHashesInPatch();
+            ChangesFinder changesFinder = new ChangesFinder();
             Set<String> authorCommits = changesFinder.obtainRepoNamesForCommitHashes(gitHubToken, commitHashes);
-            System.out.println("Author Commits"+authorCommits);
+            System.out.println("Author Commits" + authorCommits);
 
+            RevieweAnalyser revieweAnalyser = new RevieweAnalyser();
+            revieweAnalyser.findReviewers(authorCommits, gitHubToken);
+            revieweAnalyser.printReviewUsers();
+
+            logger.debug("The application executed successfully");
 
         } catch (CodeQualityMatricesException e) {
-            logger.error(e.getMessage(), e);
-
+            logger.error(e.getMessage(), e.getCause());
         }
-
-
     }
 
     /**
+     * This is used to filter out the commit hashes that belongs to the given patch
      *
+     * @return List of commithashes contained in the given patch
      */
     public List<String> findCommitHashesInPatch() throws CodeQualityMatricesException {
         PmtApiCaller pmtApiCaller = new PmtApiCaller();
