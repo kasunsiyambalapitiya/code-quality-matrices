@@ -26,7 +26,7 @@ import org.apache.log4j.Logger;
  * should be passed in order as command line arguments when running the application.
  */
 public class Application {
-    private final static Logger logger = Logger.getLogger(Application.class);
+    private static final Logger logger = Logger.getLogger(Application.class);
 
     public static void main(String[] args) {
         if (args.length == 3) {
@@ -35,11 +35,12 @@ public class Application {
             String patchId = args[1];
             String gitHubToken = args[2];
 
-            CodeQualityMatricesExecutor codeQualityMatricesExecutor = new CodeQualityMatricesExecutor(pmtToken, patchId, gitHubToken);
+            CodeQualityMatricesExecutor codeQualityMatricesExecutor = new CodeQualityMatricesExecutor(pmtToken, patchId,
+                    gitHubToken);
             codeQualityMatricesExecutor.execute();
         } else {
-            logger.error("Command line arguments were not given correctly to start the execution");
-            System.out.println("Please enter PMT Access token, patch id and github access token in order as command " +
+            logger.debug("Command line arguments were not given correctly to start the execution");
+            logger.debug("Please enter PMT Access token, patch id and github access token in order as command " +
                     "line arguments to initiate the program");
         }
     }

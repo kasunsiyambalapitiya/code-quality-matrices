@@ -20,6 +20,9 @@ package com.wso2.code.quality.matrices.model;
 
 import java.util.List;
 
+/**
+ * Pojo class used for parsing JSON response received from github REST API
+ */
 public class SearchApiResponse {
     private int total_count;
     private List<GraphqlItem> items;
@@ -36,7 +39,7 @@ public class SearchApiResponse {
         return items;
     }
 
-    public void setItems(List<GraphqlItem> Items) {
-        this.items = Items;
+    public void setItems(List<GraphqlItem> items) {
+        this.items = items;
     }
 }

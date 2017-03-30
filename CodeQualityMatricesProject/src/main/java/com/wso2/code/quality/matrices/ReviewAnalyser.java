@@ -30,6 +30,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import static com.wso2.code.quality.matrices.model.Constants.GITHUB_REVIEW_API_CLOSED_STATE;
+import static com.wso2.code.quality.matrices.model.Constants.GITHUB_REVIEW_APPROVED;
+import static com.wso2.code.quality.matrices.model.Constants.GITHUB_REVIEW_COMMENTED;
+
 
 /**
  * This class is used to find the reviewers of the buggy lines of code.
@@ -38,18 +42,16 @@ import java.util.Set;
  */
 
 public class ReviewAnalyser {
-
-    private final Set<String> approvedReviewers = new HashSet<>();      // to store the reviewed and approved users of the pull
-    // requests
-    private final Set<String> commentedReviewers = new HashSet<>();     // to store the reviewed and commented users of the pull
-    // requests
-
     private static final Logger logger = Logger.getLogger(ReviewAnalyser.class);
 
+    // to store the reviewed and approved users of thepull requests
+    private final Set<String> approvedReviewers = new HashSet<>();
+    // to store the reviewed and commented users of the pull requests
+    private final Set<String> commentedReviewers = new HashSet<>();
+
+
     //constants for filtering github API responses
-    private static final String GITHUB_REVIEW_APPROVED = "APPROVED";
-    private static final String GITHUB_REVIEW_COMMENTED = "COMMENTED";
-    private static final String GITHUB_REVIEW_API_CLOSED_STATE = "closed";
+
     private final GithubApiCaller githubApiCaller = new GithubApiCaller();
     private final Gson gson = new Gson();
 
@@ -67,10 +69,11 @@ public class ReviewAnalyser {
             try {
                 jsonText = githubApiCaller.callSearchIssueApi(commitHash, githubToken);
                 Map<String, Set<Integer>> prNoWithRepoName = savePrNumberAndRepoName(jsonText);
-                logger.debug("Pull requests with their relevant repository names are successfully saved in a map.");
+                logger.debug("Relevant pull requests on patch " + commitHash + " with their relevant repository " +
+                        "names are successfully saved in a map.");
                 saveReviewers(prNoWithRepoName, githubToken);
             } catch (CodeQualityMatricesException e) {
-                logger.error(e.getMessage(), e.getCause());
+                logger.debug(e.getMessage(), e.getCause());
             }
         });
     }
@@ -93,7 +96,8 @@ public class ReviewAnalyser {
                     .filter(searchItem -> GITHUB_REVIEW_API_CLOSED_STATE.equals(searchItem.getState()))
                     .filter(searchItem -> StringUtils.contains(searchItem.getRepositoryUrl(), "/wso2/"))
                     .forEach(searchItem -> {
-                        String repositoryName = StringUtils.substringAfter(searchItem.getRepositoryUrl(), "repos/");
+                        String repositoryName = StringUtils.substringAfter(searchItem.getRepositoryUrl(),
+                                "repos/");
                         int pullRequestNo = searchItem.getNumber();
                         prNoWithRepoName.putIfAbsent(repositoryName, new HashSet<>());
                         if (!prNoWithRepoName.get(repositoryName).contains(pullRequestNo)) {
@@ -133,21 +137,18 @@ public class ReviewAnalyser {
                                         .filter(review -> GITHUB_REVIEW_APPROVED.equals(review.getState()))
                                         .forEach(review -> approvedReviewers.add(review.getReviewer().getName()));
 
-                                logger.debug("Users who approved the pull requests which introduce bug lines to the code base are" +
-                                        " successfully saved to approvedReviewers list");
+                                logger.debug("Users who approved the pull requests which introduce bug lines to the " +
+                                        "code base are successfully saved to approvedReviewers list");
 
                                 reviews.parallelStream()
                                         .filter(review -> GITHUB_REVIEW_COMMENTED.equals(review.getState()))
                                         .forEach(review -> commentedReviewers.add(review.getReviewer().getName()));
 
-                                logger.debug("Users who commented on the pull requests which introduce bug lines to the code base are" +
-                                        " successfully saved to approvedReviewers list");
+                                logger.debug("Users who commented on the pull requests which introduce bug lines to " +
+                                        "the code base are successfully saved to approvedReviewers list");
                             } else {
-                                System.out.println("There are no records of reviews for pull request: " + prNumber + " on " +
-                                        repositoryName + " repository");
-                                logger.debug("There are no records of reviews for pull request: " + prNumber + " on " +
-                                        repositoryName +
-                                        " repository");
+                                logger.debug("There are no records of reviews for pull request: " + prNumber +
+                                        " on " + repositoryName + " repository");
                             }
                         } catch (CodeQualityMatricesException e) {
                             logger.error(e.getMessage(), e.getCause());
@@ -160,7 +161,7 @@ public class ReviewAnalyser {
      * Print the list of reviewers and commented users on the pull requests which introduce bugs to the code base
      */
     public void printReviewUsers() {
-        System.out.println("Reviewed and approved users of the bug lines: " + approvedReviewers);
-        System.out.println("Reviewed and commented users on bug lines: " + commentedReviewers);
+        logger.debug("\n Reviewed and approved users of the bug lines: " + approvedReviewers);
+        logger.debug("\n Reviewed and commented users on bug lines: " + commentedReviewers);
     }
 }
