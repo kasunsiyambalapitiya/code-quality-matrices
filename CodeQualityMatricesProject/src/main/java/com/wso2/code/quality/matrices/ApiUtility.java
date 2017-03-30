@@ -36,13 +36,13 @@ import java.io.UnsupportedEncodingException;
  *
  * @since 1.0.0
  */
-public final class ApiUtility {
+final class ApiUtility {
     // to prevent instantiation
     private ApiUtility() {
 
     }
 
-    private static Logger logger = Logger.getLogger(ApiUtility.class);
+    private static final Logger logger = Logger.getLogger(ApiUtility.class);
 
     /**
      * This is used for calling the REST APIs.
@@ -53,10 +53,10 @@ public final class ApiUtility {
      */
     public static String callApi(HttpGet httpGet) throws CodeQualityMatricesException {
         BufferedReader bufferedReader = null;
-        CloseableHttpClient httpClient = null;
+        CloseableHttpClient httpClient;
         CloseableHttpResponse httpResponse = null;
         httpClient = HttpClients.createDefault();
-        String jsonText = null;
+        String jsonText;
 
         try {
             httpResponse = httpClient.execute(httpGet);
@@ -118,10 +118,10 @@ public final class ApiUtility {
      */
     public static String callGraphQlApi(HttpPost httpPost) throws CodeQualityMatricesException {
         BufferedReader bufferedReader = null;
-        CloseableHttpClient httpClient = null;
+        CloseableHttpClient httpClient;
         CloseableHttpResponse httpResponse = null;
         httpClient = HttpClients.createDefault();
-        String jsonText = null;
+        String jsonText;
 
         try {
             httpResponse = httpClient.execute(httpPost);
@@ -154,7 +154,7 @@ public final class ApiUtility {
                 try {
                     bufferedReader.close();
                 } catch (IOException e) {
-                    throw new CodeQualityMatricesException("IOException occurred when closing the buffered reader", e);
+                    logger.error("IOException occurred when closing the buffered reader", e);
                 }
             }
             if (httpResponse != null) {

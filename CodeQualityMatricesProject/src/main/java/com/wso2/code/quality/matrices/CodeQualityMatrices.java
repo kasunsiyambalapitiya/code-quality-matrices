@@ -31,10 +31,10 @@ import java.util.Set;
  *
  * @since 1.0.0
  */
-public class CodeQualityMatrices {
-    private String pmtToken;
-    private String patchId;
-    private String gitHubToken;
+class CodeQualityMatrices {
+    private final String pmtToken;
+    private final String patchId;
+    private final String gitHubToken;
     private static final String COMMITS_INSIDE_GIVEN_PATCH = "patchInformation_svnRevisionpublic";
     private final static Logger logger = Logger.getLogger(CodeQualityMatrices.class);
 
@@ -78,9 +78,9 @@ public class CodeQualityMatrices {
      *
      * @return List of commithashes contained in the given patch
      */
-    public List<String> findCommitHashesInPatch() throws CodeQualityMatricesException {
+    private List<String> findCommitHashesInPatch() throws CodeQualityMatricesException {
         PmtApiCaller pmtApiCaller = new PmtApiCaller();
-        String jsonText = null;
+        String jsonText;
         List<String> commitHashes = new ArrayList<>();
 
         try {

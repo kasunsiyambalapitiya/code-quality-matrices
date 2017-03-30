@@ -25,7 +25,7 @@ import org.apache.log4j.Logger;
  * PMT Access token, patch id and github access token
  * should be passed in order as command line arguments when running the application.
  */
-public class MainClass {
+class MainClass {
     private final static Logger logger = Logger.getLogger(MainClass.class);
 
     public static void main(String[] args) {
