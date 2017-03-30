@@ -18,10 +18,9 @@
 
 package com.wso2.code.quality.matrices.model;
 
-public class SearchItem {
+public class ReviewApiResponse {
     private String state;
-    private int number;
-    private String repository_url;
+    private Reviewer user;
 
     public String getState() {
         return state;
@@ -31,19 +30,11 @@ public class SearchItem {
         this.state = state;
     }
 
-    public int getNumber() {
-        return number;
+    public Reviewer getReviewer() {
+        return user;
     }
 
-    public void setNumber(int number) {
-        this.number = number;
-    }
-
-    public String getRepositoryUrl() {
-        return repository_url;
-    }
-
-    public void setRepositoryUrl(String repository_url) {
-        this.repository_url = repository_url;
+    public void setUser(Reviewer user) {
+        this.user = user;
     }
 }
