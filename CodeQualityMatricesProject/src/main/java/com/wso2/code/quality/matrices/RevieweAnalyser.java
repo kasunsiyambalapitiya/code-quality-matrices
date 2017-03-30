@@ -145,7 +145,8 @@ public class RevieweAnalyser {
                             } else {
                                 System.out.println("There are no records of reviews for pull request: " + prNumber + " on " +
                                         repositoryName + " repository");
-                                logger.info("There are no records of reviews for pull request: " + prNumber + " on " + repositoryName +
+                                logger.debug("There are no records of reviews for pull request: " + prNumber + " on " +
+                                        repositoryName +
                                         " repository");
                             }
                         } catch (CodeQualityMatricesException e) {

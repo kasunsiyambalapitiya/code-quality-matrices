@@ -99,7 +99,7 @@ public class ChangesFinder {
         searchCommitPojo.getItems()
                 .forEach(recordItem -> repoLocation.add(recordItem.getRepository().getFull_name()));
 
-        logger.info("All the repository names having the given commit are successfully saved in an array");
+        logger.debug("All the repository names having the given commit are successfully saved in an array");
         SdkGitHubClient sdkGitHubClient = new SdkGitHubClient(gitHubToken);
 
         repoLocation.stream()

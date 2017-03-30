@@ -39,12 +39,9 @@ public class Pmt {
     private String[] patchInformation_svnRevisionpublic;
     private final Logger logger = Logger.getLogger(Pmt.class.getName());
 
-<<<<<<< HEAD
-=======
     private static final String COMMITS_IN_PATCH_IDENTIFIER = "patchInformation_svnRevisionpublic";  //key used to identify the commits in a patch from JSON response received from PMT
     private static final String KEY_STRING = "name";
     private static final String VALUE_STRING = "value";
->>>>>>> bc8c7b8... Changed method names to have a good English flow
 
     /**
      * getting the commit IDs from the received json response
