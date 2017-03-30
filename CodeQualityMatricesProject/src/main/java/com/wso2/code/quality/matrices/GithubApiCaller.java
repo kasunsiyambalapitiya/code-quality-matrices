@@ -26,15 +26,20 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 
 /**
- * This is used for all github communications
+ * This is used for all github communications.
+ *
+ * @since 1.0.0
  */
 public class GithubApiCaller {
     private HttpGet httpGet;
     private HttpPost httpPost;
 
     /**
-     * @param commitHash
-     * @param githubAccessToken
+     * This is used for calling the github search REST API.
+     *
+     * @param commitHash        commit hash to be searched
+     * @param githubAccessToken Github access token for accessing github API
+     * @return String representation of the json response
      * @throws CodeQualityMatricesException
      */
     public String callSearchCommitApi(String commitHash, String githubAccessToken) throws CodeQualityMatricesException {
@@ -52,12 +57,15 @@ public class GithubApiCaller {
     }
 
     /**
-     * @param repoLocation
-     * @param pullRequestNumber
-     * @param githubAccessToken
+     * This is used to call the github review API.
+     *
+     * @param repoLocation      repository name
+     * @param pullRequestNumber pull request number to be queried for
+     * @param githubAccessToken Github access token for accessing github API
+     * @return String representation of the json response
      * @throws CodeQualityMatricesException
      */
-    public String callReviewApi(String repoLocation, String pullRequestNumber, String githubAccessToken) throws
+    public String callReviewApi(String repoLocation, int pullRequestNumber, String githubAccessToken) throws
             CodeQualityMatricesException {
         String url = "https://api.github.com/repos/" + repoLocation + "/pulls/" + pullRequestNumber + "/reviews";
         try {
@@ -72,8 +80,11 @@ public class GithubApiCaller {
     }
 
     /**
-     * @param commitHashToBeSearched
-     * @param githubAccessToken
+     * This is used to call the github Issue Search API.
+     *
+     * @param commitHashToBeSearched commit hash to be searched for issues
+     * @param githubAccessToken      Github access token for accessing github API
+     * @return String representation of the json response
      * @throws CodeQualityMatricesException
      */
     public String callSearchIssueApi(String commitHashToBeSearched, String githubAccessToken) throws
@@ -90,7 +101,16 @@ public class GithubApiCaller {
         return ApiUtility.callApi(httpGet);
     }
 
-    public String callGraphqlApi(JSONObject graphqlJsonStructure, String githubToken) throws CodeQualityMatricesException {
+    /**
+     * This is used for calling the github graphql API.
+     *
+     * @param graphqlJsonStructure JSON input structure for calling the graphql API
+     * @param githubToken          Github access token for accessing github API
+     * @return String representation of the json response
+     * @throws CodeQualityMatricesException
+     */
+    public String callGraphqlApi(JSONObject graphqlJsonStructure, String githubToken) throws
+            CodeQualityMatricesException {
         String url = "https://api.github.com/graphql";
         try {
             httpPost = new HttpPost(url);
@@ -101,12 +121,11 @@ public class GithubApiCaller {
 
         } catch (IllegalArgumentException e) {
             throw new CodeQualityMatricesException("The url provided for accessing the Github Graphql API is " +
-                    "invalid",e);
-        }
-        catch (UnsupportedEncodingException e){
+                    "invalid", e);
+        } catch (UnsupportedEncodingException e) {
             throw new CodeQualityMatricesException("An error occurred when creating the String entity from Json " +
-                    "Structure",e);
-                    }
+                    "Structure", e);
+        }
         return ApiUtility.callGraphQlApi(httpPost);
 
     }

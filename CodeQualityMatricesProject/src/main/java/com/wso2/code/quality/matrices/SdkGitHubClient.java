@@ -54,7 +54,7 @@ public class SdkGitHubClient {
 
     /**
      * This method is used for saving the files changed and their relevant changed line ranges from
-     * the given commit in the given Repository
+     * the given commit in the given Repository.
      *
      * @param repositoryName The Repository name that contain the given commit hash
      * @param commitHash     The querying commit hash
