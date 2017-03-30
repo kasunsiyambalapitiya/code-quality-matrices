@@ -18,6 +18,9 @@
 
 package com.wso2.code.quality.matrices.model;
 
+/**
+ * Pojo class used for parsing JSON response received from github graphql API
+ */
 public class GraphqlItem {
 
     private Repository repository;
@@ -26,8 +29,7 @@ public class GraphqlItem {
         return repository;
     }
 
-    public void setRepository(Repository Repository) {
-        this.repository = Repository;
+    public void setRepository(Repository repository) {
+        this.repository = repository;
     }
 }
-

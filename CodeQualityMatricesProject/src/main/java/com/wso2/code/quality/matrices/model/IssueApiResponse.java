@@ -20,6 +20,9 @@ package com.wso2.code.quality.matrices.model;
 
 import java.util.List;
 
+/**
+ * Pojo class used for parsing JSON response received from github REST API
+ */
 public class IssueApiResponse {
     private List<SearchItem> items;
 
