@@ -25,6 +25,10 @@ import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 
+import static com.wso2.code.quality.matrices.model.Constants.ACCEPT;
+import static com.wso2.code.quality.matrices.model.Constants.AUTHORIZATION;
+import static com.wso2.code.quality.matrices.model.Constants.BEARER;
+
 /**
  * This is used for all github communications.
  *
@@ -45,9 +49,9 @@ public class GithubApiCaller {
         String url = "https://api.github.com/search/commits?q=hash%3A" + commitHash;
         try {
             httpGet = new HttpGet(url);
-            httpGet.addHeader("Authorization", "Bearer " + githubAccessToken);
+            httpGet.addHeader(AUTHORIZATION, BEARER + githubAccessToken);
             //as the accept header is needed for accessing commit search API which is still in preview mode
-            httpGet.addHeader("Accept", "application/vnd.github.cloak-preview");
+            httpGet.addHeader(ACCEPT, "application/vnd.github.cloak-preview");
         } catch (IllegalArgumentException e) {
             throw new CodeQualityMatricesException("The url provided for accessing the Github Search Commit API is " +
                     "invalid ", e);
@@ -69,8 +73,8 @@ public class GithubApiCaller {
         String url = "https://api.github.com/repos/" + repoLocation + "/pulls/" + pullRequestNumber + "/reviews";
         try {
             httpGet = new HttpGet(url);
-            httpGet.addHeader("Accept", "application/vnd.github.black-cat-preview+json");
-            httpGet.addHeader("Authorization", "Bearer " + githubAccessToken);
+            httpGet.addHeader(ACCEPT, "application/vnd.github.black-cat-preview+json");
+            httpGet.addHeader(AUTHORIZATION, BEARER + githubAccessToken);
         } catch (IllegalArgumentException e) {
             throw new CodeQualityMatricesException("The url provided for accessing the Github Review Commit API is " +
                     "invalid ", e);
@@ -91,8 +95,8 @@ public class GithubApiCaller {
         String url = "https://api.github.com/search/issues?q=" + commitHashToBeSearched;
         try {
             httpGet = new HttpGet(url);
-            httpGet.addHeader("Accept", "application/vnd.github.mercy-preview+json");
-            httpGet.addHeader("Authorization", "Bearer " + githubAccessToken);
+            httpGet.addHeader(ACCEPT, "application/vnd.github.mercy-preview+json");
+            httpGet.addHeader(AUTHORIZATION, BEARER + githubAccessToken);
         } catch (IllegalArgumentException e) {
             throw new CodeQualityMatricesException("The url provided for accessing the Github Search Issue API is " +
                     "invalid ", e);
@@ -114,11 +118,10 @@ public class GithubApiCaller {
         HttpPost httpPost;
         try {
             httpPost = new HttpPost(url);
-            httpPost.addHeader("Authorization", "Bearer " + githubToken);
-            httpPost.addHeader("Accept", "application/json");
+            httpPost.addHeader(AUTHORIZATION, BEARER + githubToken);
+            httpPost.addHeader(ACCEPT, "application/json");
             StringEntity entity = new StringEntity(graphqlJsonStructure.toString());
             httpPost.setEntity(entity);
-
         } catch (IllegalArgumentException e) {
             throw new CodeQualityMatricesException("The url provided for accessing the Github Graphql API is " +
                     "invalid", e);
@@ -127,6 +130,5 @@ public class GithubApiCaller {
                     "Structure", e);
         }
         return ApiUtility.callGraphQlApi(httpPost);
-
     }
 }

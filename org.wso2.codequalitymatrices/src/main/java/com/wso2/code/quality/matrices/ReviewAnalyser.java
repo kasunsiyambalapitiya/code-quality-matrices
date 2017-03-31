@@ -30,10 +30,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import static com.wso2.code.quality.matrices.model.Constants.GITHUB_REVIEW_API_CLOSED_STATE;
 import static com.wso2.code.quality.matrices.model.Constants.GITHUB_REVIEW_APPROVED;
 import static com.wso2.code.quality.matrices.model.Constants.GITHUB_REVIEW_COMMENTED;
-
 
 /**
  * This class is used to find the reviewers of the buggy lines of code.
@@ -48,10 +48,7 @@ public class ReviewAnalyser {
     private final Set<String> approvedReviewers = new HashSet<>();
     // to store the reviewed and commented users of the pull requests
     private final Set<String> commentedReviewers = new HashSet<>();
-
-
     //constants for filtering github API responses
-
     private final GithubApiCaller githubApiCaller = new GithubApiCaller();
     private final Gson gson = new Gson();
 
@@ -62,15 +59,15 @@ public class ReviewAnalyser {
      * @param githubToken   Github access token for accessing github API
      */
     public void findReviewers(Set<String> authorCommits, String githubToken) {
-
         authorCommits.forEach(commitHash -> {
             String jsonText;
-
             try {
                 jsonText = githubApiCaller.callSearchIssueApi(commitHash, githubToken);
                 Map<String, Set<Integer>> prNoWithRepoName = savePrNumberAndRepoName(jsonText);
-                logger.debug("Relevant pull requests on patch " + commitHash + " with their relevant repository " +
-                        "names are successfully saved in a map.");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Relevant pull requests on patch " + commitHash + " with their relevant repository " +
+                            "names are successfully saved in a map.");
+                }
                 saveReviewers(prNoWithRepoName, githubToken);
             } catch (CodeQualityMatricesException e) {
                 logger.debug(e.getMessage(), e.getCause());
@@ -86,12 +83,10 @@ public class ReviewAnalyser {
      * @throws CodeQualityMatricesException
      */
     private Map<String, Set<Integer>> savePrNumberAndRepoName(String jsonText) throws CodeQualityMatricesException {
-
         // map for storing the pull requests numbers against their Repository
         Map<String, Set<Integer>> prNoWithRepoName = new HashMap<>();
         try {
             IssueApiResponse issueApiResponse = gson.fromJson(jsonText, IssueApiResponse.class);
-
             issueApiResponse.getItems().parallelStream()
                     .filter(searchItem -> GITHUB_REVIEW_API_CLOSED_STATE.equals(searchItem.getState()))
                     .filter(searchItem -> StringUtils.contains(searchItem.getRepositoryUrl(), "/wso2/"))
@@ -103,7 +98,6 @@ public class ReviewAnalyser {
                         if (!prNoWithRepoName.get(repositoryName).contains(pullRequestNo)) {
                             prNoWithRepoName.get(repositoryName).add(pullRequestNo);
                         }
-
                     });
         } catch (JsonSyntaxException e) {
             throw new CodeQualityMatricesException(e.getMessage(), e.getCause());
@@ -121,13 +115,11 @@ public class ReviewAnalyser {
      * @param githubToken      Github access token for accessing github API
      */
     private void saveReviewers(Map<String, Set<Integer>> prNoWithRepoName, String githubToken) {
-
         for (Map.Entry entry : prNoWithRepoName.entrySet()) {
             String repositoryName = (String) entry.getKey();
             Set<Integer> prNumbers = (Set<Integer>) entry.getValue();
             prNumbers.parallelStream()
                     .forEach(prNumber -> {
-
                         try {
                             String jsonText = githubApiCaller.callReviewApi(repositoryName, prNumber, githubToken);
                             if (jsonText != null) {
@@ -136,19 +128,18 @@ public class ReviewAnalyser {
                                 reviews.parallelStream()
                                         .filter(review -> GITHUB_REVIEW_APPROVED.equals(review.getState()))
                                         .forEach(review -> approvedReviewers.add(review.getReviewer().getName()));
-
                                 logger.debug("Users who approved the pull requests which introduce bug lines to the " +
                                         "code base are successfully saved to approvedReviewers list");
-
                                 reviews.parallelStream()
                                         .filter(review -> GITHUB_REVIEW_COMMENTED.equals(review.getState()))
                                         .forEach(review -> commentedReviewers.add(review.getReviewer().getName()));
-
                                 logger.debug("Users who commented on the pull requests which introduce bug lines to " +
                                         "the code base are successfully saved to approvedReviewers list");
                             } else {
-                                logger.debug("There are no records of reviews for pull request: " + prNumber +
-                                        " on " + repositoryName + " repository");
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("There are no records of reviews for pull request: " + prNumber +
+                                            " on " + repositoryName + " repository");
+                                }
                             }
                         } catch (CodeQualityMatricesException e) {
                             logger.error(e.getMessage(), e.getCause());
@@ -161,7 +152,9 @@ public class ReviewAnalyser {
      * Print the list of reviewers and commented users on the pull requests which introduce bugs to the code base
      */
     public void printReviewUsers() {
-        logger.debug("\n Reviewed and approved users of the bug lines: " + approvedReviewers);
-        logger.debug("\n Reviewed and commented users on bug lines: " + commentedReviewers);
+        if (logger.isDebugEnabled()) {
+            logger.debug("\n Reviewed and approved users of the bug lines: " + approvedReviewers);
+            logger.debug("\n Reviewed and commented users on bug lines: " + commentedReviewers);
+        }
     }
 }

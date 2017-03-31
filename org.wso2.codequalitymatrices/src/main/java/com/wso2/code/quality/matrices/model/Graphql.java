@@ -30,7 +30,6 @@ public class Graphql implements Serializable {
     private String graphqlInputWithoutHistory;
 
     public Graphql() {
-
     }
 
     public String getGraphqlInputWithHistory() {
