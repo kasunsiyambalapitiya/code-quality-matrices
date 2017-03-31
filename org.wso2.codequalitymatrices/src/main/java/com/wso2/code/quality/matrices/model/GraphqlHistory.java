@@ -18,19 +18,22 @@
 
 package com.wso2.code.quality.matrices.model;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 /**
  * Pojo class used for parsing JSON response received from github graphql API
  */
 public class GraphqlHistory {
-    private List<GraphqlEdge> edges;
+    @SerializedName("edges")
+    private List<GraphqlEdge> commits;
 
-    public List<GraphqlEdge> getEdges() {
-        return edges;
+    public List<GraphqlEdge> getCommits() {
+        return commits;
     }
 
-    public void setEdges(List<GraphqlEdge> edges) {
-        this.edges = edges;
+    public void setCommits(List<GraphqlEdge> commits) {
+        this.commits = commits;
     }
 }
