@@ -47,7 +47,6 @@ import java.util.stream.IntStream;
 public class ChangesFinder {
     private static final Logger logger = Logger.getLogger(ChangesFinder.class);
 
-
     private List<String> fileNames = new ArrayList<>();
     private List<String> patchString = new ArrayList<>();
     private final List<List<String>> changedLineRanges = new ArrayList<>();  // for saving the line no that are changed
@@ -58,7 +57,6 @@ public class ChangesFinder {
 
     private final GithubApiCaller githubApiCaller = new GithubApiCaller();
     private final Gson gson = new Gson();
-
 
     /**
      * This is used for obtaining the repositories that contain the relevant commits belongs to the given patch
@@ -77,7 +75,6 @@ public class ChangesFinder {
             } catch (CodeQualityMatricesException e) {
                 logger.debug(e.getMessage(), e.getCause());
             }
-
         });
         return authorCommits;
     }
@@ -103,7 +100,6 @@ public class ChangesFinder {
 
         logger.debug("Repositories having the given commit are successfully saved in an List");
         SdkGitHubClient sdkGitHubClient = new SdkGitHubClient(gitHubToken);
-
         repoLocation.stream()
                 .filter(repositoryName -> StringUtils.contains(repositoryName, "wso2/"))
                 .forEach(repositoryName -> {
@@ -122,7 +118,6 @@ public class ChangesFinder {
                         fileNames = fileNamesWithPatcheString.get("fileNames");
                         patchString = fileNamesWithPatcheString.get("patchString");
                     }
-
                     saveRelaventEditLineNumbers(fileNames, patchString);
                     try {
                         findFileChanges(repositoryName, commitHash, gitHubToken);
@@ -130,8 +125,10 @@ public class ChangesFinder {
                         logger.debug(e.getMessage(), e.getCause());
                     }
                 });
-        logger.debug("\n Author names :" + authorNames);
-        logger.debug("\n Author commits :" + authorCommits);
+        if (logger.isDebugEnabled()) {
+            logger.debug("\n Author names :" + authorNames);
+            logger.debug("\n Author commits :" + authorCommits);
+        }
     }
 
     /**
@@ -143,9 +140,9 @@ public class ChangesFinder {
      */
 
     private void saveRelaventEditLineNumbers(List<String> fileNames, List<String> patchString) {
-        //filtering only the line ranges that are modified and saving to a string array
-
-        // cannot use parallel streams here as the order of the line changes must be preserved
+        /*filtering only the line ranges that are modified and saving to a string array cannot use parallel streams
+          here as the order of the line changes must be preserved
+         */
         patchString.stream()
                 .map(patch -> StringUtils.substringsBetween(patch, "@@ ", " @@"))
                 .forEach(lineChanges -> {
@@ -162,7 +159,6 @@ public class ChangesFinder {
                                 // for taking the parent commit
                                 String lineRangeInTheNewFileResultedFromModification = StringUtils.substringAfter
                                         (tempString, "+");
-
                                 int intialLineNoInOldFile = Integer.parseInt(StringUtils.substringBefore
                                         (lineRangeInTheOldFileBeingModified, ","));
                                 int tempEndLineNoInOldFile = Integer.parseInt(StringUtils.substringAfter
@@ -188,8 +184,10 @@ public class ChangesFinder {
                     changedLineRanges.add(changedRange);
                 });
         logger.debug("done saving file names and their relevant modification line ranges");
-        logger.debug("\n File names : " + fileNames);
-        logger.debug("\n Changed ranges :" + changedLineRanges + "\n");
+        if (logger.isDebugEnabled()) {
+            logger.debug("\n File names : " + fileNames);
+            logger.debug("\n Changed ranges :" + changedLineRanges + "\n");
+        }
     }
 
     /**
@@ -206,43 +204,39 @@ public class ChangesFinder {
         // filtering the owner and the Repository name from the repoLocation
         String owner = StringUtils.substringBefore(repoLocation, "/");
         String repositoryName = StringUtils.substringAfter(repoLocation, "/");
-        //        iterating over the fileNames arraylist for the given commit
-        //         cannot use parallel streams here as the order of the file names is important in the process
+        /*  iterating over the fileNames arraylist for the given commit cannot use parallel streams here as the order
+         of the file names is important in the process
+          */
         fileNames.forEach(fileName -> {
             int index = fileNames.indexOf(fileName);
             // the relevant arraylist of changed lines for that file
             List<String> lineRangesForSelectedFile = changedLineRanges.get(index);
             // for storing the parent commit hashes for all the changed line ranges of the relevant file
             parentCommitHashes = new HashMap<>();
-
             Graphql graphqlBean = new Graphql();
             graphqlBean.setGraphqlInputWithHistory(owner, repositoryName, commitHash, fileName);
             jsonStructure.put("query", graphqlBean.getGraphqlInputWithHistory());
-
             String jsonText = null;
             try {
                 // calling the graphql API for getting blame information for the current file.
                 jsonText = githubApiCaller.callGraphqlApi(jsonStructure, gitHubToken);
-
             } catch (CodeQualityMatricesException e) {
                 logger.debug(e.getMessage(), e.getCause());
             }
             //reading the above saved output for the current selected file name
             try {
                 readBlameForSelectedFile(jsonText, lineRangesForSelectedFile);
-                logger.debug("Parent commits are saved for the " + fileName + " for all the modified line ranges");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Parent commits are saved for the " + fileName + " for all the modified line ranges");
+                }
             } catch (CodeQualityMatricesException e) {
                 logger.debug(e.getMessage(), e.getCause());
             }
-
-
             findAuthorCommits(owner, repositoryName, fileName, lineRangesForSelectedFile, gitHubToken);
-
             logger.debug("Authors and author commits of bug lines of code which are being fixed from the given " +
                     "patch are saved successfully to authorNames and authorCommits Sets");
         });
     }
-
 
     /**
      * This reads the blame received for the current selected file and insert parent commits of the changed lines
@@ -257,11 +251,9 @@ public class ChangesFinder {
         GraphQlResponse graphQlResponse;
         try {
             graphQlResponse = gson.fromJson(jsonText, GraphQlResponse.class);
-
         } catch (JsonSyntaxException e) {
             throw new CodeQualityMatricesException(e.getMessage(), e.getCause());
         }
-
         GraphQlResponse finalGraphQlResponse = graphQlResponse;  // to make a effective final variable
         changedRangesOfSelectedFile.forEach(lineRange -> {
             int startingLineNo;
@@ -275,13 +267,10 @@ public class ChangesFinder {
                  */
                 startingLineNo = Integer.parseInt(StringUtils.substringBefore(newFileRange, ","));
                 endLineNo = Integer.parseInt(StringUtils.substringAfter(newFileRange, ","));
-
                 //for storing age with the relevant parent commit hash
                 Map<Integer, Set<String>> ageWithParentCommit = new HashMap<>();
-
                 while (endLineNo >= startingLineNo) {
                     int finalStartingLineNo = startingLineNo;       // to make a effective final variable
-
                     finalGraphQlResponse.getData().getRepository().getObject().getBlame().getRanges().stream()
                             .filter(graphqlRange -> (graphqlRange.getStartingLine() <= finalStartingLineNo &&
                                     graphqlRange.getEndingLine() >= finalStartingLineNo))
@@ -291,19 +280,13 @@ public class ChangesFinder {
                                 /* get(1) is used directly as there are only 2 elements in the List<Edge> and last
                                 resembles the parent commit
                                   */
-
                                 String parentCommit = StringUtils.substringAfter(url, "commit/");
                                 ageWithParentCommit.putIfAbsent(age, new HashSet<>());
                                 if (!ageWithParentCommit.get(age).contains(parentCommit)) {
                                     ageWithParentCommit.get(age).add(parentCommit);
                                 }
-
-
                             });
-
-
                     startingLineNo++;   // to check for other line numbers
-
                 }
                 TreeMap<Integer, Set<String>> sortedAgeWithParentCommit = new TreeMap<>(ageWithParentCommit);
                 Set<String> parentCommit = sortedAgeWithParentCommit.get(sortedAgeWithParentCommit.firstKey());
@@ -311,7 +294,6 @@ public class ChangesFinder {
             }
         });
     }
-
 
     /**
      * This is used to find the author and author commits of the buggy lines of code which are been fixed by the
@@ -331,23 +313,21 @@ public class ChangesFinder {
             Graphql graphqlBean = new Graphql();
             commitHashes.parallelStream()
                     .forEach(commitHash -> {
-
                         graphqlBean.setGraphqlInputWithoutHistory(owner, repositoryName, commitHash, fileName);
                         jsonStructure.put("query", graphqlBean.getGraphqlInputWithoutHistory());
-
                         String jsonText = null;
                         try {
                             jsonText = githubApiCaller.callGraphqlApi(jsonStructure, gitHubToken);
                         } catch (CodeQualityMatricesException e) {
                             logger.debug(e.getMessage(), e.getCause());
                         }
-
                         saveAuthorCommits(jsonText, oldRange, lineRangesForSelectedFile);
                     });
         }
-        logger.debug("author commits and authors of bug lines of code on " + fileName + " file which are been fixed " +
-                "by the given patch are successfully saved to lists");
-
+        if (logger.isDebugEnabled()) {
+            logger.debug("author commits and authors of bug lines of code on " + fileName + " file which are been " +
+                    "fixed by the given patch are successfully saved to lists");
+        }
     }
 
     /**
@@ -361,7 +341,6 @@ public class ChangesFinder {
     private void saveAuthorCommits(String jsonText, String oldRange, List<String> lineRangesForSelectedFile) {
 
         GraphQlResponse graphQlResponse = gson.fromJson(jsonText, GraphQlResponse.class);
-
         lineRangesForSelectedFile.forEach(lineRange -> {
             int startingLineNo;
             int endLineNo;
@@ -371,23 +350,17 @@ public class ChangesFinder {
                 // need to consider the correct line range in the old file for finding authors and author commits
                 startingLineNo = Integer.parseInt(StringUtils.substringBefore(oldFileRange, ","));
                 endLineNo = Integer.parseInt(StringUtils.substringAfter(oldFileRange, ","));
-
                 while (endLineNo >= startingLineNo) {
                     int finalStartingLineNo = startingLineNo;       // to make a effective final variable
-
                     graphQlResponse.getData().getRepository().getObject().getBlame().getRanges().stream()
                             .filter(graphqlRange -> (graphqlRange.getStartingLine() <= finalStartingLineNo &&
                                     graphqlRange.getEndingLine() >= finalStartingLineNo))
                             .forEach(graphqlRange -> {
-
                                 String authorName = graphqlRange.getCommit().getAuthor().getName();
                                 String authorcommit = StringUtils.substringAfter(graphqlRange.getCommit().getUrl(),
                                         "commit/");
-
                                 authorNames.add(authorName); // authors are added to the Set
                                 authorCommits.add(authorcommit); // author commits are added to the set
-
-
                             });
                     startingLineNo++;   // to check for other line numbers
                 }

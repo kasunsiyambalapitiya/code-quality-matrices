@@ -20,6 +20,9 @@ package com.wso2.code.quality.matrices;
 
 import org.apache.http.client.methods.HttpGet;
 
+import static com.wso2.code.quality.matrices.model.Constants.AUTHORIZATION;
+import static com.wso2.code.quality.matrices.model.Constants.BEARER;
+
 /**
  * This is used for all the WSO2 PMT communications.
  *
@@ -27,7 +30,6 @@ import org.apache.http.client.methods.HttpGet;
  */
 public class PmtApiCaller {
     public PmtApiCaller() {
-
     }
 
     /**
@@ -44,12 +46,10 @@ public class PmtApiCaller {
         HttpGet httpGet;
         try {
             httpGet = new HttpGet(pmtUrl);
-            httpGet.addHeader("Authorization", "Bearer " + accessToken);
-
+            httpGet.addHeader(AUTHORIZATION, BEARER + accessToken);
         } catch (IllegalArgumentException e) {
             throw new CodeQualityMatricesException("The url provided for accessing the PMT API is invalid ", e);
         }
-
         return ApiUtility.callApi(httpGet);
     }
 }

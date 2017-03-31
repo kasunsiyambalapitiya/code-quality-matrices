@@ -28,7 +28,6 @@ import java.util.Set;
 
 import static com.wso2.code.quality.matrices.model.Constants.COMMITS_INSIDE_GIVEN_PATCH;
 
-
 /**
  * This is used for creating executing the program.
  *
@@ -52,7 +51,6 @@ public class CodeQualityMatricesExecutor {
         this.pmtToken = pmtToken;
         this.patchId = patchId;
         this.gitHubToken = gitHubToken;
-
     }
 
     /**
@@ -63,13 +61,10 @@ public class CodeQualityMatricesExecutor {
             List<String> commitHashes = findCommitHashesInPatch();
             ChangesFinder changesFinder = new ChangesFinder();
             Set<String> authorCommits = changesFinder.obtainRepoNamesForCommitHashes(gitHubToken, commitHashes);
-
             ReviewAnalyser reviewAnalyser = new ReviewAnalyser();
             reviewAnalyser.findReviewers(authorCommits, gitHubToken);
             reviewAnalyser.printReviewUsers();
-
             logger.debug("The application executed successfully");
-
         } catch (CodeQualityMatricesException e) {
             logger.debug(e.getMessage(), e.getCause());
         }
@@ -84,15 +79,12 @@ public class CodeQualityMatricesExecutor {
         PmtApiCaller pmtApiCaller = new PmtApiCaller();
         String jsonText;
         List<String> commitHashes = new ArrayList<>();
-
         try {
             jsonText = pmtApiCaller.callApi(pmtToken, patchId);
         } catch (CodeQualityMatricesException e) {
             throw new CodeQualityMatricesException("Error occurred while calling PMT API", e);
         }
-
         Gson gson = new Gson();
-
         if (jsonText != null) {
             List pmtResponse = gson.fromJson(jsonText, List.class);
             for (Object pmtEntry : pmtResponse) {
@@ -103,11 +95,12 @@ public class CodeQualityMatricesExecutor {
                     }
                 }
             }
-            logger.debug("The commit hashes are: " + commitHashes);
+            if (logger.isDebugEnabled()) {
+                logger.debug("The commit hashes are: " + commitHashes);
+            }
         } else {
             throw new CodeQualityMatricesException("The returned jsonText from PMT API is null");
         }
-
         return commitHashes;
     }
 }

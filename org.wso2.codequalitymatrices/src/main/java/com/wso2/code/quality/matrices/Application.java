@@ -30,11 +30,9 @@ public class Application {
 
     public static void main(String[] args) {
         if (args.length == 3) {
-
             String pmtToken = args[0];
             String patchId = args[1];
             String gitHubToken = args[2];
-
             CodeQualityMatricesExecutor codeQualityMatricesExecutor = new CodeQualityMatricesExecutor(pmtToken, patchId,
                     gitHubToken);
             codeQualityMatricesExecutor.execute();
