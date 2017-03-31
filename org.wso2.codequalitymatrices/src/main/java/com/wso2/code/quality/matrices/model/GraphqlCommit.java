@@ -18,12 +18,17 @@
 
 package com.wso2.code.quality.matrices.model;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Pojo class used for parsing JSON response received from github graphql API
  */
 public class GraphqlCommit {
+    @SerializedName("author")
     private GraphqlAuthor author;
+    @SerializedName("history")
     private GraphqlHistory history;
+    @SerializedName("url")
     private String url;
 
     public GraphqlAuthor getAuthor() {

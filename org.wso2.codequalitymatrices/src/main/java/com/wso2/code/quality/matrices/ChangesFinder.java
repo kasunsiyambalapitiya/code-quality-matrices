@@ -95,8 +95,8 @@ public class ChangesFinder {
         } catch (JsonSyntaxException e) {
             throw new CodeQualityMatricesException(e.getMessage(), e.getCause());
         }
-        searchCommitPojo.getItems()
-                .forEach(recordItem -> repoLocation.add(recordItem.getRepository().getFull_name()));
+        searchCommitPojo.getContainingRepositories()
+                .forEach(recordItem -> repoLocation.add(recordItem.getRepository().getRepositoryLocation()));
 
         logger.debug("Repositories having the given commit are successfully saved in an List");
         SdkGitHubClient sdkGitHubClient = new SdkGitHubClient(gitHubToken);
@@ -271,12 +271,13 @@ public class ChangesFinder {
                 Map<Integer, Set<String>> ageWithParentCommit = new HashMap<>();
                 while (endLineNo >= startingLineNo) {
                     int finalStartingLineNo = startingLineNo;       // to make a effective final variable
-                    finalGraphQlResponse.getData().getRepository().getObject().getBlame().getRanges().stream()
+                    finalGraphQlResponse.getResponse().getRepository().getFile().getBlame().getRanges().stream()
                             .filter(graphqlRange -> (graphqlRange.getStartingLine() <= finalStartingLineNo &&
                                     graphqlRange.getEndingLine() >= finalStartingLineNo))
                             .forEach(graphqlRange -> {
                                 int age = graphqlRange.getAge();
-                                String url = graphqlRange.getCommit().getHistory().getEdges().get(1).getNode().getUrl();
+                                String url = graphqlRange.getCommit().getHistory().getCommits().get(1).getDetails()
+                                        .getUrl();
                                 /* get(1) is used directly as there are only 2 elements in the List<Edge> and last
                                 resembles the parent commit
                                   */
@@ -352,7 +353,7 @@ public class ChangesFinder {
                 endLineNo = Integer.parseInt(StringUtils.substringAfter(oldFileRange, ","));
                 while (endLineNo >= startingLineNo) {
                     int finalStartingLineNo = startingLineNo;       // to make a effective final variable
-                    graphQlResponse.getData().getRepository().getObject().getBlame().getRanges().stream()
+                    graphQlResponse.getResponse().getRepository().getFile().getBlame().getRanges().stream()
                             .filter(graphqlRange -> (graphqlRange.getStartingLine() <= finalStartingLineNo &&
                                     graphqlRange.getEndingLine() >= finalStartingLineNo))
                             .forEach(graphqlRange -> {

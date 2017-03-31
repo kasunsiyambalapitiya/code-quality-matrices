@@ -18,28 +18,22 @@
 
 package com.wso2.code.quality.matrices.model;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 /**
  * Pojo class used for parsing JSON response received from github REST API
  */
 public class SearchApiResponse {
-    private int total_count;
-    private List<GraphqlItem> items;
+    @SerializedName("items")
+    private List<RepositoryItem> containingRepositories;
 
-    public int getTotal_count() {
-        return total_count;
+    public List<RepositoryItem> getContainingRepositories() {
+        return containingRepositories;
     }
 
-    public void setTotal_count(int total_count) {
-        this.total_count = total_count;
-    }
-
-    public List<GraphqlItem> getItems() {
-        return items;
-    }
-
-    public void setItems(List<GraphqlItem> items) {
-        this.items = items;
+    public void setContainingRepositories(List<RepositoryItem> containingRepositories) {
+        this.containingRepositories = containingRepositories;
     }
 }
