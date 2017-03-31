@@ -18,19 +18,22 @@
 
 package com.wso2.code.quality.matrices.model;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 /**
  * Pojo class used for parsing JSON response received from github REST API
  */
 public class IssueApiResponse {
-    private List<SearchItem> items;
+    @SerializedName("items")
+    private List<SearchItem> issue;
 
-    public List<SearchItem> getItems() {
-        return items;
+    public List<SearchItem> getIssue() {
+        return issue;
     }
 
-    public void setItems(List<SearchItem> items) {
-        this.items = items;
+    public void setIssue(List<SearchItem> issue) {
+        this.issue = issue;
     }
 }

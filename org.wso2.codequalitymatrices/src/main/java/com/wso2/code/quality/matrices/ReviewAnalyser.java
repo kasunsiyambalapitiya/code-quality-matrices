@@ -87,13 +87,13 @@ public class ReviewAnalyser {
         Map<String, Set<Integer>> prNoWithRepoName = new HashMap<>();
         try {
             IssueApiResponse issueApiResponse = gson.fromJson(jsonText, IssueApiResponse.class);
-            issueApiResponse.getItems().parallelStream()
-                    .filter(searchItem -> GITHUB_REVIEW_API_CLOSED_STATE.equals(searchItem.getState()))
+            issueApiResponse.getIssue().parallelStream()
+                    .filter(searchItem -> GITHUB_REVIEW_API_CLOSED_STATE.equals(searchItem.getStateOfThePr()))
                     .filter(searchItem -> StringUtils.contains(searchItem.getRepositoryUrl(), "/wso2/"))
                     .forEach(searchItem -> {
                         String repositoryName = StringUtils.substringAfter(searchItem.getRepositoryUrl(),
                                 "repos/");
-                        int pullRequestNo = searchItem.getNumber();
+                        int pullRequestNo = searchItem.getPrNumber();
                         prNoWithRepoName.putIfAbsent(repositoryName, new HashSet<>());
                         if (!prNoWithRepoName.get(repositoryName).contains(pullRequestNo)) {
                             prNoWithRepoName.get(repositoryName).add(pullRequestNo);
@@ -126,12 +126,12 @@ public class ReviewAnalyser {
                                 List<ReviewApiResponse> reviews = gson.fromJson(jsonText, List.class);
                                 // to filter Approved users
                                 reviews.parallelStream()
-                                        .filter(review -> GITHUB_REVIEW_APPROVED.equals(review.getState()))
+                                        .filter(review -> GITHUB_REVIEW_APPROVED.equals(review.getReviewState()))
                                         .forEach(review -> approvedReviewers.add(review.getReviewer().getName()));
                                 logger.debug("Users who approved the pull requests which introduce bug lines to the " +
                                         "code base are successfully saved to approvedReviewers list");
                                 reviews.parallelStream()
-                                        .filter(review -> GITHUB_REVIEW_COMMENTED.equals(review.getState()))
+                                        .filter(review -> GITHUB_REVIEW_COMMENTED.equals(review.getReviewState()))
                                         .forEach(review -> commentedReviewers.add(review.getReviewer().getName()));
                                 logger.debug("Users who commented on the pull requests which introduce bug lines to " +
                                         "the code base are successfully saved to approvedReviewers list");

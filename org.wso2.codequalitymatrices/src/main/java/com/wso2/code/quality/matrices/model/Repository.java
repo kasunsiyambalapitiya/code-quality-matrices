@@ -18,17 +18,20 @@
 
 package com.wso2.code.quality.matrices.model;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Pojo class used for parsing JSON response received from github REST API
  */
 public class Repository {
-    private String full_name;
+    @SerializedName("full_name")
+    private String repositoryLocation;
 
-    public String getFull_name() {
-        return full_name;
+    public String getRepositoryLocation() {
+        return repositoryLocation;
     }
 
-    public void setFull_name(String full_name) {
-        this.full_name = full_name;
+    public void setRepositoryLocation(String repositoryLocation) {
+        this.repositoryLocation = repositoryLocation;
     }
 }
