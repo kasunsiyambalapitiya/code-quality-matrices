@@ -28,6 +28,7 @@ public class Constants {
     public static final String GITHUB_REVIEW_APPROVED = "APPROVED";
     public static final String GITHUB_REVIEW_COMMENTED = "COMMENTED";
     public static final String GITHUB_REVIEW_API_CLOSED_STATE = "closed";
-
-
+    public static final String AUTHORIZATION = "Authorization";
+    public static final String BEARER = "Bearer ";
+    public static final String ACCEPT = "Accept";
 }
