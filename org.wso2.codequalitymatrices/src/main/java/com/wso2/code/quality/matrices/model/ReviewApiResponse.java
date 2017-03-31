@@ -18,26 +18,30 @@
 
 package com.wso2.code.quality.matrices.model;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Pojo class used for parsing JSON response received from github REST API
  */
 public class ReviewApiResponse {
-    private String state;
-    private Reviewer user;
+    @SerializedName("state")
+    private String reviewState;
+    @SerializedName("user")
+    private Reviewer reviewer;
 
-    public String getState() {
-        return state;
+    public String getReviewState() {
+        return reviewState;
     }
 
-    public void setState(String state) {
-        this.state = state;
+    public void setReviewState(String reviewState) {
+        this.reviewState = reviewState;
     }
 
     public Reviewer getReviewer() {
-        return user;
+        return reviewer;
     }
 
-    public void setUser(Reviewer user) {
-        this.user = user;
+    public void setReviewer(Reviewer reviewer) {
+        this.reviewer = reviewer;
     }
 }

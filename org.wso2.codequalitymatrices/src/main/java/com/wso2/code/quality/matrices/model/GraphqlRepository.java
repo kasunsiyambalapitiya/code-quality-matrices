@@ -18,17 +18,20 @@
 
 package com.wso2.code.quality.matrices.model;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Pojo class used for parsing JSON response received from github graphql API
  */
 public class GraphqlRepository {
-    private GraphqlObject object;
+    @SerializedName("object")
+    private GraphqlObject file;
 
-    public GraphqlObject getObject() {
-        return object;
+    public GraphqlObject getFile() {
+        return file;
     }
 
-    public void setObject(GraphqlObject object) {
-        this.object = object;
+    public void setFile(GraphqlObject file) {
+        this.file = file;
     }
 }

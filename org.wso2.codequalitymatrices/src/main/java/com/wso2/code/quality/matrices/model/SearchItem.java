@@ -18,35 +18,40 @@
 
 package com.wso2.code.quality.matrices.model;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Pojo class used for parsing JSON response received from github REST API
  */
 public class SearchItem {
-    private String state;
-    private int number;
-    private String repository_url;
+    @SerializedName("state")
+    private String stateOfThePr;
+    @SerializedName("number")
+    private int prNumber;
+    @SerializedName("repository_url")
+    private String repositoryUrl;
 
-    public String getState() {
-        return state;
+    public String getStateOfThePr() {
+        return stateOfThePr;
     }
 
-    public void setState(String state) {
-        this.state = state;
+    public void setStateOfThePr(String stateOfThePr) {
+        this.stateOfThePr = stateOfThePr;
     }
 
-    public int getNumber() {
-        return number;
+    public int getPrNumber() {
+        return prNumber;
     }
 
-    public void setNumber(int number) {
-        this.number = number;
+    public void setPrNumber(int prNumber) {
+        this.prNumber = prNumber;
     }
 
     public String getRepositoryUrl() {
-        return repository_url;
+        return repositoryUrl;
     }
 
-    public void setRepositoryUrl(String repository_url) {
-        this.repository_url = repository_url;
+    public void setRepositoryUrl(String repositoryUrl) {
+        this.repositoryUrl = repositoryUrl;
     }
 }
