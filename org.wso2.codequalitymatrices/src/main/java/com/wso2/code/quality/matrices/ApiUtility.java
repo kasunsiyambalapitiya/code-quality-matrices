@@ -41,9 +41,7 @@ public final class ApiUtility {
 
     // to prevent instantiation
     private ApiUtility() {
-
     }
-
 
     /**
      * This is used for calling the REST APIs.
@@ -58,11 +56,9 @@ public final class ApiUtility {
         CloseableHttpResponse httpResponse = null;
         httpClient = HttpClients.createDefault();
         String jsonText;
-
         try {
             httpResponse = httpClient.execute(httpGet);
             int responseCode = httpResponse.getStatusLine().getStatusCode();
-
             if (responseCode == 200) {
                 //success
                 bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent(),
@@ -74,8 +70,6 @@ public final class ApiUtility {
                 }
                 // creating a JSON object from the response
                 jsonText = stringBuilder.toString();
-
-
             } else {
                 throw new CodeQualityMatricesException("Error occurred while calling the API, the response code is " +
                         responseCode);
@@ -123,7 +117,6 @@ public final class ApiUtility {
         CloseableHttpResponse httpResponse = null;
         httpClient = HttpClients.createDefault();
         String jsonText;
-
         try {
             httpResponse = httpClient.execute(httpPost);
             int responseCode = httpResponse.getStatusLine().getStatusCode();
@@ -137,13 +130,10 @@ public final class ApiUtility {
                 }
                 jsonText = stringBuilder.toString();
                 logger.debug("The response received from the Github GraphQL converted to a JSON text successfully");
-
             } else {
                 throw new CodeQualityMatricesException("Error occurred while calling the API, the response code is " +
                         responseCode);
-
             }
-
         } catch (UnsupportedEncodingException e) {
             throw new CodeQualityMatricesException("Encoding error occured before calling the github graphQL API", e);
         } catch (ClientProtocolException e) {
@@ -174,9 +164,7 @@ public final class ApiUtility {
                     logger.debug("IOException occurred when closing the HttpClient", e);
                 }
             }
-
         }
-
         return jsonText;
     }
 }

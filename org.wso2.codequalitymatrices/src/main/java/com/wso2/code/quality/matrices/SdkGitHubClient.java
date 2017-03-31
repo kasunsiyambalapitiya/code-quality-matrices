@@ -45,7 +45,6 @@ public class SdkGitHubClient {
     private CommitService commitService = null;
     private RepositoryService repositoryService = null;
 
-
     SdkGitHubClient(String githubToken) {
         gitHubClient = new GitHubClient();
         gitHubClient.setOAuth2Token(githubToken);
@@ -70,16 +69,16 @@ public class SdkGitHubClient {
             List<CommitFile> filesChanged = repositoryCommit.getFiles();
             List<String> tempFileNames = new ArrayList<>();
             List<String> tempPatchString = new ArrayList<>();
-
             // this can be run parallely as patchString of a file will always be in the same index as the file
             filesChanged.parallelStream()
                     .forEach(commitFile -> {
                         tempFileNames.add(commitFile.getFilename());
                         tempPatchString.add(commitFile.getPatch());
                     });
-            logger.debug("for commit hash" + commitHash + " on the " + repositoryName + " repository, files changed " +
-                    "and their " +
-                    "relevant changed line ranges are added to the arraylists successfully");
+            if (logger.isDebugEnabled()) {
+                logger.debug("for commit hash" + commitHash + " on the " + repositoryName + " repository, files" +
+                        " changed and their relevant changed line ranges are added to the arraylists successfully");
+            }
             fileNamesAndPatches.put("fileNames", tempFileNames);
             fileNamesAndPatches.put("patchString", tempPatchString);
             logger.debug("Modified file names with their relevant modified line ranges are saved to a map " +
