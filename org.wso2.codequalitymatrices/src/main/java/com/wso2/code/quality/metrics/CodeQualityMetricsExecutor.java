@@ -66,7 +66,7 @@ public class CodeQualityMetricsExecutor {
             reviewAnalyser.printReviewUsers();
             logger.debug("The application executed successfully");
         } catch (CodeQualityMetricsException e) {
-            logger.debug(e.getMessage(), e.getCause());
+            logger.error(e.getMessage(), e.getCause());
         }
     }
 
@@ -96,7 +96,7 @@ public class CodeQualityMetricsExecutor {
                 }
             }
             if (logger.isDebugEnabled()) {
-                logger.debug("The commit hashes are: " + commitHashes);
+                logger.error("The commit hashes are: " + commitHashes);
             }
         } else {
             throw new CodeQualityMetricsException("The returned jsonText from PMT API is null");

@@ -39,7 +39,7 @@ public class Application {
                     gitHubToken);
             codeQualityMetricsExecutor.execute();
         } else {
-            logger.debug("Command line arguments were not given correctly to start the execution");
+            logger.error("Command line arguments were not given correctly to start the execution");
             logger.debug("Please enter PMT Access token, patch id and github access token in order as command " +
                     "line arguments to initiate the program");
         }

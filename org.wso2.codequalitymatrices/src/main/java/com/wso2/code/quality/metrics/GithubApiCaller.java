@@ -23,7 +23,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Properties;
 
 import static com.wso2.code.quality.metrics.model.Constants.ACCEPT;
 import static com.wso2.code.quality.metrics.model.Constants.AUTHORIZATION;
@@ -36,6 +39,10 @@ import static com.wso2.code.quality.metrics.model.Constants.BEARER;
  */
 public class GithubApiCaller {
     private HttpGet httpGet;
+    private final Properties defaultProperties = new Properties();
+    private final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    private final InputStream inputStream = classLoader.getResourceAsStream("url.properties");
+
 
     /**
      * This is used for calling the github search REST API.
@@ -43,18 +50,22 @@ public class GithubApiCaller {
      * @param commitHash        commit hash to be searched
      * @param githubAccessToken Github access token for accessing github API
      * @return String representation of the json response
-     * @throws CodeQualityMetricsException
+     * @throws CodeQualityMetricsException results
      */
     public String callSearchCommitApi(String commitHash, String githubAccessToken) throws CodeQualityMetricsException {
-        String url = "https://api.github.com/search/commits?q=hash%3A" + commitHash;
         try {
+            defaultProperties.load(inputStream);
+            String url = defaultProperties.getProperty("searchCommitApiUrl") + commitHash;
             httpGet = new HttpGet(url);
             httpGet.addHeader(AUTHORIZATION, BEARER + githubAccessToken);
             //as the accept header is needed for accessing commit search API which is still in preview mode
-            httpGet.addHeader(ACCEPT, "application/vnd.github.cloak-preview");
+            httpGet.addHeader(ACCEPT, defaultProperties.getProperty("searchCommitApiHeader"));
         } catch (IllegalArgumentException e) {
             throw new CodeQualityMetricsException("The url provided for accessing the Github Search Commit API is " +
                     "invalid ", e);
+        } catch (IOException e) {
+            throw new CodeQualityMetricsException("IO exception occurred when loading the inputstream to the " +
+                    "properties object", e);
         }
         return ApiUtility.callApi(httpGet);
     }
@@ -66,18 +77,24 @@ public class GithubApiCaller {
      * @param pullRequestNumber pull request number to be queried for
      * @param githubAccessToken Github access token for accessing github API
      * @return String representation of the json response
-     * @throws CodeQualityMetricsException
+     * @throws CodeQualityMetricsException results
      */
     public String callReviewApi(String repoLocation, int pullRequestNumber, String githubAccessToken) throws
             CodeQualityMetricsException {
-        String url = "https://api.github.com/repos/" + repoLocation + "/pulls/" + pullRequestNumber + "/reviews";
         try {
+            defaultProperties.load(inputStream);
+            String tempUrl = defaultProperties.getProperty("reviewApiUrl");
+            String url = tempUrl.replaceFirst("REPO_LOCATION", repoLocation).replaceFirst("PULL_REQUEST_NUMBER",
+                    String.valueOf(pullRequestNumber));
             httpGet = new HttpGet(url);
-            httpGet.addHeader(ACCEPT, "application/vnd.github.black-cat-preview+json");
+            httpGet.addHeader(ACCEPT, defaultProperties.getProperty("reviewApiUrlHeader"));
             httpGet.addHeader(AUTHORIZATION, BEARER + githubAccessToken);
         } catch (IllegalArgumentException e) {
             throw new CodeQualityMetricsException("The url provided for accessing the Github Review Commit API is " +
                     "invalid ", e);
+        } catch (IOException e) {
+            throw new CodeQualityMetricsException("IO exception occurred when loading the inputstream to the " +
+                    "properties object", e);
         }
         return ApiUtility.callApi(httpGet);
     }
@@ -88,18 +105,22 @@ public class GithubApiCaller {
      * @param commitHashToBeSearched commit hash to be searched for issues
      * @param githubAccessToken      Github access token for accessing github API
      * @return String representation of the json response
-     * @throws CodeQualityMetricsException
+     * @throws CodeQualityMetricsException results
      */
     public String callSearchIssueApi(String commitHashToBeSearched, String githubAccessToken) throws
             CodeQualityMetricsException {
-        String url = "https://api.github.com/search/issues?q=" + commitHashToBeSearched;
         try {
+            defaultProperties.load(inputStream);
+            String url = defaultProperties.getProperty("searchIssueApiUrl") + commitHashToBeSearched;
             httpGet = new HttpGet(url);
-            httpGet.addHeader(ACCEPT, "application/vnd.github.mercy-preview+json");
+            httpGet.addHeader(ACCEPT, defaultProperties.getProperty("searchIssueApiUrlHeader"));
             httpGet.addHeader(AUTHORIZATION, BEARER + githubAccessToken);
         } catch (IllegalArgumentException e) {
             throw new CodeQualityMetricsException("The url provided for accessing the Github Search Issue API is " +
                     "invalid ", e);
+        } catch (IOException e) {
+            throw new CodeQualityMetricsException("IO exception occurred when loading the inputstream to the " +
+                    "properties object", e);
         }
         return ApiUtility.callApi(httpGet);
     }
@@ -110,16 +131,17 @@ public class GithubApiCaller {
      * @param graphqlJsonStructure JSON input structure for calling the graphql API
      * @param githubToken          Github access token for accessing github API
      * @return String representation of the json response
-     * @throws CodeQualityMetricsException
+     * @throws CodeQualityMetricsException results
      */
     public String callGraphqlApi(JSONObject graphqlJsonStructure, String githubToken) throws
             CodeQualityMetricsException {
-        String url = "https://api.github.com/graphql";
         HttpPost httpPost;
         try {
+            defaultProperties.load(inputStream);
+            String url = defaultProperties.getProperty("githubGraphqlUrl");
             httpPost = new HttpPost(url);
             httpPost.addHeader(AUTHORIZATION, BEARER + githubToken);
-            httpPost.addHeader(ACCEPT, "application/json");
+            httpPost.addHeader(ACCEPT, defaultProperties.getProperty("githubGraphqlUrlHeader"));
             StringEntity entity = new StringEntity(graphqlJsonStructure.toString());
             httpPost.setEntity(entity);
         } catch (IllegalArgumentException e) {
@@ -128,6 +150,9 @@ public class GithubApiCaller {
         } catch (UnsupportedEncodingException e) {
             throw new CodeQualityMetricsException("An error occurred when creating the String entity from Json " +
                     "Structure", e);
+        } catch (IOException e) {
+            throw new CodeQualityMetricsException("IO exception occurred when loading the inputstream to the " +
+                    "properties object", e);
         }
         return ApiUtility.callGraphQlApi(httpPost);
     }
