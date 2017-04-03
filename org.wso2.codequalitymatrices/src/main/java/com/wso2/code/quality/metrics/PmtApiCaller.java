@@ -20,6 +20,10 @@ package com.wso2.code.quality.metrics;
 
 import org.apache.http.client.methods.HttpGet;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 import static com.wso2.code.quality.metrics.model.Constants.AUTHORIZATION;
 import static com.wso2.code.quality.metrics.model.Constants.BEARER;
 
@@ -38,17 +42,26 @@ public class PmtApiCaller {
      * @param accessToken WSO2 PMT access token
      * @param patchId     Patch Id
      * @return String representation of the json response
-     * @throws CodeQualityMetricsException
+     * @throws CodeQualityMetricsException results
      */
     public String callApi(String accessToken, String patchId) throws CodeQualityMetricsException {
-        String pmtUrl = "http://umt.private.wso2.com:9765/codequalitymatricesapi/1.0.0//properties?path=/_system/" +
-                "governance/patchs/" + patchId;
         HttpGet httpGet;
         try {
+            Properties defaultProperties = new Properties();
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            InputStream inputStream = classLoader.getResourceAsStream("url.properties");
+            defaultProperties.load(inputStream);
+            String pmtApiUrl = defaultProperties.getProperty("pmtApiUrl");
+            String pmtUrl = pmtApiUrl + patchId;
             httpGet = new HttpGet(pmtUrl);
             httpGet.addHeader(AUTHORIZATION, BEARER + accessToken);
         } catch (IllegalArgumentException e) {
             throw new CodeQualityMetricsException("The url provided for accessing the PMT API is invalid ", e);
+        } catch (SecurityException e) {
+            throw new CodeQualityMetricsException("The url properties file is not found", e);
+        } catch (IOException e) {
+            throw new CodeQualityMetricsException("IO exception occurred when loading the inputstream to the " +
+                    "properties object", e);
         }
         return ApiUtility.callApi(httpGet);
     }

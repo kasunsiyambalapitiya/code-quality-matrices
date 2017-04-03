@@ -70,7 +70,7 @@ public class ReviewAnalyser {
                 }
                 saveReviewers(prNoWithRepoName, githubToken);
             } catch (CodeQualityMetricsException e) {
-                logger.debug(e.getMessage(), e.getCause());
+                logger.error(e.getMessage(), e.getCause());
             }
         });
     }
@@ -80,7 +80,7 @@ public class ReviewAnalyser {
      *
      * @param jsonText json reponse received from the github issue API
      * @return a map of pull requests againt their repository name
-     * @throws CodeQualityMetricsException
+     * @throws CodeQualityMetricsException results
      */
     private Map<String, Set<Integer>> savePrNumberAndRepoName(String jsonText) throws CodeQualityMetricsException {
         // map for storing the pull requests numbers against their Repository
@@ -115,9 +115,9 @@ public class ReviewAnalyser {
      * @param githubToken      Github access token for accessing github API
      */
     private void saveReviewers(Map<String, Set<Integer>> prNoWithRepoName, String githubToken) {
-        for (Map.Entry entry : prNoWithRepoName.entrySet()) {
-            String repositoryName = (String) entry.getKey();
-            Set<Integer> prNumbers = (Set<Integer>) entry.getValue();
+        for (Map.Entry<String, Set<Integer>> entry : prNoWithRepoName.entrySet()) {
+            String repositoryName = entry.getKey();
+            Set<Integer> prNumbers = entry.getValue();
             prNumbers.parallelStream()
                     .forEach(prNumber -> {
                         try {
