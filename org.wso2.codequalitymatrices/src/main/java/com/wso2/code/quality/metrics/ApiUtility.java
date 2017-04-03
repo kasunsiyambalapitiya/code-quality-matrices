@@ -49,7 +49,7 @@ public final class ApiUtility {
      *
      * @param httpGet Instance of the relevant httpGet
      * @return String representation of the json response
-     * @throws CodeQualityMetricsException
+     * @throws CodeQualityMetricsException results
      */
     public static String callApi(HttpGet httpGet) throws CodeQualityMetricsException {
         BufferedReader bufferedReader = null;
@@ -84,21 +84,21 @@ public final class ApiUtility {
                 try {
                     bufferedReader.close();
                 } catch (IOException e) {
-                    logger.debug("IOException occurred when closing the BufferedReader", e);
+                    logger.error("IOException occurred when closing the BufferedReader", e);
                 }
             }
             if (httpResponse != null) {
                 try {
                     httpResponse.close();
                 } catch (IOException e) {
-                    logger.debug("IOException occurred when closing the HttpResponse", e);
+                    logger.error("IOException occurred when closing the HttpResponse", e);
                 }
             }
             if (httpClient != null) {
                 try {
                     httpClient.close();
                 } catch (IOException e) {
-                    logger.debug("IOException occurred when closing the HttpClient", e);
+                    logger.error("IOException occurred when closing the HttpClient", e);
                 }
             }
         }
@@ -110,7 +110,7 @@ public final class ApiUtility {
      *
      * @param httpPost relevant instance of the httpost
      * @return String representation of the json response
-     * @throws CodeQualityMetricsException
+     * @throws CodeQualityMetricsException results
      */
     public static String callGraphQlApi(HttpPost httpPost) throws CodeQualityMetricsException {
         BufferedReader bufferedReader = null;
@@ -148,21 +148,21 @@ public final class ApiUtility {
                 try {
                     bufferedReader.close();
                 } catch (IOException e) {
-                    logger.debug("IOException occurred when closing the buffered reader", e);
+                    logger.error("IOException occurred when closing the buffered reader", e);
                 }
             }
             if (httpResponse != null) {
                 try {
                     httpResponse.close();
                 } catch (IOException e) {
-                    logger.debug("IOException occurred when closing the HttpResponse", e);
+                    logger.error("IOException occurred when closing the HttpResponse", e);
                 }
             }
             if (httpClient != null) {
                 try {
                     httpClient.close();
                 } catch (IOException e) {
-                    logger.debug("IOException occurred when closing the HttpClient", e);
+                    logger.error("IOException occurred when closing the HttpClient", e);
                 }
             }
         }
