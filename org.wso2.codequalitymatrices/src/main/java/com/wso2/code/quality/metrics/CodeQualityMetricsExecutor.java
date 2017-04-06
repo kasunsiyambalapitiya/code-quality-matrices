@@ -75,7 +75,7 @@ public class CodeQualityMetricsExecutor {
      *
      * @return List of commithashes contained in the given patch
      */
-    private List<String> findCommitHashesInPatch() throws CodeQualityMetricsException {
+    protected List<String> findCommitHashesInPatch() throws CodeQualityMetricsException {
         PmtApiCaller pmtApiCaller = new PmtApiCaller();
         String jsonText;
         List<String> commitHashes = new ArrayList<>();
@@ -89,9 +89,9 @@ public class CodeQualityMetricsExecutor {
             List pmtResponse = gson.fromJson(jsonText, List.class);
             for (Object pmtEntry : pmtResponse) {
                 if (pmtEntry instanceof Map) {
-                    Map<String, List<String>> entryMap = (Map<String, List<String>>) pmtEntry;
+                    Map<String, Object> entryMap = (Map<String, Object>) pmtEntry;
                     if (COMMITS_INSIDE_GIVEN_PATCH.equals(entryMap.get("name"))) {
-                        commitHashes = entryMap.get("value");
+                        commitHashes = (List<String>) entryMap.get("value");
                     }
                 }
             }
