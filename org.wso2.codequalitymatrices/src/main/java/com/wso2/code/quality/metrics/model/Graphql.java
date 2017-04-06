@@ -28,6 +28,7 @@ import java.io.Serializable;
 public class Graphql implements Serializable {
     private String graphqlInputWithHistory;
     private String graphqlInputWithoutHistory;
+    private static final long serialVersionUID = 42L;
 
     public Graphql() {
     }

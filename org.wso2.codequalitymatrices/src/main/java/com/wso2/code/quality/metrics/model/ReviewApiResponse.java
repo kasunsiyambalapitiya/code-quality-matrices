@@ -31,6 +31,7 @@ public class ReviewApiResponse {
     @SerializedName("user")
     private Reviewer reviewer;
 
+
     public String getReviewState() {
         return reviewState;
     }

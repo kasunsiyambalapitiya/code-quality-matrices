@@ -20,11 +20,13 @@ package com.wso2.code.quality.metrics;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 import com.wso2.code.quality.metrics.model.IssueApiResponse;
 import com.wso2.code.quality.metrics.model.ReviewApiResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -45,12 +47,21 @@ public class ReviewAnalyser {
     private static final Logger logger = Logger.getLogger(ReviewAnalyser.class);
 
     // to store the reviewed and approved users of thepull requests
-    private final Set<String> approvedReviewers = new HashSet<>();
+    protected final Set<String> approvedReviewers = new HashSet<>();
     // to store the reviewed and commented users of the pull requests
-    private final Set<String> commentedReviewers = new HashSet<>();
+    protected final Set<String> commentedReviewers = new HashSet<>();
     //constants for filtering github API responses
     private final GithubApiCaller githubApiCaller = new GithubApiCaller();
     private final Gson gson = new Gson();
+
+    /**
+     * This class is used to prevent SIC_INNER_SHOULD_BE_STATIC_ANON error that comes when building with WSO2 parent
+     * pom. As suggested by the above error an static inner class is used
+     */
+    static class ListType extends TypeToken<List<ReviewApiResponse>> {
+    }
+
+
 
     /**
      * This is used to identify the pull requests that introduce the given commit to the code base.
@@ -82,7 +93,7 @@ public class ReviewAnalyser {
      * @return a map of pull requests againt their repository name
      * @throws CodeQualityMetricsException results
      */
-    private Map<String, Set<Integer>> savePrNumberAndRepoName(String jsonText) throws CodeQualityMetricsException {
+    protected Map<String, Set<Integer>> savePrNumberAndRepoName(String jsonText) throws CodeQualityMetricsException {
         // map for storing the pull requests numbers against their Repository
         Map<String, Set<Integer>> prNoWithRepoName = new HashMap<>();
         try {
@@ -114,16 +125,21 @@ public class ReviewAnalyser {
      *                         relevant reposiory
      * @param githubToken      Github access token for accessing github API
      */
-    private void saveReviewers(Map<String, Set<Integer>> prNoWithRepoName, String githubToken) {
+    protected void saveReviewers(Map<String, Set<Integer>> prNoWithRepoName, String githubToken) {
         for (Map.Entry<String, Set<Integer>> entry : prNoWithRepoName.entrySet()) {
             String repositoryName = entry.getKey();
             Set<Integer> prNumbers = entry.getValue();
             prNumbers.parallelStream()
-                    .forEach(prNumber -> {
+                    .forEach((Integer prNumber) -> {
                         try {
                             String jsonText = githubApiCaller.callReviewApi(repositoryName, prNumber, githubToken);
                             if (jsonText != null) {
-                                List<ReviewApiResponse> reviews = gson.fromJson(jsonText, List.class);
+//                                Type listType = new TypeToken<List<ReviewApiResponse>>() {
+//                                }.getType();
+                                Type listType = new ListType().getType();
+                                List<ReviewApiResponse> reviews = gson.fromJson(jsonText, listType);
+//                                List<ReviewApiResponse> reviews = gson.fromJson(jsonText, List.class);
+
                                 // to filter Approved users
                                 reviews.parallelStream()
                                         .filter(review -> GITHUB_REVIEW_APPROVED.equals(review.getReviewState()))
