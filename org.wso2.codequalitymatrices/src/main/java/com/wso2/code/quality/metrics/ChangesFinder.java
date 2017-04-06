@@ -49,14 +49,14 @@ public class ChangesFinder {
 
     private List<String> fileNames = new ArrayList<>();
     private List<String> patchString = new ArrayList<>();
-    private final List<List<String>> changedLineRanges = new ArrayList<>();  // for saving the line no that are changed
-    private final JSONObject jsonStructure = new JSONObject();
     private Map<String, Set<String>> parentCommitHashes;
     private Set<String> authorNames = new HashSet<>();    //authors of the bug lines fixed from the patch
     private Set<String> authorCommits = new HashSet<>();  //  author commits of the bug lines fixed from the patch
-
+    private final JSONObject jsonStructure = new JSONObject();
     private final GithubApiCaller githubApiCaller = new GithubApiCaller();
     private final Gson gson = new Gson();
+    public final List<List<String>> changedLineRanges = new ArrayList<>();  // for saving the line no that are changed
+
 
     /**
      * This is used for obtaining the repositories that contain the relevant commits belongs to the given patch
@@ -66,11 +66,12 @@ public class ChangesFinder {
      * @return author commits of the bug lines which are fixed from the given patch
      */
 
-    public Set<String> obtainRepoNamesForCommitHashes(String gitHubToken, List<String> commitHashes) {
+    protected Set<String> obtainRepoNamesForCommitHashes(String gitHubToken, List<String> commitHashes) {
         commitHashes.forEach(commitHash -> {
             try {
                 String jsonText = githubApiCaller.callSearchCommitApi(commitHash, gitHubToken);
-                saveRepoNames(jsonText, commitHash, gitHubToken);
+                List<String> repoLocations = saveRepoNames(jsonText);
+                identifyChangedFile(repoLocations, commitHash, gitHubToken);
             } catch (CodeQualityMetricsException e) {
                 logger.error(e.getMessage(), e.getCause());
             }
@@ -79,14 +80,13 @@ public class ChangesFinder {
     }
 
     /**
-     * Saving the  relevant repository names that contain the given commit hash in a List.
+     * This save the  relevant repository names that contain the given commit hash in a List.
      *
-     * @param jsonText    String representation of the json response
-     * @param commitHash  commit hash to be searched for containing WSO2 repositories
-     * @param gitHubToken Github access token for accessing github API
+     * @param jsonText String representation of the json response
+     * @return A list of repository locations having the given commit hash
+     * @throws CodeQualityMetricsException
      */
-    private void saveRepoNames(String jsonText, String commitHash, String gitHubToken) throws
-            CodeQualityMetricsException {
+    protected List<String> saveRepoNames(String jsonText) throws CodeQualityMetricsException {
         List<String> repoLocation = new ArrayList<>();
         SearchApiResponse searchCommitPojo;
         try {
@@ -96,8 +96,19 @@ public class ChangesFinder {
         }
         searchCommitPojo.getContainingRepositories()
                 .forEach(recordItem -> repoLocation.add(recordItem.getRepository().getRepositoryLocation()));
-
         logger.debug("Repositories having the given commit are successfully saved in an List");
+        return repoLocation;
+    }
+
+    /**
+     * This identifies the file changed and their relevant line ranges changed in seleted repository from the given
+     * commit hash
+     *
+     * @param repoLocation List of repository locations having the given commit hash
+     * @param commitHash   commit hash to be searched for containing WSO2 repositories
+     * @param gitHubToken  Github access token for accessing github API
+     */
+    private void identifyChangedFile(List<String> repoLocation, String commitHash, String gitHubToken) {
         SdkGitHubClient sdkGitHubClient = new SdkGitHubClient(gitHubToken);
         repoLocation.stream()
                 .filter(repositoryName -> StringUtils.contains(repositoryName, "wso2/"))
@@ -135,7 +146,7 @@ public class ChangesFinder {
      * @param patchString Array list having the patch string value for each of the file being changed
      */
 
-    private void saveRelaventEditLineNumbers(List<String> fileNames, List<String> patchString) {
+    protected void saveRelaventEditLineNumbers(List<String> fileNames, List<String> patchString) {
         /*filtering only the line ranges that are modified and saving to a string array cannot use parallel streams
           here as the order of the line changes must be preserved
          */
@@ -145,7 +156,7 @@ public class ChangesFinder {
                     /*filtering the lines ranges that existed in the previous file, that exists in the new file and
                     saving them in to a list
                      */
-                    IntStream.range(0, lineChanges.length)
+                     IntStream.range(0, lineChanges.length)
                             .forEach(index -> {
                                 //@@ -22,7 +22,7 @@ => -22,7 +22,7 => 22,28/22,28
                                 String tempString = lineChanges[index];
