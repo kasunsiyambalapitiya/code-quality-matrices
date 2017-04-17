@@ -20,6 +20,8 @@ package com.wso2.code.quality.metrics;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
+import com.wso2.code.quality.metrics.model.CommitHistoryApiResponse;
 import com.wso2.code.quality.metrics.model.GraphQlResponse;
 import com.wso2.code.quality.metrics.model.Graphql;
 import com.wso2.code.quality.metrics.model.SearchApiResponse;
@@ -27,14 +29,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 /**
@@ -57,6 +63,12 @@ public class ChangesFinder {
     private final Gson gson = new Gson();
     public final List<List<String>> changedLineRanges = new ArrayList<>();  // for saving the line no that are changed
 
+    /**
+     * This class is used to prevent SIC_INNER_SHOULD_BE_STATIC_ANON error that comes when building with WSO2 parent
+     * pom. As suggested by the above error an static inner class is used
+     */
+    private static class ListType extends TypeToken<List<CommitHistoryApiResponse>> {
+    }
 
     /**
      * This is used for obtaining the repositories that contain the relevant commits belongs to the given patch
@@ -65,7 +77,6 @@ public class ChangesFinder {
      * @param commitHashes List of commits that belongs to the given patch
      * @return author commits of the bug lines which are fixed from the given patch
      */
-
     protected Set<String> obtainRepoNamesForCommitHashes(String gitHubToken, List<String> commitHashes) {
         commitHashes.forEach(commitHash -> {
             try {
@@ -101,7 +112,7 @@ public class ChangesFinder {
     }
 
     /**
-     * This identifies the file changed and their relevant line ranges changed in seleted repository from the given
+     * This identifies the file changed and their relevant line ranges changed in selected repository from the given
      * commit hash
      *
      * @param repoLocation List of repository locations having the given commit hash
@@ -113,29 +124,169 @@ public class ChangesFinder {
         repoLocation.stream()
                 .filter(repositoryName -> StringUtils.contains(repositoryName, "wso2/"))
                 .forEach(repositoryName -> {
-                    //clearing all data in the current fileNames and changedLineRanges arraylists for each Repository
                     //authorNames.clear();
-                    fileNames.clear();
-                    changedLineRanges.clear();
-                    patchString.clear();
-                    Map<String, List<String>> fileNamesWithPatcheString = null;
+                    Map<String, String> fileNamesWithPatchString = new HashMap<>();
                     try {
-                        fileNamesWithPatcheString = sdkGitHubClient.getFilesChanged(repositoryName, commitHash);
+                        fileNamesWithPatchString = sdkGitHubClient.getFilesChanged(repositoryName, commitHash);
                     } catch (CodeQualityMetricsException e) {
                         logger.error(e.getMessage(), e.getCause());
                     }
-                    if (fileNamesWithPatcheString != null) {
-                        fileNames = fileNamesWithPatcheString.get("fileNames");
-                        patchString = fileNamesWithPatcheString.get("patchString");
+
+                    Map<String, Set<Integer>> fileNamesWithDeletedLineNumbers = new HashMap<>();
+                    Map<String, String> fileNamesWithPreviousCommitHash = new HashMap<>();
+                    if (fileNamesWithPatchString != null) {
+                        // looping from one file to file and saving deleted lines against the file name in another map
+                        for (Map.Entry<String, String> entry : fileNamesWithPatchString.entrySet()) {
+                            String fileName = entry.getKey();
+                            String patchString = entry.getValue();
+                            Set<Integer> deletedLines = identifyDeletedLines(patchString);
+                            String previousCommitHash;
+                            //for omitting files without having deleted lines
+                            if (deletedLines.size() > 0) {
+                                fileNamesWithDeletedLineNumbers.put(fileName, deletedLines);
+                                previousCommitHash = findPreviousCommitOfFile(repositoryName, fileName, commitHash,
+                                        gitHubToken);
+                                fileNamesWithPreviousCommitHash.put(fileName, previousCommitHash);
+                            }
+                        }
                     }
-                    saveRelaventEditLineNumbers(fileNames, patchString);
-                    findFileChanges(repositoryName, commitHash, gitHubToken);
+//                    saveRelaventEditLineNumbers(fileNames, patchString);
+                    getBlameDetails(repositoryName, fileNamesWithPreviousCommitHash,
+                            fileNamesWithDeletedLineNumbers, gitHubToken);
+
+//                    findFileChanges(repositoryName, commitHash, gitHubToken);
 
                 });
         if (logger.isDebugEnabled()) {
             logger.debug("\n Author names :" + authorNames);
             logger.debug("\n Author commits :" + authorCommits);
         }
+    }
+
+    /**
+     * This is used to get the previous commit hash of the selected file before the current selected commit which
+     * contained in the given patch
+     *
+     * @param repositoryName   current selected Repository
+     * @param filePath         current selected file name
+     * @param latestCommitHash current selected recent commit contained in the given patch
+     * @param githubToken      github access token for accessing github REST API
+     * @return commits hash prior to the current selected commit hash contained in the given patch of the current
+     * selected file
+     */
+    public String findPreviousCommitOfFile(String repositoryName, String filePath, String latestCommitHash, String githubToken) {
+        String previousCommit = null;
+        Map<String, String> commitWithDate = new HashMap<>();
+        try {
+            String jsonText = githubApiCaller.callCommitHistoryApi(repositoryName, filePath, githubToken);
+            if (jsonText != null) {
+                Type listType = new ListType().getType();
+                List<CommitHistoryApiResponse> commitHistoryApiResponses = gson.fromJson(jsonText, listType);
+                commitHistoryApiResponses.forEach(commitHistoryApiResponse -> {
+                    String commitHash = commitHistoryApiResponse.getCommitHash();
+                    String date = commitHistoryApiResponse.getCommit().getAuthor().getDate();
+                    commitWithDate.put(commitHash, date);
+                });
+                String latestCommitDate = commitWithDate.get(latestCommitHash);
+                String previousCommitDate = getPreviousCommitDate(commitWithDate, latestCommitDate);
+                // looping for finding the commit Hash introduced in previous commit date
+                for (Map.Entry entry : commitWithDate.entrySet()) {
+                    if (entry.getValue().equals(previousCommitDate)) {
+                        previousCommit = (String) entry.getKey();
+                    }
+                }
+            } else {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("There are no commit history records for the file " + filePath + " on repository " +
+                            "" + repositoryName);
+                }
+            }
+        } catch (CodeQualityMetricsException e) {
+            logger.error(e.getMessage(), e.getCause());
+        }
+        return previousCommit;
+    }
+
+    /**
+     * This is used to get the previous commit date of the selected file before the current commit
+     *
+     * @param commitWithDate   map contating all the commits with their respective date of the current selected
+     *                         file
+     * @param latestCommitDate latest commit date of the current selected file
+     * @return previous commit date of the current selected file
+     */
+    public String getPreviousCommitDate(Map<String, String> commitWithDate, String latestCommitDate) {
+        //creating a tempory list for sorting the date in ascending order
+        List<String> sortedCommitDates = new ArrayList<>(commitWithDate.values());
+        Collections.sort(sortedCommitDates);
+        int indexOfLatestcommit = sortedCommitDates.indexOf(latestCommitDate);
+        String previousCommitDateOfFile = sortedCommitDates.get(--indexOfLatestcommit);
+        return previousCommitDateOfFile;
+    }
+
+    /**
+     * This method is used to obtain the blame details of files for their previous commits
+     *
+     * @param repoLocation                    current selected Repository
+     * @param fileNamesWithPreviousCommitHash map containing changed files with their prior commit hashes
+     * @param fileNamesWithDeletedLineNumbers map containing changed files with their deleted line numbers
+     * @param githubToken                     github access token for accessing github REST API
+     */
+    public void getBlameDetails(String repoLocation, Map<String, String> fileNamesWithPreviousCommitHash,
+                                Map<String, Set<Integer>> fileNamesWithDeletedLineNumbers, String githubToken) {
+
+        // filtering the owner and the repository name from the repoLocation
+        String owner = StringUtils.substringBefore(repoLocation, "/");
+        String repositoryName = StringUtils.substringAfter(repoLocation, "/");
+        Graphql graphqlBean = new Graphql();
+//        for (Map.Entry entry : fileNamesWithPreviousCommitHash.entrySet()) {
+//            String fileName =(String) entry.getKey();
+//            String commitHash= (String)entry.getValue();
+//            graphqlBean.setGraphqlInputWithoutHistory(owner, repositoryName);
+//
+//        }
+        fileNamesWithPreviousCommitHash.forEach((fileName, previousCommitHash) -> {
+            graphqlBean.setGraphqlInputWithoutHistory(owner, repositoryName, previousCommitHash, fileName);
+            jsonStructure.put("query", graphqlBean.getGraphqlInputWithoutHistory());
+            String jsonText = null;
+            try {
+                // calling the graphql API for getting blame information for the current file.
+                jsonText = githubApiCaller.callGraphqlApi(jsonStructure, githubToken);
+                findAuthorCommits(jsonText, fileNamesWithDeletedLineNumbers, fileName);
+                System.out.println();
+            } catch (CodeQualityMetricsException e) {
+                logger.error(e.getMessage(), e.getCause());
+            }
+        });
+
+
+    }
+
+    /**
+     * This is used to save the authors and relevant author commits of the buggy lines of code which are been fixed by
+     * the given patch, to relevant lists.
+     *
+     * @param jsonText                        String representation of the json response received from github graphql API
+     * @param fileNamesWithDeletedLineNumbers map containing changed files with their deleted line numbers
+     * @param selectedFileName                selected file for finding the authors and author commits of its buggy lines
+     */
+    public void findAuthorCommits(String jsonText, Map<String, Set<Integer>> fileNamesWithDeletedLineNumbers, String
+            selectedFileName) {
+
+        GraphQlResponse graphQlResponse = gson.fromJson(jsonText, GraphQlResponse.class);
+        Set<Integer> deletedLines = fileNamesWithDeletedLineNumbers.get(selectedFileName);
+        deletedLines.forEach(deletedLineNumber ->
+                graphQlResponse.getResponse().getRepository().getFile().getBlame().getRanges()
+                        .stream()
+                        .filter(graphqlRange -> (graphqlRange.getStartingLine() <= deletedLineNumber &&
+                                graphqlRange.getEndingLine() >= deletedLineNumber))
+                        .forEach(graphqlRange -> {
+                            String authorName = graphqlRange.getCommit().getAuthor().getName();
+                            String authorcommit = StringUtils.substringAfter(graphqlRange.getCommit().getUrl(),
+                                    "commit/");
+                            authorNames.add(authorName); // authors are added to the Set
+                            authorCommits.add(authorcommit); // author commits are added to the set
+                        }));
     }
 
     /**
@@ -156,7 +307,7 @@ public class ChangesFinder {
                     /*filtering the lines ranges that existed in the previous file, that exists in the new file and
                     saving them in to a list
                      */
-                     IntStream.range(0, lineChanges.length)
+                    IntStream.range(0, lineChanges.length)
                             .forEach(index -> {
                                 //@@ -22,7 +22,7 @@ => -22,7 +22,7 => 22,28/22,28
                                 String tempString = lineChanges[index];
@@ -237,7 +388,7 @@ public class ChangesFinder {
             } catch (CodeQualityMetricsException e) {
                 logger.error(e.getMessage(), e.getCause());
             }
-            findAuthorCommits(owner, repositoryName, fileName, lineRangesForSelectedFile, gitHubToken);
+            findAuthorCommitsDel(owner, repositoryName, fileName, lineRangesForSelectedFile, gitHubToken);
             logger.debug("Authors and author commits of bug lines of code which are being fixed from the given " +
                     "patch are saved successfully to authorNames and authorCommits Sets");
         });
@@ -310,8 +461,8 @@ public class ChangesFinder {
      * @param lineRangesForSelectedFile arraylist containing the changed line ranges of the current selected file
      * @param gitHubToken               github token for accessing github GraphQL API
      */
-    private void findAuthorCommits(String owner, String repositoryName, String fileName,
-                                   List<String> lineRangesForSelectedFile, String gitHubToken) {
+    private void findAuthorCommitsDel(String owner, String repositoryName, String fileName,
+                                      List<String> lineRangesForSelectedFile, String gitHubToken) {
         for (Map.Entry<String, Set<String>> entry : parentCommitHashes.entrySet()) {
             String oldRange = entry.getKey();
             Set<String> commitHashes = entry.getValue();
@@ -326,7 +477,7 @@ public class ChangesFinder {
                         } catch (CodeQualityMetricsException e) {
                             logger.error(e.getMessage(), e.getCause());
                         }
-                        saveAuthorCommits(jsonText, oldRange, lineRangesForSelectedFile);
+//                        saveAuthorCommits(jsonText, oldRange, lineRangesForSelectedFile);
                     });
         }
         if (logger.isDebugEnabled()) {
@@ -335,40 +486,82 @@ public class ChangesFinder {
         }
     }
 
+//    /**
+//     * This is used to save the authors and author commits of the buggy lines of code which are been fixed by the
+//     * given patch, to relevant lists.
+//     *
+//     * @param jsonText                  String representation of the json response
+//     * @param oldRange                  Range to select the correct range for collecting author commits
+//     * @param lineRangesForSelectedFile arraylist containing the changed line ranges of the current selected file
+//     */
+//    private void saveAuthorCommits(String jsonText, String oldRange, List<String> lineRangesForSelectedFile) {
+//        GraphQlResponse graphQlResponse = gson.fromJson(jsonText, GraphQlResponse.class);
+//        lineRangesForSelectedFile.forEach(lineRange -> {
+//            int startingLineNo;
+//            int endLineNo;
+//            String oldFileRange = StringUtils.substringBefore(lineRange, "/");
+//            // need to skip the newly created files from taking the blame as they contain no previous commits
+//            if (!oldFileRange.equals("0,0") && oldRange.equals(oldFileRange)) {
+//                // need to consider the correct line range in the old file for finding authors and author commits
+//                startingLineNo = Integer.parseInt(StringUtils.substringBefore(oldFileRange, ","));
+//                endLineNo = Integer.parseInt(StringUtils.substringAfter(oldFileRange, ","));
+//                while (endLineNo >= startingLineNo) {
+//                    int finalStartingLineNo = startingLineNo;       // to make a effective final variable
+//
+//                    graphQlResponse.getResponse().getRepository().getFile().getBlame().getRanges().stream()
+//
+//                            .filter(graphqlRange -> (graphqlRange.getStartingLine() <= finalStartingLineNo &&
+//                                    graphqlRange.getEndingLine() >= finalStartingLineNo))
+//                            .forEach(graphqlRange -> {
+//                                String authorName = graphqlRange.getCommit().getAuthor().getName();
+//                                String authorcommit = StringUtils.substringAfter(graphqlRange.getCommit().getUrl(),
+//                                        "commit/");
+//                                authorNames.add(authorName); // authors are added to the Set
+//                                authorCommits.add(authorcommit); // author commits are added to the set
+//                            });
+//                    startingLineNo++;   // to check for other line numbers
+//                }
+//            }
+//        });
+//    }
+
     /**
-     * This is used to save the authors and author commits of the buggy lines of code which are been fixed by the
-     * given patch, to relevant lists.
+     * This method is used to identify the deleted lines from the current selected commit in given patch
      *
-     * @param jsonText                  String representation of the json response
-     * @param oldRange                  Range to select the correct range for collecting author commits
-     * @param lineRangesForSelectedFile arraylist containing the changed line ranges of the current selected file
+     * @param patchString patch string of the selected file received from github SDK
+     * @return a Set of deleted lines in the above mentioned file
      */
-    private void saveAuthorCommits(String jsonText, String oldRange, List<String> lineRangesForSelectedFile) {
-        GraphQlResponse graphQlResponse = gson.fromJson(jsonText, GraphQlResponse.class);
-        lineRangesForSelectedFile.forEach(lineRange -> {
-            int startingLineNo;
-            int endLineNo;
-            String oldFileRange = StringUtils.substringBefore(lineRange, "/");
-            // need to skip the newly created files from taking the blame as they contain no previous commits
-            if (!oldFileRange.equals("0,0") && oldRange.equals(oldFileRange)) {
-                // need to consider the correct line range in the old file for finding authors and author commits
-                startingLineNo = Integer.parseInt(StringUtils.substringBefore(oldFileRange, ","));
-                endLineNo = Integer.parseInt(StringUtils.substringAfter(oldFileRange, ","));
-                while (endLineNo >= startingLineNo) {
-                    int finalStartingLineNo = startingLineNo;       // to make a effective final variable
-                    graphQlResponse.getResponse().getRepository().getFile().getBlame().getRanges().stream()
-                            .filter(graphqlRange -> (graphqlRange.getStartingLine() <= finalStartingLineNo &&
-                                    graphqlRange.getEndingLine() >= finalStartingLineNo))
-                            .forEach(graphqlRange -> {
-                                String authorName = graphqlRange.getCommit().getAuthor().getName();
-                                String authorcommit = StringUtils.substringAfter(graphqlRange.getCommit().getUrl(),
-                                        "commit/");
-                                authorNames.add(authorName); // authors are added to the Set
-                                authorCommits.add(authorcommit); // author commits are added to the set
-                            });
-                    startingLineNo++;   // to check for other line numbers
+    private Set<Integer> identifyDeletedLines(String patchString) {
+        Set<Integer> linesDeletedInSelectedFile = new HashSet<>();
+        Pattern pattern = Pattern.compile("@@ -");
+        String patches[] = pattern.split(patchString);
+        for (String patchRange : patches) {
+            Scanner scanner = new Scanner(patchRange);
+            int lineNumber = 0;
+            //for finding the starting line number for the modified range.
+            if (scanner.hasNext()) {
+                String patchLine = scanner.nextLine();
+                String words[] = patchLine.split(",");
+                lineNumber = Integer.parseInt(words[0]);
+            }
+            //for finding the deleted lines in the string
+            while (scanner.hasNext()) {
+                String patchLine = scanner.nextLine();
+                String words[];
+                if (patchLine.trim().length() != 0) {
+                    words = patchLine.split("\\s");
+                } else {
+                    words = patchLine.trim().split("\\s");
+                }
+                String sign = words[0];
+                if ("-".equals(sign) || "".equals(sign)) {
+                    if ("-".equals(sign)) {
+                        linesDeletedInSelectedFile.add(lineNumber);
+                    }
+                    lineNumber++;
                 }
             }
-        });
+        }
+        return linesDeletedInSelectedFile;
     }
 }

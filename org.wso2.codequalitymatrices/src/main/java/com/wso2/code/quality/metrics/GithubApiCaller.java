@@ -71,6 +71,32 @@ public class GithubApiCaller {
     }
 
     /**
+     * This is used to call github commit REST API
+     * @param repoLocation
+     * @param filePath
+     * @param githubAccessToken
+     * @return
+     * @throws CodeQualityMetricsException
+     */
+    public String callCommitHistoryApi(String repoLocation,String filePath,String githubAccessToken)
+            throws CodeQualityMetricsException {
+        try {
+            defaultProperties.load(inputStream);
+            String tempUrl= defaultProperties.getProperty("commitHistoryApiUrl");
+            String url=tempUrl.replaceFirst("REPO_LOCATION",repoLocation).replaceFirst("FILE_NAME",filePath);
+            httpGet= new HttpGet(url);
+            httpGet.addHeader(AUTHORIZATION, BEARER + githubAccessToken);
+        } catch (IllegalArgumentException e) {
+            throw new CodeQualityMetricsException("The url provided for accessing the Github Search Commit API is " +
+                    "invalid ", e);
+        } catch (IOException e) {
+            throw new CodeQualityMetricsException("IO exception occurred when loading the inputstream to the " +
+                    "properties object", e);
+        }
+        return ApiUtility.callApi(httpGet);
+    }
+
+    /**
      * This is used to call the github review API.
      *
      * @param repoLocation      repository name

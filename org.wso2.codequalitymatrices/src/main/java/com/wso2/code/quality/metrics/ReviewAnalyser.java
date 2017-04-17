@@ -58,7 +58,7 @@ public class ReviewAnalyser {
      * This class is used to prevent SIC_INNER_SHOULD_BE_STATIC_ANON error that comes when building with WSO2 parent
      * pom. As suggested by the above error an static inner class is used
      */
-    static class ListType extends TypeToken<List<ReviewApiResponse>> {
+    private static class ListType extends TypeToken<List<ReviewApiResponse>> {
     }
 
 
