@@ -27,7 +27,6 @@ import org.eclipse.egit.github.core.service.CommitService;
 import org.eclipse.egit.github.core.service.RepositoryService;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,29 +59,24 @@ public class SdkGitHubClient {
      * @param commitHash     The querying commit hash
      * @return a map containg arraylist of file changed and their relevant patch
      */
-    public Map<String, List<String>> getFilesChanged(String repositoryName, String commitHash)
+    public Map<String, String> getFilesChanged(String repositoryName, String commitHash)
             throws CodeQualityMetricsException {
-        Map<String, List<String>> fileNamesAndPatches = new HashMap<>();
+        Map<String, String> fileNamesAndPatches = new HashMap<>();
         try {
             IRepositoryIdProvider iRepositoryIdProvider = () -> repositoryName;
             RepositoryCommit repositoryCommit = commitService.getCommit(iRepositoryIdProvider, commitHash);
             List<CommitFile> filesChanged = repositoryCommit.getFiles();
-            List<String> tempFileNames = new ArrayList<>();
-            List<String> tempPatchString = new ArrayList<>();
-            // this can be run parallely as patchString of a file will always be in the same index as the file
+
+            // this can be run parallely as patchString of a file will always be with the same file
             filesChanged.parallelStream()
                     .forEach(commitFile -> {
-                        tempFileNames.add(commitFile.getFilename());
-                        tempPatchString.add(commitFile.getPatch());
+                        fileNamesAndPatches.put(commitFile.getFilename(),commitFile.getPatch());
                     });
             if (logger.isDebugEnabled()) {
                 logger.debug("for commit hash" + commitHash + " on the " + repositoryName + " repository, files" +
-                        " changed and their relevant changed line ranges are added to the arraylists successfully");
+                        " changed and their relevant patch strings are saved to the map successfully");
             }
-            fileNamesAndPatches.put("fileNames", tempFileNames);
-            fileNamesAndPatches.put("patchString", tempPatchString);
-            logger.debug("Modified file names with their relevant modified line ranges are saved to a map " +
-                    "successfully");
+
         } catch (IOException e) {
             throw new CodeQualityMetricsException("IO Exception occurred when getting the commit of given SHA from " +
                     "the given Repository ", e);
