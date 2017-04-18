@@ -16,7 +16,24 @@
  * under the License.
  */
 
-package com.wso2.code.quality.metrics;
+package com.wso2.code.quality.metrics.model;
 
-public class GithubSdkClientTest {
+import com.google.gson.annotations.SerializedName;
+
+/**
+ * Pojo class used for parsing JSON response received from github single commit REST API.
+ *
+ * @since 1.0.0
+ */
+public class ParentCommit {
+    @SerializedName("sha")
+    private String commitHash;
+
+    public String getCommitHash() {
+        return commitHash;
+    }
+
+    public void setCommitHash(String commitHash) {
+        this.commitHash = commitHash;
+    }
 }

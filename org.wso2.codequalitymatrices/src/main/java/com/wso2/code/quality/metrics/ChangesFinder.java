@@ -25,6 +25,7 @@ import com.wso2.code.quality.metrics.model.CommitHistoryApiResponse;
 import com.wso2.code.quality.metrics.model.GraphQlResponse;
 import com.wso2.code.quality.metrics.model.Graphql;
 import com.wso2.code.quality.metrics.model.SearchApiResponse;
+import com.wso2.code.quality.metrics.model.SingleCommitApiResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -117,38 +118,86 @@ public class ChangesFinder {
         repoLocation.stream()
                 .filter(repositoryName -> StringUtils.contains(repositoryName, "wso2/"))
                 .forEach(repositoryName -> {
-                    //authorNames.clear();
                     Map<String, String> fileNamesWithPatchString = new HashMap<>();
                     try {
                         fileNamesWithPatchString = sdkGitHubClient.getFilesChanged(repositoryName, commitHash);
+                        Map<String, Set<Integer>> fileNamesWithDeletedLineNumbers = new HashMap<>();
+                        Map<String, String> fileNamesWithPreviousCommitHash = new HashMap<>();
+                        if (fileNamesWithPatchString != null) {
+                            /* looping from one file to file and saving deleted lines against the file name in another
+                             map */
+                            for (Map.Entry<String, String> entry : fileNamesWithPatchString.entrySet()) {
+                                String fileName = entry.getKey();
+                                String patchString = entry.getValue();
+                                Set<Integer> deletedLines = identifyDeletedLines(patchString);
+                                String previousCommitHash;
+                                //for omitting files without having deleted lines
+                                if (deletedLines.size() > 0) {
+                                    fileNamesWithDeletedLineNumbers.put(fileName, deletedLines);
+                                    previousCommitHash = checkForOctopussMerge(repositoryName, fileName, commitHash,
+                                            gitHubToken);
+                                    fileNamesWithPreviousCommitHash.put(fileName, previousCommitHash);
+                                }
+                            }
+                        }
+                        getBlameDetails(repositoryName, fileNamesWithPreviousCommitHash,
+                                fileNamesWithDeletedLineNumbers, gitHubToken);
                     } catch (CodeQualityMetricsException e) {
                         logger.error(e.getMessage(), e.getCause());
                     }
-                    Map<String, Set<Integer>> fileNamesWithDeletedLineNumbers = new HashMap<>();
-                    Map<String, String> fileNamesWithPreviousCommitHash = new HashMap<>();
-                    if (fileNamesWithPatchString != null) {
-                        // looping from one file to file and saving deleted lines against the file name in another map
-                        for (Map.Entry<String, String> entry : fileNamesWithPatchString.entrySet()) {
-                            String fileName = entry.getKey();
-                            String patchString = entry.getValue();
-                            Set<Integer> deletedLines = identifyDeletedLines(patchString);
-                            String previousCommitHash;
-                            //for omitting files without having deleted lines
-                            if (deletedLines.size() > 0) {
-                                fileNamesWithDeletedLineNumbers.put(fileName, deletedLines);
-                                previousCommitHash = findPreviousCommitOfFile(repositoryName, fileName, commitHash,
-                                        gitHubToken);
-                                fileNamesWithPreviousCommitHash.put(fileName, previousCommitHash);
-                            }
-                        }
-                    }
-                    getBlameDetails(repositoryName, fileNamesWithPreviousCommitHash,
-                            fileNamesWithDeletedLineNumbers, gitHubToken);
                 });
         if (logger.isDebugEnabled()) {
             logger.debug("\n Author names :" + authorNames);
             logger.debug("\n Author commits :" + authorCommits);
         }
+    }
+
+    /**
+     * This check whether the commit in the given patch is an octopuss commit or not, if it is octopuss commit an
+     * exception as the current scope of the program doesnot support octopuss commits
+     *
+     * @param repositoryName   current selected Repository
+     * @param filePath         current selected file name
+     * @param latestCommitHash current selected recent commit contained in the given patch
+     * @param githubToken      github access token for accessing github REST API
+     * @return the commit hash returned from findPreviousCommitOfFile method
+     * @throws CodeQualityMetricsException notifying that the current scope of the program does not support octopuss
+     *                                     merges
+     */
+    public String checkForOctopussMerge(String repositoryName, String filePath, String latestCommitHash, String
+            githubToken) throws CodeQualityMetricsException {
+        String previousCommit = null;
+        try {
+            // need check whether the given commit has more than 2 parent commits
+            String singleCommitJsonText = githubApiCaller.callSingleCommitApi(repositoryName, latestCommitHash,
+                    githubToken);
+            if (singleCommitJsonText != null) {
+                SingleCommitApiResponse singleCommitApiResponse = gson.fromJson(singleCommitJsonText,
+                        SingleCommitApiResponse.class);
+                if (singleCommitApiResponse.getParentCommits().size() == 1) {
+                    /*if the singleCommitApiResponse.getParentCommits().size() == 1 it is fast forward merge, so no need
+                 to change the latestCommitHash*/
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("The commit " + latestCommitHash + " in relevant patch is not a octopuss merge " +
+                                "commit");
+                    }
+                } else if (singleCommitApiResponse.getParentCommits().size() == 2) {
+                    latestCommitHash = singleCommitApiResponse.getParentCommits().get(1).getCommitHash();
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("The commit " + latestCommitHash + " in relevant patch is not a octopuss merge " +
+                                "commit");
+                    }
+                } else if (singleCommitApiResponse.getParentCommits().size() > 2) {
+                    throw new CodeQualityMetricsException("The commit " + latestCommitHash + " in relevant patch is " +
+                            "an octopuss merge commit, octopuss merge commits are avoided in the current scope of " +
+                            "the program");
+                }
+                previousCommit = findPreviousCommitOfFile(repositoryName, filePath, latestCommitHash, githubToken);
+            }
+        } catch (CodeQualityMetricsException e) {
+            logger.error(e.getMessage(), e.getCause());
+        }
+        return previousCommit;
     }
 
     /**
@@ -162,14 +211,16 @@ public class ChangesFinder {
      * @return commits hash prior to the current selected commit hash contained in the given patch of the current
      * selected file
      */
-    public String findPreviousCommitOfFile(String repositoryName, String filePath, String latestCommitHash, String githubToken) {
+    public String findPreviousCommitOfFile(String repositoryName, String filePath, String latestCommitHash,
+                                           String githubToken) {
         String previousCommit = null;
         Map<String, String> commitWithDate = new HashMap<>();
         try {
-            String jsonText = githubApiCaller.callCommitHistoryApi(repositoryName, filePath, githubToken);
-            if (jsonText != null) {
+            String commitHistoryJsonText = githubApiCaller.callCommitHistoryApi(repositoryName, filePath, githubToken);
+            if (commitHistoryJsonText != null) {
                 Type listType = new ListType().getType();
-                List<CommitHistoryApiResponse> commitHistoryApiResponses = gson.fromJson(jsonText, listType);
+                List<CommitHistoryApiResponse> commitHistoryApiResponses = gson.fromJson(commitHistoryJsonText,
+                        listType);
                 commitHistoryApiResponses.forEach(commitHistoryApiResponse -> {
                     String commitHash = commitHistoryApiResponse.getCommitHash();
                     String date = commitHistoryApiResponse.getCommit().getAuthor().getDate();
@@ -235,7 +286,6 @@ public class ChangesFinder {
                 // calling the graphql API for getting blame information for the current file.
                 jsonText = githubApiCaller.callGraphqlApi(jsonStructure, githubToken);
                 findAuthorCommits(jsonText, fileNamesWithDeletedLineNumbers, fileName);
-                System.out.println();
             } catch (CodeQualityMetricsException e) {
                 logger.error(e.getMessage(), e.getCause());
             }
@@ -246,9 +296,11 @@ public class ChangesFinder {
      * This is used to save the authors and relevant author commits of the buggy lines of code which are been fixed by
      * the given patch, to relevant lists.
      *
-     * @param jsonText                        String representation of the json response received from github graphql API
+     * @param jsonText                        String representation of the json response received from github graphql
+     *                                        API
      * @param fileNamesWithDeletedLineNumbers map containing changed files with their deleted line numbers
-     * @param selectedFileName                selected file for finding the authors and author commits of its buggy lines
+     * @param selectedFileName                selected file for finding the authors and author commits of its buggy
+     *                                        lines
      */
     public void findAuthorCommits(String jsonText, Map<String, Set<Integer>> fileNamesWithDeletedLineNumbers, String
             selectedFileName) {

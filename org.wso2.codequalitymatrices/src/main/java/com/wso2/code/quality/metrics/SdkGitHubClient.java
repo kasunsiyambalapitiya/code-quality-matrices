@@ -70,10 +70,10 @@ public class SdkGitHubClient {
             // this can be run parallely as patchString of a file will always be with the same file
             filesChanged.parallelStream()
                     .forEach(commitFile -> {
-                        fileNamesAndPatches.put(commitFile.getFilename(),commitFile.getPatch());
+                        fileNamesAndPatches.put(commitFile.getFilename(), commitFile.getPatch());
                     });
             if (logger.isDebugEnabled()) {
-                logger.debug("for commit hash" + commitHash + " on the " + repositoryName + " repository, files" +
+                logger.debug("for commit hash " + commitHash + " on the " + repositoryName + " repository, files" +
                         " changed and their relevant patch strings are saved to the map successfully");
             }
 
