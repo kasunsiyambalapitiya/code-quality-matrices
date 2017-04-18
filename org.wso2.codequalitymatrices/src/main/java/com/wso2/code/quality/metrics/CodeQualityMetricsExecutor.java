@@ -75,7 +75,7 @@ public class CodeQualityMetricsExecutor {
      *
      * @return List of commithashes contained in the given patch
      */
-    protected List<String> findCommitHashesInPatch() throws CodeQualityMetricsException {
+    List<String> findCommitHashesInPatch() throws CodeQualityMetricsException {
         PmtApiCaller pmtApiCaller = new PmtApiCaller();
         String jsonText;
         List<String> commitHashes = new ArrayList<>();

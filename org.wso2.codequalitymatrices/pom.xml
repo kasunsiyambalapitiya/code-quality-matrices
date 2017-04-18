@@ -46,6 +46,7 @@
         <org.apache.httpcomponents.version>4.5.2</org.apache.httpcomponents.version>
         <org.apache.commons.version>3.5</org.apache.commons.version>
         <org.hamcrest.version>1.3</org.hamcrest.version>
+        <org.apache.directory.studio.version>2.4</org.apache.directory.studio.version>
     </properties>
 
     <dependencies>
@@ -101,6 +102,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>${org.apache.commons.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.directory.studio</groupId>
+            <artifactId>org.apache.commons.io</artifactId>
+            <version>${org.apache.directory.studio.version}</version>
         </dependency>
     </dependencies>
 
