@@ -24,7 +24,6 @@ import org.eclipse.egit.github.core.IRepositoryIdProvider;
 import org.eclipse.egit.github.core.RepositoryCommit;
 import org.eclipse.egit.github.core.client.GitHubClient;
 import org.eclipse.egit.github.core.service.CommitService;
-import org.eclipse.egit.github.core.service.RepositoryService;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -40,15 +39,12 @@ import java.util.Map;
 public class SdkGitHubClient {
     private static final Logger logger = Logger.getLogger(SdkGitHubClient.class);
 
-    private GitHubClient gitHubClient = null;
     private CommitService commitService = null;
-    private RepositoryService repositoryService = null;
 
     SdkGitHubClient(String githubToken) {
-        gitHubClient = new GitHubClient();
+        GitHubClient gitHubClient = new GitHubClient();
         gitHubClient.setOAuth2Token(githubToken);
         commitService = new CommitService(gitHubClient);
-        repositoryService = new RepositoryService(gitHubClient);
     }
 
     /**
@@ -66,17 +62,13 @@ public class SdkGitHubClient {
             IRepositoryIdProvider iRepositoryIdProvider = () -> repositoryName;
             RepositoryCommit repositoryCommit = commitService.getCommit(iRepositoryIdProvider, commitHash);
             List<CommitFile> filesChanged = repositoryCommit.getFiles();
-
             // this can be run parallely as patchString of a file will always be with the same file
             filesChanged.parallelStream()
-                    .forEach(commitFile -> {
-                        fileNamesAndPatches.put(commitFile.getFilename(), commitFile.getPatch());
-                    });
+                    .forEach(commitFile -> fileNamesAndPatches.put(commitFile.getFilename(), commitFile.getPatch()));
             if (logger.isDebugEnabled()) {
                 logger.debug("for commit hash " + commitHash + " on the " + repositoryName + " repository, files" +
                         " changed and their relevant patch strings are saved to the map successfully");
             }
-
         } catch (IOException e) {
             throw new CodeQualityMetricsException("IO Exception occurred when getting the commit of given SHA from " +
                     "the given Repository ", e);

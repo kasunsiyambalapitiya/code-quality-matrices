@@ -47,9 +47,9 @@ public class ReviewAnalyser {
     private static final Logger logger = Logger.getLogger(ReviewAnalyser.class);
 
     // to store the reviewed and approved users of thepull requests
-    protected final Set<String> approvedReviewers = new HashSet<>();
+    final Set<String> approvedReviewers = new HashSet<>();
     // to store the reviewed and commented users of the pull requests
-    protected final Set<String> commentedReviewers = new HashSet<>();
+    final Set<String> commentedReviewers = new HashSet<>();
     //constants for filtering github API responses
     private final GithubApiCaller githubApiCaller = new GithubApiCaller();
     private final Gson gson = new Gson();
@@ -60,7 +60,6 @@ public class ReviewAnalyser {
      */
     private static class ListType extends TypeToken<List<ReviewApiResponse>> {
     }
-
 
 
     /**
@@ -93,7 +92,7 @@ public class ReviewAnalyser {
      * @return a map of pull requests againt their repository name
      * @throws CodeQualityMetricsException results
      */
-    protected Map<String, Set<Integer>> savePrNumberAndRepoName(String jsonText) throws CodeQualityMetricsException {
+    Map<String, Set<Integer>> savePrNumberAndRepoName(String jsonText) throws CodeQualityMetricsException {
         // map for storing the pull requests numbers against their Repository
         Map<String, Set<Integer>> prNoWithRepoName = new HashMap<>();
         try {
@@ -125,7 +124,7 @@ public class ReviewAnalyser {
      *                         relevant reposiory
      * @param githubToken      Github access token for accessing github API
      */
-    protected void saveReviewers(Map<String, Set<Integer>> prNoWithRepoName, String githubToken) {
+    void saveReviewers(Map<String, Set<Integer>> prNoWithRepoName, String githubToken) {
         for (Map.Entry<String, Set<Integer>> entry : prNoWithRepoName.entrySet()) {
             String repositoryName = entry.getKey();
             Set<Integer> prNumbers = entry.getValue();
@@ -152,10 +151,8 @@ public class ReviewAnalyser {
                                 logger.debug("Users who commented on the pull requests which introduce bug lines to " +
                                         "the code base are successfully saved to approvedReviewers list");
                             } else {
-                                if (logger.isDebugEnabled()) {
-                                    logger.debug("There are no records of reviews for pull request: " + prNumber +
-                                            " on " + repositoryName + " repository");
-                                }
+                                logger.warn("There are no records of reviews for pull request: " + prNumber +
+                                        " on " + repositoryName + " repository");
                             }
                         } catch (CodeQualityMetricsException e) {
                             logger.error(e.getMessage(), e.getCause());

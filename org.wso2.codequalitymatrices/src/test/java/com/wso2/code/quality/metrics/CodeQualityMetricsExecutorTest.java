@@ -19,50 +19,34 @@
 package com.wso2.code.quality.metrics;
 
 
-import org.apache.log4j.Logger;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
-
+/**
+ * A class used to test findCommitHashesInPatch method of the CodeQualityMetricsExecutor class
+ *
+ * @since 1.0.0
+ */
 public class CodeQualityMetricsExecutorTest {
-    private static final Logger logger = Logger.getLogger(CodeQualityMetricsExecutorTest.class);
-
-    private String pmtToken = "tQU5vxzrGeBpLMQuwOsJW_fyYLYa";
-    private String githubToken = "4e8e69986aefdbae2f5fe59d892cd3badf771191";
-    private final GithubApiCaller githubApiCaller = new GithubApiCaller();
-
-    private Set authorCommits;
-
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
-
-    @Test
-    public void testUsingTempFolder() throws IOException {
-        File createdFile = folder.newFile("myfilefile.txt");
-        assertTrue(createdFile.canRead());
-    }
 
     @Test
     public void testFindCommitHashesInPatch() throws CodeQualityMetricsException {
+        String pmtToken = new Token().getPmtToken();
+        String githubToken = new Token().getGithubToken();
         Map<String, List<String>> patchesAndCommits = new HashMap<>();
         patchesAndCommits.put("WSO2-CARBON-PATCH-4.4.0-0680", Arrays.asList("eaa45529cbabc5f30a2ffaa4781821ad0a5223ab"
                 , "2b1d973d089ebc3af3b9e7b893f48cf905758cf4"));
-        patchesAndCommits.put("WSO2-CARBON-PATCH-4.4.0-0682", Arrays.asList("e3c3457149b109178d510aac965d5a85cc465aa0")
-        );
-        patchesAndCommits.put("WSO2-CARBON-PATCH-4.4.0-0692", Arrays.asList
-                ("67a60e081c8e0fe01d087f60cd9b629bcea172ae"));
+        patchesAndCommits.put("WSO2-CARBON-PATCH-4.4.0-0682",
+                Collections.singletonList("e3c3457149b109178d510aac965d5a85cc465aa0"));
+        patchesAndCommits.put("WSO2-CARBON-PATCH-4.4.0-0692",
+                Collections.singletonList("67a60e081c8e0fe01d087f60cd9b629bcea172ae"));
         for (Map.Entry<String, List<String>> map : patchesAndCommits.entrySet()) {
             CodeQualityMetricsExecutor codeQualityMetricsExecutor = new CodeQualityMetricsExecutor(pmtToken,
                     map.getKey(), githubToken);

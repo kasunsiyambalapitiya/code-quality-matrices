@@ -73,11 +73,11 @@ public class GithubApiCaller {
     /**
      * This is used to call github commit REST API
      *
-     * @param repoLocation
-     * @param filePath
-     * @param githubAccessToken
-     * @return
-     * @throws CodeQualityMetricsException
+     * @param repoLocation      repository location
+     * @param filePath          location of the file
+     * @param githubAccessToken Github access token for accessing github API
+     * @return String representation of the json response
+     * @throws CodeQualityMetricsException Resulted Code Quality Metrics Exception
      */
     public String callCommitHistoryApi(String repoLocation, String filePath, String githubAccessToken)
             throws CodeQualityMetricsException {
@@ -99,10 +99,11 @@ public class GithubApiCaller {
 
     /**
      * This is used to call github single commit REST API
-     * @param repoLocation
-     * @param commitHash
-     * @param githubAccessToken
-     * @return
+     *
+     * @param repoLocation      repository location
+     * @param commitHash        relevant commit hash to find details of
+     * @param githubAccessToken Github access token for accessing github API
+     * @return String representation of the json response
      */
     public String callSingleCommitApi(String repoLocation, String commitHash, String githubAccessToken)
             throws CodeQualityMetricsException {

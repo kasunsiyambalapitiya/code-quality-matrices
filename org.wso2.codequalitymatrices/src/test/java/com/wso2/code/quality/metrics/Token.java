@@ -16,36 +16,27 @@
  * under the License.
  */
 
-package com.wso2.code.quality.metrics.model;
+package com.wso2.code.quality.metrics;
 
-import com.google.gson.annotations.SerializedName;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 /**
- * Pojo class used for parsing JSON response received from github REST API.
+ * This class is used for providing github and WSO2 PMT access tokens
  *
  * @since 1.0.0
  */
-public class CommitHistoryApiResponse {
-    @SerializedName("sha")
-    private String commitHash;
+public class Token {
+    final String pmtToken = "tQU5vxzrGeBpLMQuwOsJW_fyYLYa";
+    final byte[] githubTokenByteArray = Base64.getDecoder().decode
+            ("ZjQxZTcwOTJmY2I1NTZmZTI2YzFlMDgwYjFjNDQ3NWRhYTZmN2MyNw");
+    final String githubToken = new String(githubTokenByteArray, StandardCharsets.UTF_8);
 
-    @SerializedName("commit")
-
-    private Commit commit;
-
-    public String getCommitHash() {
-        return commitHash;
+    public String getPmtToken() {
+        return pmtToken;
     }
 
-    public void setCommitHash(String commitHash) {
-        this.commitHash = commitHash;
-    }
-
-    public Commit getCommit() {
-        return commit;
-    }
-
-    public void setCommit(Commit commit) {
-        this.commit = commit;
+    public String getGithubToken() {
+        return githubToken;
     }
 }

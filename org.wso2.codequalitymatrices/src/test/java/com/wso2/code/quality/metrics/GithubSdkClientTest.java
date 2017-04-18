@@ -18,5 +18,42 @@
 
 package com.wso2.code.quality.metrics;
 
+import org.hamcrest.collection.IsMapContaining;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+
+/**
+ * A class used to getFilesChanged method of the GithubSdkClient class
+ *
+ * @since 1.0.0
+ */
 public class GithubSdkClientTest {
+    private static SdkGitHubClient sdkGitHubClient;
+
+    @BeforeClass
+    public static void setupTheEnvironment() throws CodeQualityMetricsException {
+        String githubToken = new Token().getGithubToken();
+        sdkGitHubClient = new SdkGitHubClient(githubToken);
+    }
+
+    @Test
+    public void testGetFilesChanged() throws CodeQualityMetricsException {
+        Map<String, String> actualFileNamesAndPatches = sdkGitHubClient.getFilesChanged
+                ("wso2/carbon-apimgt", "eaa45529cbabc5f30a2ffaa4781821ad0a5223ab");
+        assertThat(actualFileNamesAndPatches.size(), is(4));
+        assertThat(actualFileNamesAndPatches, IsMapContaining.hasKey("components/sso-hostobject/org.wso2.carbon" +
+                ".hostobjects.sso/src/main/java/org/wso2/carbon/hostobjects/sso/SAMLSSORelyingPartyObject.java"));
+        assertThat(actualFileNamesAndPatches, IsMapContaining.hasKey("components/sso-hostobject/org.wso2.carbon." +
+                "hostobjects.sso/src/main/java/org/wso2/carbon/hostobjects/sso/internal/SessionInfo.java"));
+        assertThat(actualFileNamesAndPatches, IsMapContaining.hasKey("features/apimgt/org.wso2.carbon.apimgt." +
+                "publisher.feature/src/main/resources/publisher/site/themes/wso2/templates/sso/logout/template.jag"));
+        assertThat(actualFileNamesAndPatches, IsMapContaining.hasKey("features/apimgt/org.wso2.carbon.apimgt." +
+                "store.feature/src/main/resources/store/site/themes/wso2/templates/sso/logout/template.jag"));
+    }
 }
