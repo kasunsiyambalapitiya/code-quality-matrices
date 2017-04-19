@@ -18,8 +18,13 @@
 
 package com.wso2.code.quality.metrics;
 
+import com.wso2.code.quality.metrics.exceptions.CodeQualityMetricsException;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Properties;
 
 /**
  * This class is used for providing github and WSO2 PMT access tokens
@@ -27,10 +32,23 @@ import java.util.Base64;
  * @since 1.0.0
  */
 public class Token {
-    final String pmtToken = "tQU5vxzrGeBpLMQuwOsJW_fyYLYa";
-    final byte[] githubTokenByteArray = Base64.getDecoder().decode
-            ("ZjQxZTcwOTJmY2I1NTZmZTI2YzFlMDgwYjFjNDQ3NWRhYTZmN2MyNw");
-    final String githubToken = new String(githubTokenByteArray, StandardCharsets.UTF_8);
+    private String pmtToken;
+    private String githubToken;
+
+    public Token() throws CodeQualityMetricsException {
+        Properties defaultProperties = new Properties();
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        try (InputStream inputStream = classLoader.getResourceAsStream("tokens.properties")) {
+            defaultProperties.load(inputStream);
+            byte[] pmtTokenInBytes = Base64.getDecoder().decode(defaultProperties.getProperty("pmtToken"));
+            pmtToken = new String(pmtTokenInBytes, StandardCharsets.UTF_8);
+            byte[] githubTokenInBytes = Base64.getDecoder().decode(defaultProperties.getProperty("githubToken"));
+            githubToken = new String(githubTokenInBytes, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new CodeQualityMetricsException("IO exception occurred when loading the inputstream to the " +
+                    "properties object", e);
+        }
+    }
 
     public String getPmtToken() {
         return pmtToken;

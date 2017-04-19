@@ -18,6 +18,7 @@
 
 package com.wso2.code.quality.metrics;
 
+import com.wso2.code.quality.metrics.exceptions.CodeQualityMetricsException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -33,16 +34,19 @@ import static com.wso2.code.quality.metrics.model.Constants.AUTHORIZATION;
 import static com.wso2.code.quality.metrics.model.Constants.BEARER;
 
 /**
- * This is used for all github communications.
+ * This is utility class used for all github communications.
  *
  * @since 1.0.0
  */
-public class GithubApiCaller {
-    private HttpGet httpGet;
-    private final Properties defaultProperties = new Properties();
-    private final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    private final InputStream inputStream = classLoader.getResourceAsStream("url.properties");
+public final class GithubApiCallerUtils {
+    private static final Properties defaultProperties = new Properties();
+    private static final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
+    /**
+     * To prevent instantiation from other classes
+     */
+    private GithubApiCallerUtils() {
+    }
 
     /**
      * This is used for calling the github search REST API.
@@ -52,8 +56,10 @@ public class GithubApiCaller {
      * @return String representation of the json response
      * @throws CodeQualityMetricsException results
      */
-    public String callSearchCommitApi(String commitHash, String githubAccessToken) throws CodeQualityMetricsException {
-        try {
+    public static String callSearchCommitApi(String commitHash, String githubAccessToken) throws
+            CodeQualityMetricsException {
+        HttpGet httpGet;
+        try (InputStream inputStream = classLoader.getResourceAsStream("url.properties")) {
             defaultProperties.load(inputStream);
             String url = defaultProperties.getProperty("searchCommitApiUrl") + commitHash;
             httpGet = new HttpGet(url);
@@ -71,7 +77,7 @@ public class GithubApiCaller {
     }
 
     /**
-     * This is used to call github commit REST API
+     * This is used to call github commit REST API.
      *
      * @param repoLocation      repository location
      * @param filePath          location of the file
@@ -79,9 +85,10 @@ public class GithubApiCaller {
      * @return String representation of the json response
      * @throws CodeQualityMetricsException Resulted Code Quality Metrics Exception
      */
-    public String callCommitHistoryApi(String repoLocation, String filePath, String githubAccessToken)
+    public static String callCommitHistoryApi(String repoLocation, String filePath, String githubAccessToken)
             throws CodeQualityMetricsException {
-        try {
+        HttpGet httpGet;
+        try (InputStream inputStream = classLoader.getResourceAsStream("url.properties")) {
             defaultProperties.load(inputStream);
             String tempUrl = defaultProperties.getProperty("commitHistoryApiUrl");
             String url = tempUrl.replaceFirst("REPO_LOCATION", repoLocation).replaceFirst("FILE_NAME", filePath);
@@ -98,16 +105,17 @@ public class GithubApiCaller {
     }
 
     /**
-     * This is used to call github single commit REST API
+     * This is used to call github single commit REST API.
      *
      * @param repoLocation      repository location
      * @param commitHash        relevant commit hash to find details of
      * @param githubAccessToken Github access token for accessing github API
      * @return String representation of the json response
      */
-    public String callSingleCommitApi(String repoLocation, String commitHash, String githubAccessToken)
+    public static String callSingleCommitApi(String repoLocation, String commitHash, String githubAccessToken)
             throws CodeQualityMetricsException {
-        try {
+        HttpGet httpGet;
+        try (InputStream inputStream = classLoader.getResourceAsStream("url.properties")) {
             defaultProperties.load(inputStream);
             String tempUrl = defaultProperties.getProperty("singleCommitApiUrl");
             String url = tempUrl.replaceFirst("REPO_LOCATION", repoLocation).replaceFirst("COMMIT_HASH", commitHash);
@@ -133,9 +141,10 @@ public class GithubApiCaller {
      * @return String representation of the json response
      * @throws CodeQualityMetricsException results
      */
-    public String callReviewApi(String repoLocation, int pullRequestNumber, String githubAccessToken) throws
+    public static String callReviewApi(String repoLocation, int pullRequestNumber, String githubAccessToken) throws
             CodeQualityMetricsException {
-        try {
+        HttpGet httpGet;
+        try (InputStream inputStream = classLoader.getResourceAsStream("url.properties")) {
             defaultProperties.load(inputStream);
             String tempUrl = defaultProperties.getProperty("reviewApiUrl");
             String url = tempUrl.replaceFirst("REPO_LOCATION", repoLocation).replaceFirst("PULL_REQUEST_NUMBER",
@@ -161,9 +170,10 @@ public class GithubApiCaller {
      * @return String representation of the json response
      * @throws CodeQualityMetricsException results
      */
-    public String callSearchIssueApi(String commitHashToBeSearched, String githubAccessToken) throws
+    public static String callSearchIssueApi(String commitHashToBeSearched, String githubAccessToken) throws
             CodeQualityMetricsException {
-        try {
+        HttpGet httpGet;
+        try (InputStream inputStream = classLoader.getResourceAsStream("url.properties")) {
             defaultProperties.load(inputStream);
             String url = defaultProperties.getProperty("searchIssueApiUrl") + commitHashToBeSearched;
             httpGet = new HttpGet(url);
@@ -187,10 +197,10 @@ public class GithubApiCaller {
      * @return String representation of the json response
      * @throws CodeQualityMetricsException results
      */
-    public String callGraphqlApi(JSONObject graphqlJsonStructure, String githubToken) throws
+    public static String callGraphqlApi(JSONObject graphqlJsonStructure, String githubToken) throws
             CodeQualityMetricsException {
         HttpPost httpPost;
-        try {
+        try (InputStream inputStream = classLoader.getResourceAsStream("url.properties")) {
             defaultProperties.load(inputStream);
             String url = defaultProperties.getProperty("githubGraphqlUrl");
             httpPost = new HttpPost(url);

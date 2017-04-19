@@ -28,10 +28,13 @@ import com.google.gson.annotations.SerializedName;
 public class GraphqlRange {
     @SerializedName("startingLine")
     private int startingLine;
+
     @SerializedName("endingLine")
     private int endingLine;
+
     @SerializedName("age")
     private int age;
+
     @SerializedName("commit")
     private GraphqlCommit commit;
 

@@ -18,6 +18,7 @@
 
 package com.wso2.code.quality.metrics;
 
+import com.wso2.code.quality.metrics.exceptions.CodeQualityMetricsException;
 import org.apache.http.client.methods.HttpGet;
 
 import java.io.IOException;
@@ -33,8 +34,6 @@ import static com.wso2.code.quality.metrics.model.Constants.BEARER;
  * @since 1.0.0
  */
 public class PmtApiCaller {
-    public PmtApiCaller() {
-    }
 
     /**
      * This is used for calling the WSO2 PMT REST API.
@@ -46,10 +45,9 @@ public class PmtApiCaller {
      */
     public String callApi(String accessToken, String patchId) throws CodeQualityMetricsException {
         HttpGet httpGet;
-        try {
-            Properties defaultProperties = new Properties();
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            InputStream inputStream = classLoader.getResourceAsStream("url.properties");
+        Properties defaultProperties = new Properties();
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        try (InputStream inputStream = classLoader.getResourceAsStream("url.properties")) {
             defaultProperties.load(inputStream);
             String pmtApiUrl = defaultProperties.getProperty("pmtApiUrl");
             String pmtUrl = pmtApiUrl + patchId;
@@ -57,8 +55,6 @@ public class PmtApiCaller {
             httpGet.addHeader(AUTHORIZATION, BEARER + accessToken);
         } catch (IllegalArgumentException e) {
             throw new CodeQualityMetricsException("The url provided for accessing the PMT API is invalid ", e);
-        } catch (SecurityException e) {
-            throw new CodeQualityMetricsException("The url properties file is not found", e);
         } catch (IOException e) {
             throw new CodeQualityMetricsException("IO exception occurred when loading the inputstream to the " +
                     "properties object", e);

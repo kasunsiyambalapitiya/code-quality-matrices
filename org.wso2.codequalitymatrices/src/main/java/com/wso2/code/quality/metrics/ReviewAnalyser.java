@@ -21,6 +21,7 @@ package com.wso2.code.quality.metrics;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
+import com.wso2.code.quality.metrics.exceptions.CodeQualityMetricsException;
 import com.wso2.code.quality.metrics.model.IssueApiResponse;
 import com.wso2.code.quality.metrics.model.ReviewApiResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -50,17 +51,14 @@ public class ReviewAnalyser {
     final Set<String> approvedReviewers = new HashSet<>();
     // to store the reviewed and commented users of the pull requests
     final Set<String> commentedReviewers = new HashSet<>();
-    //constants for filtering github API responses
-    private final GithubApiCaller githubApiCaller = new GithubApiCaller();
     private final Gson gson = new Gson();
 
     /**
      * This class is used to prevent SIC_INNER_SHOULD_BE_STATIC_ANON error that comes when building with WSO2 parent
-     * pom. As suggested by the above error an static inner class is used
+     * pom. As suggested by the above error an static inner class is used to prevent the error.
      */
     private static class ListType extends TypeToken<List<ReviewApiResponse>> {
     }
-
 
     /**
      * This is used to identify the pull requests that introduce the given commit to the code base.
@@ -68,11 +66,11 @@ public class ReviewAnalyser {
      * @param authorCommits Commits which the relevant pull request no must be found
      * @param githubToken   Github access token for accessing github API
      */
-    public void findReviewers(Set<String> authorCommits, String githubToken) {
+    void findReviewers(Set<String> authorCommits, String githubToken) {
         authorCommits.forEach(commitHash -> {
             String jsonText;
             try {
-                jsonText = githubApiCaller.callSearchIssueApi(commitHash, githubToken);
+                jsonText = GithubApiCallerUtils.callSearchIssueApi(commitHash, githubToken);
                 Map<String, Set<Integer>> prNoWithRepoName = savePrNumberAndRepoName(jsonText);
                 if (logger.isDebugEnabled()) {
                     logger.debug("Relevant pull requests on patch " + commitHash + " with their relevant repository " +
@@ -98,7 +96,7 @@ public class ReviewAnalyser {
         try {
             IssueApiResponse issueApiResponse = gson.fromJson(jsonText, IssueApiResponse.class);
             issueApiResponse.getIssue().parallelStream()
-                    .filter(searchItem -> GITHUB_REVIEW_API_CLOSED_STATE.equals(searchItem.getStateOfThePr()))
+                    .filter(searchItem -> GITHUB_REVIEW_API_CLOSED_STATE.equals(searchItem.getPrState()))
                     .filter(searchItem -> StringUtils.contains(searchItem.getRepositoryUrl(), "/wso2/"))
                     .forEach(searchItem -> {
                         String repositoryName = StringUtils.substringAfter(searchItem.getRepositoryUrl(),
@@ -118,7 +116,7 @@ public class ReviewAnalyser {
     /**
      * This is used to save the names of the users who has approved and commented on the pull requests which
      * introduce bug lines of code to the code base. Approved users are saved in approvedReviewers list while
-     * commented users are saved in commentedReviewers list
+     * commented users are saved in commentedReviewers list.
      *
      * @param prNoWithRepoName Map containg the pull requests which introduce bug lines to the code base against the
      *                         relevant reposiory
@@ -131,10 +129,8 @@ public class ReviewAnalyser {
             prNumbers.parallelStream()
                     .forEach((Integer prNumber) -> {
                         try {
-                            String jsonText = githubApiCaller.callReviewApi(repositoryName, prNumber, githubToken);
-                            if (jsonText != null) {
-//                                Type listType = new TypeToken<List<ReviewApiResponse>>() {
-//                                }.getType();
+                            String jsonText = GithubApiCallerUtils.callReviewApi(repositoryName, prNumber, githubToken);
+                            if (jsonText != null && !jsonText.isEmpty()) {
                                 Type listType = new ListType().getType();
                                 List<ReviewApiResponse> reviews = gson.fromJson(jsonText, listType);
 //                                List<ReviewApiResponse> reviews = gson.fromJson(jsonText, List.class);
@@ -162,9 +158,9 @@ public class ReviewAnalyser {
     }
 
     /**
-     * Print the list of reviewers and commented users on the pull requests which introduce bugs to the code base
+     * Print the list of reviewers and commented users on the pull requests which introduce bugs to the code base.
      */
-    public void printReviewUsers() {
+    void printReviewUsers() {
         if (logger.isDebugEnabled()) {
             logger.debug("\n Reviewed and approved users of the bug lines: " + approvedReviewers);
             logger.debug("\n Reviewed and commented users on bug lines: " + commentedReviewers);

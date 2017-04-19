@@ -28,9 +28,9 @@ import com.google.gson.annotations.SerializedName;
 public class ReviewApiResponse {
     @SerializedName("state")
     private String reviewState;
+
     @SerializedName("user")
     private Reviewer reviewer;
-
 
     public String getReviewState() {
         return reviewState;

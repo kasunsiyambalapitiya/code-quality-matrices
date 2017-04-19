@@ -18,6 +18,7 @@
 
 package com.wso2.code.quality.metrics;
 
+import com.wso2.code.quality.metrics.exceptions.CodeQualityMetricsException;
 import org.hamcrest.collection.IsMapContaining;
 import org.junit.BeforeClass;
 import org.junit.Test;

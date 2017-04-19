@@ -18,6 +18,7 @@
 
 package com.wso2.code.quality.metrics;
 
+import com.wso2.code.quality.metrics.exceptions.CodeQualityMetricsException;
 import org.apache.log4j.Logger;
 import org.eclipse.egit.github.core.CommitFile;
 import org.eclipse.egit.github.core.IRepositoryIdProvider;
@@ -55,7 +56,7 @@ public class SdkGitHubClient {
      * @param commitHash     The querying commit hash
      * @return a map containg arraylist of file changed and their relevant patch
      */
-    public Map<String, String> getFilesChanged(String repositoryName, String commitHash)
+    Map<String, String> getFilesChanged(String repositoryName, String commitHash)
             throws CodeQualityMetricsException {
         Map<String, String> fileNamesAndPatches = new HashMap<>();
         try {

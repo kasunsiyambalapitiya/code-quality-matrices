@@ -27,18 +27,20 @@ import com.google.gson.annotations.SerializedName;
  */
 public class SearchItem {
     @SerializedName("state")
-    private String stateOfThePr;
+    private String prState;
+
     @SerializedName("number")
     private int prNumber;
+
     @SerializedName("repository_url")
     private String repositoryUrl;
 
-    public String getStateOfThePr() {
-        return stateOfThePr;
+    public String getPrState() {
+        return prState;
     }
 
-    public void setStateOfThePr(String stateOfThePr) {
-        this.stateOfThePr = stateOfThePr;
+    public void setPrState(String prState) {
+        this.prState = prState;
     }
 
     public int getPrNumber() {

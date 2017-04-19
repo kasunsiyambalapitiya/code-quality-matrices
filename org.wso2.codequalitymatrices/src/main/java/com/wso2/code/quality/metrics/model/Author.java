@@ -28,7 +28,6 @@ import com.google.gson.annotations.SerializedName;
 public class Author {
 
     @SerializedName("date")
-
     private String date;
 
     public String getDate() {

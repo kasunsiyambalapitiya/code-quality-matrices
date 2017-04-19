@@ -19,7 +19,7 @@
 package com.wso2.code.quality.metrics.model;
 
 /**
- * This is used for storing all the constants used in the Code quality metrics Application
+ * This is used for storing all the constants used in the Code quality metrics Application.
  *
  * @since 1.0.0
  */
