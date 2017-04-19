@@ -18,6 +18,7 @@
 
 package com.wso2.code.quality.metrics;
 
+import com.wso2.code.quality.metrics.exceptions.CodeQualityMetricsException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -40,12 +41,10 @@ import static org.junit.Assert.assertEquals;
  */
 public class GithubResponsesTest {
     private static String githubToken;
-    private static GithubApiCaller githubApiCaller;
 
     @BeforeClass
-    public static void setupTheEnvironment() {
+    public static void setupTheEnvironment() throws CodeQualityMetricsException {
         githubToken = new Token().getGithubToken();
-        githubApiCaller = new GithubApiCaller();
     }
 
     @Test
@@ -59,7 +58,7 @@ public class GithubResponsesTest {
                 Collections.singletonList("wso2/wso2-axis2-transports"));
         for (Map.Entry<String, List<String>> entry : commitHashWithRepoNames.entrySet()) {
             String commitHash = entry.getKey();
-            String jsonText = githubApiCaller.callSearchCommitApi(commitHash, githubToken);
+            String jsonText = GithubApiCallerUtils.callSearchCommitApi(commitHash, githubToken);
             ChangesFinder changesFinder = new ChangesFinder();
             List<String> repoLocations = changesFinder.saveRepoNames(jsonText);
             assertEquals("List of RepoLocations obtained must be same", entry.getValue(), repoLocations);
@@ -68,7 +67,7 @@ public class GithubResponsesTest {
 
     @Test
     public void testSavePrNumberAndRepoName() throws CodeQualityMetricsException {
-        String jsonText = githubApiCaller.callSearchIssueApi
+        String jsonText = GithubApiCallerUtils.callSearchIssueApi
                 ("0015c02145c8ec6d3bba433f2fb5e850e1d25846", githubToken);
         ReviewAnalyser reviewAnalyser = new ReviewAnalyser();
         Map<String, Set<Integer>> actualPrNoWithRepoName = reviewAnalyser.savePrNumberAndRepoName(jsonText);

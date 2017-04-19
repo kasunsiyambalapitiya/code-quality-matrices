@@ -19,6 +19,7 @@
 package com.wso2.code.quality.metrics;
 
 import com.google.gson.Gson;
+import com.wso2.code.quality.metrics.exceptions.CodeQualityMetricsException;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -71,7 +72,7 @@ public class CodeQualityMetricsExecutor {
     }
 
     /**
-     * This is used to filter out the commit hashes that belongs to the given patch
+     * This is used to filter out the commit hashes that belongs to the given patch.
      *
      * @return List of commithashes contained in the given patch
      */
@@ -84,22 +85,20 @@ public class CodeQualityMetricsExecutor {
         } catch (CodeQualityMetricsException e) {
             throw new CodeQualityMetricsException("Error occurred while calling PMT API", e);
         }
-        if (jsonText != null) {
-            Gson gson = new Gson();
-            List pmtResponse = gson.fromJson(jsonText, List.class);
-            for (Object pmtEntry : pmtResponse) {
-                if (pmtEntry instanceof Map) {
-                    Map<String, Object> entryMap = (Map<String, Object>) pmtEntry;
-                    if (COMMITS_INSIDE_GIVEN_PATCH.equals(entryMap.get("name"))) {
-                        commitHashes = (List<String>) entryMap.get("value");
-                    }
+        Gson gson = new Gson();
+        List pmtResponse = gson.fromJson(jsonText, List.class);
+        for (Object pmtEntry : pmtResponse) {
+            if (pmtEntry instanceof Map) {
+                Map<String, Object> entryMap = (Map<String, Object>) pmtEntry;
+                if (COMMITS_INSIDE_GIVEN_PATCH.equals(entryMap.get("name"))) {
+                    commitHashes = (List<String>) entryMap.get("value");
+                    //to avoid leading and trailing white spaces in commit hashes
+                    commitHashes.replaceAll(String::trim);
                 }
             }
-            if (logger.isDebugEnabled()) {
-                logger.error("The commit hashes are: " + commitHashes);
-            }
-        } else {
-            throw new CodeQualityMetricsException("The returned jsonText from PMT API is null");
+        }
+        if (logger.isDebugEnabled()) {
+            logger.error("The commit hashes are: " + commitHashes);
         }
         return commitHashes;
     }

@@ -30,7 +30,6 @@ public class CommitHistoryApiResponse {
     private String commitHash;
 
     @SerializedName("commit")
-
     private Commit commit;
 
     public String getCommitHash() {

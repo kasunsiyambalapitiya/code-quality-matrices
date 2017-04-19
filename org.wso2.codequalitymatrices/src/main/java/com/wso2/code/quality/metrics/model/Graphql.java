@@ -26,22 +26,10 @@ import java.io.Serializable;
  * @since 1.0.0
  */
 public class Graphql implements Serializable {
-    private String graphqlInputWithHistory;
     private String graphqlInputWithoutHistory;
     private static final long serialVersionUID = 42L;
 
     public Graphql() {
-    }
-
-    public String getGraphqlInputWithHistory() {
-        return graphqlInputWithHistory;
-    }
-
-    public void setGraphqlInputWithHistory(String owner, String repositoryName, String commitHash, String fileName) {
-        this.graphqlInputWithHistory = "{repository(owner:\"" + owner + "\",name:\"" + repositoryName + "\")" +
-                "{object(expression:\"" + commitHash + "\"){ ... on Commit{blame(path:\"" + fileName + "\")" +
-                "{ranges{startingLine endingLine age commit{history(first: 2) { edges { node {  message url } } } " +
-                "author { name email } } } } } } } }";
     }
 
     public String getGraphqlInputWithoutHistory() {

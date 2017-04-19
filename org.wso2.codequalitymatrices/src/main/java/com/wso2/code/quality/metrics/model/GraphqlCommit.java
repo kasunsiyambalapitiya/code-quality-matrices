@@ -28,8 +28,7 @@ import com.google.gson.annotations.SerializedName;
 public class GraphqlCommit {
     @SerializedName("author")
     private GraphqlAuthor author;
-    @SerializedName("history")
-    private GraphqlHistory history;
+
     @SerializedName("url")
     private String url;
 
@@ -39,14 +38,6 @@ public class GraphqlCommit {
 
     public void setAuthor(GraphqlAuthor author) {
         this.author = author;
-    }
-
-    public GraphqlHistory getHistory() {
-        return history;
-    }
-
-    public void setHistory(GraphqlHistory history) {
-        this.history = history;
     }
 
     public void setUrl(String url) {

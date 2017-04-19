@@ -19,7 +19,10 @@
 package com.wso2.code.quality.metrics;
 
 
+import com.wso2.code.quality.metrics.exceptions.CodeQualityMetricsException;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,6 +38,9 @@ import static org.junit.Assert.assertEquals;
  * @since 1.0.0
  */
 public class CodeQualityMetricsExecutorTest {
+
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
 
     @Test
     public void testFindCommitHashesInPatch() throws CodeQualityMetricsException {
@@ -53,5 +59,14 @@ public class CodeQualityMetricsExecutorTest {
             List commitHashes = codeQualityMetricsExecutor.findCommitHashesInPatch();
             assertEquals("Must match with the relevant commit list", map.getValue(), commitHashes);
         }
+    }
+
+    @Test
+    public void testFindCommitHashesInPatchForException() throws CodeQualityMetricsException {
+        CodeQualityMetricsExecutor codeQualityMetricsExecutor = new CodeQualityMetricsExecutor("pmtToken",
+                "patch1", "githubToken");
+        exception.expect(CodeQualityMetricsException.class);
+        exception.expectMessage("Error occurred while calling PMT API");
+        codeQualityMetricsExecutor.findCommitHashesInPatch();
     }
 }

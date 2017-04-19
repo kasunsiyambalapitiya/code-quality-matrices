@@ -18,6 +18,7 @@
 
 package com.wso2.code.quality.metrics;
 
+import com.wso2.code.quality.metrics.exceptions.CodeQualityMetricsException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -52,55 +53,33 @@ public final class ApiUtility {
      * @throws CodeQualityMetricsException results
      */
     public static String callApi(HttpGet httpGet) throws CodeQualityMetricsException {
-        BufferedReader bufferedReader = null;
-        CloseableHttpClient httpClient;
-        CloseableHttpResponse httpResponse = null;
-        httpClient = HttpClients.createDefault();
         String jsonText;
-        try {
-            httpResponse = httpClient.execute(httpGet);
+        try (CloseableHttpClient httpClient = HttpClients.createDefault();
+             CloseableHttpResponse httpResponse = httpClient.execute(httpGet)) {
             int responseCode = httpResponse.getStatusLine().getStatusCode();
             if (responseCode == 200) {
                 //success
-                bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent(),
-                        StandardCharsets.UTF_8));
-                StringBuilder stringBuilder = new StringBuilder();
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    stringBuilder.append(line);
+                try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity()
+                        .getContent(), StandardCharsets.UTF_8))) {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(line);
+                    }
+                    // creating a JSON object from the response
+                    jsonText = stringBuilder.toString();
                 }
-                // creating a JSON object from the response
-                jsonText = stringBuilder.toString();
             } else {
                 throw new CodeQualityMetricsException("Error occurred while calling the API, the response code is " +
                         responseCode);
             }
         } catch (ClientProtocolException e) {
             throw new CodeQualityMetricsException("ClientProtocolException when calling the REST API", e);
+        } catch (NullPointerException e) {
+            // thrown from both getStatusLine() and getEntity() method on httpResponse object
+            throw new CodeQualityMetricsException(e.getMessage(), e.getCause());
         } catch (IOException e) {
             throw new CodeQualityMetricsException("IOException occurred when calling the REST API", e);
-        } finally {
-            if (bufferedReader != null) {
-                try {
-                    bufferedReader.close();
-                } catch (IOException e) {
-                    logger.error("IOException occurred when closing the BufferedReader", e);
-                }
-            }
-            if (httpResponse != null) {
-                try {
-                    httpResponse.close();
-                } catch (IOException e) {
-                    logger.error("IOException occurred when closing the HttpResponse", e);
-                }
-            }
-            if (httpClient != null) {
-                try {
-                    httpClient.close();
-                } catch (IOException e) {
-                    logger.error("IOException occurred when closing the HttpClient", e);
-                }
-            }
         }
         return jsonText;
     }
@@ -113,24 +92,21 @@ public final class ApiUtility {
      * @throws CodeQualityMetricsException results
      */
     public static String callGraphQlApi(HttpPost httpPost) throws CodeQualityMetricsException {
-        BufferedReader bufferedReader = null;
-        CloseableHttpClient httpClient;
-        CloseableHttpResponse httpResponse = null;
-        httpClient = HttpClients.createDefault();
         String jsonText;
-        try {
-            httpResponse = httpClient.execute(httpPost);
+        try (CloseableHttpClient httpClient = HttpClients.createDefault();
+             CloseableHttpResponse httpResponse = httpClient.execute(httpPost)) {
             int responseCode = httpResponse.getStatusLine().getStatusCode();
             if (responseCode == 200) {
-                bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent(),
-                        StandardCharsets.UTF_8));
-                String line;
-                StringBuilder stringBuilder = new StringBuilder();
-                while ((line = bufferedReader.readLine()) != null) {
-                    stringBuilder.append(line);
+                try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity()
+                        .getContent(), StandardCharsets.UTF_8))) {
+                    String line;
+                    StringBuilder stringBuilder = new StringBuilder();
+                    while ((line = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(line);
+                    }
+                    jsonText = stringBuilder.toString();
+                    logger.debug("The response received from the Github GraphQL converted to a JSON text successfully");
                 }
-                jsonText = stringBuilder.toString();
-                logger.debug("The response received from the Github GraphQL converted to a JSON text successfully");
             } else {
                 throw new CodeQualityMetricsException("Error occurred while calling the API, the response code is " +
                         responseCode);
@@ -143,28 +119,6 @@ public final class ApiUtility {
         } catch (IOException e) {
             throw new CodeQualityMetricsException("A problem or the connection was aborted while executing the" +
                     " httpPost", e);
-        } finally {
-            if (bufferedReader != null) {
-                try {
-                    bufferedReader.close();
-                } catch (IOException e) {
-                    logger.error("IOException occurred when closing the buffered reader", e);
-                }
-            }
-            if (httpResponse != null) {
-                try {
-                    httpResponse.close();
-                } catch (IOException e) {
-                    logger.error("IOException occurred when closing the HttpResponse", e);
-                }
-            }
-            if (httpClient != null) {
-                try {
-                    httpClient.close();
-                } catch (IOException e) {
-                    logger.error("IOException occurred when closing the HttpClient", e);
-                }
-            }
         }
         return jsonText;
     }

@@ -20,6 +20,12 @@ package com.wso2.code.quality.metrics;
 
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Properties;
+
 /**
  * This is having the main method of this application
  * PMT Access token, patch id and github access token
@@ -31,13 +37,23 @@ public class Application {
     private static final Logger logger = Logger.getLogger(Application.class);
 
     public static void main(String[] args) {
-        if (args.length == 3) {
-            String pmtToken = args[0];
-            String patchId = args[1];
-            String gitHubToken = args[2];
-            CodeQualityMetricsExecutor codeQualityMetricsExecutor = new CodeQualityMetricsExecutor(pmtToken, patchId,
-                    gitHubToken);
-            codeQualityMetricsExecutor.execute();
+        if (args.length == 1) {
+            String patchId = args[0];
+            Properties defaultProperties = new Properties();
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            try (InputStream inputStream = classLoader.getResourceAsStream("tokens.properties")) {
+                defaultProperties.load(inputStream);
+                byte[] pmtTokenInBytes = Base64.getDecoder().decode(defaultProperties.getProperty("pmtToken"));
+                String pmtToken = new String(pmtTokenInBytes, StandardCharsets.UTF_8);
+                byte[] githubTokenInBytes = Base64.getDecoder().decode(defaultProperties.getProperty("githubToken"));
+                String githubToken = new String(githubTokenInBytes, StandardCharsets.UTF_8);
+                CodeQualityMetricsExecutor codeQualityMetricsExecutor = new CodeQualityMetricsExecutor(pmtToken,
+                        patchId, githubToken);
+                codeQualityMetricsExecutor.execute();
+            } catch (IOException e) {
+                logger.error("IO exception occurred when loading the inputstream to the " +
+                        "properties object", e);
+            }
         } else {
             logger.error("Command line arguments were not given correctly to start the execution");
             logger.debug("Please enter PMT Access token, patch id and github access token in order as command " +

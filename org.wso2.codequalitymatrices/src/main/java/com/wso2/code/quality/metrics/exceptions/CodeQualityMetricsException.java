@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,24 +16,19 @@
  * under the License.
  */
 
-package com.wso2.code.quality.metrics.model;
-
-import com.google.gson.annotations.SerializedName;
+package com.wso2.code.quality.metrics.exceptions;
 
 /**
- * Pojo class used for parsing JSON response received from github graphql API.
+ * The exception class for all Code Quality Matrices project related exceptions.
  *
  * @since 1.0.0
  */
-public class GraphqlNode {
-    @SerializedName("url")
-    private String url;
-
-    public String getUrl() {
-        return url;
+public class CodeQualityMetricsException extends Exception {
+    public CodeQualityMetricsException(String message) {
+        super(message);
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public CodeQualityMetricsException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
