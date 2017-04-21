@@ -34,7 +34,7 @@ import static com.wso2.code.quality.metrics.model.Constants.AUTHORIZATION;
 import static com.wso2.code.quality.metrics.model.Constants.BEARER;
 
 /**
- * This is utility class used for all github communications.
+ * Utility class used for all github communications.
  *
  * @since 1.0.0
  */
@@ -49,7 +49,7 @@ public final class GithubApiCallerUtils {
     }
 
     /**
-     * This is used for calling the github search REST API.
+     * Used for calling the github search REST API.
      *
      * @param commitHash        commit hash to be searched
      * @param githubAccessToken Github access token for accessing github API
@@ -77,7 +77,7 @@ public final class GithubApiCallerUtils {
     }
 
     /**
-     * This is used to call github commit REST API.
+     * Used to call github commit REST API.
      *
      * @param repoLocation      repository location
      * @param filePath          location of the file
@@ -105,7 +105,7 @@ public final class GithubApiCallerUtils {
     }
 
     /**
-     * This is used to call github single commit REST API.
+     * Used to call github single commit REST API.
      *
      * @param repoLocation      repository location
      * @param commitHash        relevant commit hash to find details of
@@ -133,7 +133,7 @@ public final class GithubApiCallerUtils {
     }
 
     /**
-     * This is used to call the github review API.
+     * Used to call the github review API.
      *
      * @param repoLocation      repository name
      * @param pullRequestNumber pull request number to be queried for
@@ -163,7 +163,7 @@ public final class GithubApiCallerUtils {
     }
 
     /**
-     * This is used to call the github Issue Search API.
+     * Used to call the github Issue Search API.
      *
      * @param commitHashToBeSearched commit hash to be searched for issues
      * @param githubAccessToken      Github access token for accessing github API
@@ -190,7 +190,7 @@ public final class GithubApiCallerUtils {
     }
 
     /**
-     * This is used for calling the github graphql API.
+     * Used for calling the github graphql API.
      *
      * @param graphqlJsonStructure JSON input structure for calling the graphql API
      * @param githubToken          Github access token for accessing github API

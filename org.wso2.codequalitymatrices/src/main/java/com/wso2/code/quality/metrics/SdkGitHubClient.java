@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class is used for communicating with the github REST API from egit github API.
+ * Used for communicating with the github REST API from egit github API.
  *
  * @since 1.0.0
  */
@@ -49,7 +49,7 @@ public class SdkGitHubClient {
     }
 
     /**
-     * This method is used for saving the files changed and their relevant changed line ranges from
+     * Used for saving the files changed and their relevant changed line ranges from
      * the given commit in the given Repository.
      *
      * @param repositoryName The Repository name that contain the given commit hash

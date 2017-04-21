@@ -18,15 +18,14 @@
 
 package com.wso2.code.quality.metrics;
 
-import com.wso2.code.quality.metrics.exceptions.CodeQualityMetricsException;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -41,14 +40,10 @@ import static org.junit.Assert.assertTrue;
 public class ChangesFinderTest {
     private static final Logger logger = Logger.getLogger(ChangesFinderTest.class);
 
-    private ChangesFinder changesFinder = new ChangesFinder();
-
     @Test
     public void testIdentifyDeletedLines() {
         String patchString;
         Set<Integer> actualDeltedLinesForPatchString;
-        patchString = readFile("patchStrings/patchString1.txt");
-        actualDeltedLinesForPatchString = changesFinder.identifyDeletedLines(patchString);
         Set<Integer> expectedDeltedLinesForPatchString1 = new HashSet<>();
         expectedDeltedLinesForPatchString1.add(822);
         expectedDeltedLinesForPatchString1.add(823);
@@ -73,13 +68,24 @@ public class ChangesFinderTest {
         expectedDeltedLinesForPatchString1.add(1152);
         expectedDeltedLinesForPatchString1.add(1153);
         expectedDeltedLinesForPatchString1.add(1165);
-
-        assertThat(actualDeltedLinesForPatchString.size(), is(expectedDeltedLinesForPatchString1.size()));
-        assertThat(actualDeltedLinesForPatchString, is(expectedDeltedLinesForPatchString1));
-
-        patchString = readFile("patchStrings/patchString2.txt");
-        actualDeltedLinesForPatchString = changesFinder.identifyDeletedLines(patchString);
-        assertTrue(actualDeltedLinesForPatchString.isEmpty());
+        try {
+            Class<?> changeFinderClass = Class.forName("com.wso2.code.quality.metrics.ChangesFinder");
+            Object changeFinder = changeFinderClass.newInstance();
+            Method identifyDeletedLinesMethod = changeFinderClass.getDeclaredMethod("identifyDeletedLines",
+                    String.class);
+            patchString = readFile("patchStrings/patchString1.txt");
+            actualDeltedLinesForPatchString = (Set<Integer>) identifyDeletedLinesMethod.invoke(changeFinder,
+                    patchString);
+            assertThat(actualDeltedLinesForPatchString.size(), is(expectedDeltedLinesForPatchString1.size()));
+            assertThat(actualDeltedLinesForPatchString, is(expectedDeltedLinesForPatchString1));
+            patchString = readFile("patchStrings/patchString2.txt");
+            actualDeltedLinesForPatchString = (Set<Integer>) identifyDeletedLinesMethod.invoke(changeFinder,
+                    patchString);
+            assertTrue(actualDeltedLinesForPatchString.isEmpty());
+        } catch (IllegalAccessException | ClassNotFoundException | InstantiationException | NoSuchMethodException
+                | InvocationTargetException e) {
+            logger.error(e.getMessage(), e.getCause());
+        }
     }
 
     /**
@@ -97,50 +103,5 @@ public class ChangesFinderTest {
             logger.error(e.getMessage(), e.getCause());
         }
         return result;
-    }
-
-    @Test
-    public void testObtainRepoNamesForCommitHashes() throws CodeQualityMetricsException {
-        Token token = new Token();
-        List<String> commitHash = new ArrayList<>();
-        commitHash.add("ad0debb15f1abac020b8ba69066ae4ebec782bdc");
-        Set<String> actualAuthorCommits = changesFinder.obtainRepoNamesForCommitHashes(token.getGithubToken(),
-                commitHash);
-        Set<String> expectedAuthorCommits = new HashSet<>();
-        expectedAuthorCommits.add("90fec04e4ac05281612de8d445c5767c26433b0d");
-        assertThat(actualAuthorCommits.size(), is(expectedAuthorCommits.size()));
-        assertThat(actualAuthorCommits, is(expectedAuthorCommits));
-    }
-
-    @Test
-    public void testObtainRepoNamesForCommitHashesForAuthorNames() throws CodeQualityMetricsException {
-        Token token = new Token();
-        List<String> commitHash = new ArrayList<>();
-        commitHash.add("bba8ce79cd3373445e21dd12deffae1a7b48dca9");
-        commitHash.add("1c0e28ca181a08398efbc8ba8e984d8800e23c95");
-        commitHash.add("a8ddc56575ede78c6a1882df20789bb2cc04022c");
-        changesFinder.obtainRepoNamesForCommitHashes(token.getGithubToken(),
-                commitHash);
-        Set<String> expectedAuthorName = new HashSet<>();
-        expectedAuthorName.add("ruchiraw");
-        assertThat(changesFinder.authorNames.size(), is(expectedAuthorName.size()));
-        assertThat(changesFinder.authorNames, is(expectedAuthorName));
-    }
-
-    @Test
-    public void testObtainRepoNamesForCommitHashesForAuthorNames2() throws CodeQualityMetricsException {
-        Token token = new Token();
-        List<String> commitHash = new ArrayList<>();
-        commitHash.add("2b1d973d089ebc3af3b9e7b893f48cf905758cf4");
-        commitHash.add("eaa45529cbabc5f30a2ffaa4781821ad0a5223ab");
-        changesFinder.obtainRepoNamesForCommitHashes(token.getGithubToken(),
-                commitHash);
-        Set<String> expectedAuthorName = new HashSet<>();
-        expectedAuthorName.add("Chamila");
-        expectedAuthorName.add("lalaji");
-        expectedAuthorName.add("Amila De Silva");
-        expectedAuthorName.add("Lakmali");
-        assertThat(changesFinder.authorNames.size(), is(expectedAuthorName.size()));
-        assertThat(changesFinder.authorNames, is(expectedAuthorName));
     }
 }

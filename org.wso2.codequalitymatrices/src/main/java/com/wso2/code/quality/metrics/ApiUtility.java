@@ -34,7 +34,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 /**
- * This is a utility class for calling APIs.
+ * Utility class for calling APIs.
  *
  * @since 1.0.0
  */
@@ -46,7 +46,7 @@ public final class ApiUtility {
     }
 
     /**
-     * This is used for calling the REST APIs.
+     * Used for calling the REST APIs.
      *
      * @param httpGet Instance of the relevant httpGet
      * @return String representation of the json response
@@ -85,7 +85,7 @@ public final class ApiUtility {
     }
 
     /**
-     * This is used for calling the github graphql API.
+     * Used for calling the github graphql API.
      *
      * @param httpPost relevant instance of the httpost
      * @return String representation of the json response

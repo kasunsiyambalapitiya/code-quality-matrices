@@ -30,7 +30,7 @@ import java.util.Set;
 import static com.wso2.code.quality.metrics.model.Constants.COMMITS_INSIDE_GIVEN_PATCH;
 
 /**
- * This is used for creating executing the program.
+ * Used for executing the program.
  *
  * @since 1.0.0
  */
@@ -42,7 +42,7 @@ public class CodeQualityMetricsExecutor {
     private final String gitHubToken;
 
     /**
-     * This create an instance of CodeQualityMetricsExecutor class.
+     * Used to create an instance of CodeQualityMetricsExecutor class.
      *
      * @param pmtToken    PMT Access Token
      * @param patchId     Patch ID
@@ -55,7 +55,7 @@ public class CodeQualityMetricsExecutor {
     }
 
     /**
-     * This is the entry point to this application.
+     * The entry point to Code Quality Metrics application.
      */
     public void execute() {
         try {
@@ -72,7 +72,7 @@ public class CodeQualityMetricsExecutor {
     }
 
     /**
-     * This is used to filter out the commit hashes that belongs to the given patch.
+     * Used to filter out the commit hashes that belongs to the given patch.
      *
      * @return List of commithashes contained in the given patch
      */
