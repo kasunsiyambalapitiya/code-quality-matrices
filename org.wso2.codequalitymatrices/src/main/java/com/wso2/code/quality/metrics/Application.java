@@ -27,7 +27,7 @@ import java.util.Base64;
 import java.util.Properties;
 
 /**
- * This is having the main method of this application
+ * Class having the main method of this application
  * PMT Access token, patch id and github access token
  * should be passed in order as command line arguments when running the application.
  *

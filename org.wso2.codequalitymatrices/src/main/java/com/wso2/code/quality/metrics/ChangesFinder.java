@@ -43,7 +43,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
- * This class is used for getting the blame information on relevant changed line ranges on relevant files from the
+ * Used for getting the blame information on relevant changed line ranges on relevant files from the
  * given patch.
  *
  * @since 1.0.0
@@ -52,13 +52,13 @@ import java.util.regex.Pattern;
 public class ChangesFinder {
     private static final Logger logger = Logger.getLogger(ChangesFinder.class);
 
-    Set<String> authorNames = new HashSet<>();    //authors of the bug lines fixed from the patch
+    private Set<String> authorNames = new HashSet<>();    //authors of the bug lines fixed from the patch
     private Set<String> authorCommits = new HashSet<>();  //  author commits of the bug lines fixed from the patch
     private final JSONObject jsonStructure = new JSONObject();
     private final Gson gson = new Gson();
 
     /**
-     * This class is used to prevent SIC_INNER_SHOULD_BE_STATIC_ANON error that comes when building with WSO2 parent
+     * Used to prevent SIC_INNER_SHOULD_BE_STATIC_ANON error that comes when building with WSO2 parent
      * pom, as suggested by the above error an static inner class is used to prevent the error.
      */
     private static class ListType extends TypeToken<List<CommitHistoryApiResponse>> {
@@ -85,13 +85,13 @@ public class ChangesFinder {
     }
 
     /**
-     * This save the  relevant repository names that contain the given commit hash in a List.
+     * Use to save the relevant repository names that contain the given commit hash to a List.
      *
      * @param jsonText String representation of the json response
      * @return A list of repository locations having the given commit hash
      * @throws CodeQualityMetricsException Resulted Code Quality Metrics Exception
      */
-    List<String> saveRepoNames(String jsonText) throws CodeQualityMetricsException {
+    private List<String> saveRepoNames(String jsonText) throws CodeQualityMetricsException {
         List<String> repoLocation = new ArrayList<>();
         SearchApiResponse searchCommitPojo;
         try {
@@ -106,7 +106,7 @@ public class ChangesFinder {
     }
 
     /**
-     * This identifies the file changed and their relevant line ranges changed in selected repository from the given
+     * Used to identify the file changed and their relevant line ranges changed in selected repository from the given
      * commit hash.
      *
      * @param repoLocation List of repository locations having the given commit hash
@@ -158,7 +158,7 @@ public class ChangesFinder {
     }
 
     /**
-     * This check whether the commit in the given patch is an octopuss commit or not, if it is octopuss commit an
+     * Used to check whether the commit in the given patch is an octopuss commit or not, if it is octopuss commit an
      * exception is thrown as the current scope of the program does not support octopus commits.
      *
      * @param repositoryName   current selected Repository
@@ -202,7 +202,7 @@ public class ChangesFinder {
     }
 
     /**
-     * This is used to get the previous commit hash of the selected file before the current selected commit which
+     * Used to get the previous commit hash of the selected file before the current selected commit which
      * contained in the given patch.
      *
      * @param repositoryName   current selected Repository
@@ -249,7 +249,7 @@ public class ChangesFinder {
     }
 
     /**
-     * This is used to get the previous commit date of the selected file before the current commit by sorting the
+     * Used to get the previous commit date of the selected file before the current commit by sorting the
      * commit dates.
      *
      * @param commitWithDate   map contating all the commits with their respective date of the current selected
@@ -266,7 +266,7 @@ public class ChangesFinder {
     }
 
     /**
-     * This method is used to obtain the blame details of files for their previous commits.
+     * Used to obtain the blame details of files for their previous commits.
      *
      * @param repoLocation                    current selected Repository
      * @param fileNamesWithPreviousCommitHash map containing changed files with their prior commit hashes
@@ -294,7 +294,7 @@ public class ChangesFinder {
     }
 
     /**
-     * This is used to save the authors and relevant author commits of the buggy lines of code which are been fixed by
+     * Used to save the authors and relevant author commits of the buggy lines of code which are been fixed by
      * the given patch, to relevant lists.
      *
      * @param jsonText                        String representation of the json response received from github graphql
@@ -322,12 +322,12 @@ public class ChangesFinder {
     }
 
     /**
-     * This method is used to identify the deleted lines from the current selected commit in given patch.
+     * Used to identify the deleted lines from the current selected commit in given patch.
      *
      * @param patchString patch string of the selected file received from github SDK
      * @return a Set of deleted lines in the above mentioned file
      */
-    Set<Integer> identifyDeletedLines(String patchString) {
+    private Set<Integer> identifyDeletedLines(String patchString) {
         Set<Integer> linesDeletedInSelectedFile = new HashSet<>();
         Pattern pattern = Pattern.compile("@@ -");
         String patches[] = pattern.split(patchString);

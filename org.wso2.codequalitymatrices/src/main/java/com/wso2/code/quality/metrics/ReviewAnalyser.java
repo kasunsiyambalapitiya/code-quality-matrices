@@ -39,7 +39,7 @@ import static com.wso2.code.quality.metrics.model.Constants.GITHUB_REVIEW_APPROV
 import static com.wso2.code.quality.metrics.model.Constants.GITHUB_REVIEW_COMMENTED;
 
 /**
- * This class is used to find the reviewers of the buggy lines of code.
+ * Used to find the reviewers of the buggy lines of code.
  *
  * @since 1.0.0
  */
@@ -47,21 +47,20 @@ import static com.wso2.code.quality.metrics.model.Constants.GITHUB_REVIEW_COMMEN
 public class ReviewAnalyser {
     private static final Logger logger = Logger.getLogger(ReviewAnalyser.class);
 
-    // to store the reviewed and approved users of thepull requests
-    final Set<String> approvedReviewers = new HashSet<>();
-    // to store the reviewed and commented users of the pull requests
-    final Set<String> commentedReviewers = new HashSet<>();
+    // to store the reviewed and approved users of the pull requests
+    private final Set<String> approvedReviewers = new HashSet<>();
+    private final Set<String> commentedReviewers = new HashSet<>();
     private final Gson gson = new Gson();
 
     /**
-     * This class is used to prevent SIC_INNER_SHOULD_BE_STATIC_ANON error that comes when building with WSO2 parent
+     * Used to prevent SIC_INNER_SHOULD_BE_STATIC_ANON error that comes when building with WSO2 parent
      * pom. As suggested by the above error an static inner class is used to prevent the error.
      */
     private static class ListType extends TypeToken<List<ReviewApiResponse>> {
     }
 
     /**
-     * This is used to identify the pull requests that introduce the given commit to the code base.
+     * Used to identify the pull requests that introduce the given commit to the code base.
      *
      * @param authorCommits Commits which the relevant pull request no must be found
      * @param githubToken   Github access token for accessing github API
@@ -84,13 +83,13 @@ public class ReviewAnalyser {
     }
 
     /**
-     * This is used to save the pull requests with their relevant repository names in a map.
+     * Used to save the pull requests with their relevant repository names in a map.
      *
      * @param jsonText json reponse received from the github issue API
      * @return a map of pull requests againt their repository name
      * @throws CodeQualityMetricsException results
      */
-    Map<String, Set<Integer>> savePrNumberAndRepoName(String jsonText) throws CodeQualityMetricsException {
+    private Map<String, Set<Integer>> savePrNumberAndRepoName(String jsonText) throws CodeQualityMetricsException {
         // map for storing the pull requests numbers against their Repository
         Map<String, Set<Integer>> prNoWithRepoName = new HashMap<>();
         try {
@@ -114,7 +113,7 @@ public class ReviewAnalyser {
     }
 
     /**
-     * This is used to save the names of the users who has approved and commented on the pull requests which
+     * Used to save the names of the users who has approved and commented on the pull requests which
      * introduce bug lines of code to the code base. Approved users are saved in approvedReviewers list while
      * commented users are saved in commentedReviewers list.
      *
@@ -122,39 +121,33 @@ public class ReviewAnalyser {
      *                         relevant reposiory
      * @param githubToken      Github access token for accessing github API
      */
-    void saveReviewers(Map<String, Set<Integer>> prNoWithRepoName, String githubToken) {
-        for (Map.Entry<String, Set<Integer>> entry : prNoWithRepoName.entrySet()) {
-            String repositoryName = entry.getKey();
-            Set<Integer> prNumbers = entry.getValue();
-            prNumbers.parallelStream()
-                    .forEach((Integer prNumber) -> {
-                        try {
-                            String jsonText = GithubApiCallerUtils.callReviewApi(repositoryName, prNumber, githubToken);
-                            if (jsonText != null && !jsonText.isEmpty()) {
-                                Type listType = new ListType().getType();
-                                List<ReviewApiResponse> reviews = gson.fromJson(jsonText, listType);
-//                                List<ReviewApiResponse> reviews = gson.fromJson(jsonText, List.class);
-
-                                // to filter Approved users
-                                reviews.parallelStream()
-                                        .filter(review -> GITHUB_REVIEW_APPROVED.equals(review.getReviewState()))
-                                        .forEach(review -> approvedReviewers.add(review.getReviewer().getName()));
-                                logger.debug("Users who approved the pull requests which introduce bug lines to the " +
-                                        "code base are successfully saved to approvedReviewers list");
-                                reviews.parallelStream()
-                                        .filter(review -> GITHUB_REVIEW_COMMENTED.equals(review.getReviewState()))
-                                        .forEach(review -> commentedReviewers.add(review.getReviewer().getName()));
-                                logger.debug("Users who commented on the pull requests which introduce bug lines to " +
-                                        "the code base are successfully saved to approvedReviewers list");
-                            } else {
-                                logger.warn("There are no records of reviews for pull request: " + prNumber +
-                                        " on " + repositoryName + " repository");
-                            }
-                        } catch (CodeQualityMetricsException e) {
-                            logger.error(e.getMessage(), e.getCause());
+    private void saveReviewers(Map<String, Set<Integer>> prNoWithRepoName, String githubToken) {
+        prNoWithRepoName.forEach((repositoryName, prNumbers) -> prNumbers.parallelStream()
+                .forEach((Integer prNumber) -> {
+                    try {
+                        String jsonText = GithubApiCallerUtils.callReviewApi(repositoryName, prNumber, githubToken);
+                        if (jsonText != null && !jsonText.isEmpty()) {
+                            Type listType = new ListType().getType();
+                            List<ReviewApiResponse> reviews = gson.fromJson(jsonText, listType);
+                            // to filter Approved users
+                            reviews.parallelStream()
+                                    .filter(review -> GITHUB_REVIEW_APPROVED.equals(review.getReviewState()))
+                                    .forEach(review -> approvedReviewers.add(review.getReviewer().getName()));
+                            logger.debug("Users who approved the pull requests which introduce bug lines to the " +
+                                    "code base are successfully saved to approvedReviewers list");
+                            reviews.parallelStream()
+                                    .filter(review -> GITHUB_REVIEW_COMMENTED.equals(review.getReviewState()))
+                                    .forEach(review -> commentedReviewers.add(review.getReviewer().getName()));
+                            logger.debug("Users who commented on the pull requests which introduce bug lines to " +
+                                    "the code base are successfully saved to approvedReviewers list");
+                        } else {
+                            logger.warn("There are no records of reviews for pull request: " + prNumber +
+                                    " on " + repositoryName + " repository");
                         }
-                    });
-        }
+                    } catch (CodeQualityMetricsException e) {
+                        logger.error(e.getMessage(), e.getCause());
+                    }
+                }));
     }
 
     /**

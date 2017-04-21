@@ -29,14 +29,14 @@ import static com.wso2.code.quality.metrics.model.Constants.AUTHORIZATION;
 import static com.wso2.code.quality.metrics.model.Constants.BEARER;
 
 /**
- * This is used for all the WSO2 PMT communications.
+ * Used for all the WSO2 PMT communications.
  *
  * @since 1.0.0
  */
 public class PmtApiCaller {
 
     /**
-     * This is used for calling the WSO2 PMT REST API.
+     * Used for calling the WSO2 PMT REST API.
      *
      * @param accessToken WSO2 PMT access token
      * @param patchId     Patch Id
