@@ -65,7 +65,7 @@ public class ChangesFinder {
     }
 
     /**
-     * This is used for obtaining the repositories that contain the relevant commits belongs to the given patch.
+     * Used for obtaining the repositories that contain the relevant commits belongs to the given patch.
      *
      * @param gitHubToken  github token for accessing github API
      * @param commitHashes List of commits that belongs to the given patch
@@ -119,32 +119,36 @@ public class ChangesFinder {
                 .filter(repositoryName -> StringUtils.contains(repositoryName, "wso2/"))
                 .forEach(repositoryName -> {
                     Map<String, String> fileNamesWithPatchString;
+                    tryBlock:
                     try {
                         fileNamesWithPatchString = sdkGitHubClient.getFilesChanged(repositoryName, commitHash);
                         Map<String, Set<Integer>> fileNamesWithDeletedLineNumbers = new HashMap<>();
                         Map<String, String> fileNamesWithPreviousCommitHash = new HashMap<>();
-                        if (fileNamesWithPatchString != null) {
-                            /* looping from one file to file and saving deleted lines against the file name in another
-                             map */
-                            fileNamesWithPatchString.forEach((fileName, patchString) -> {
-                                Set<Integer> deletedLines = identifyDeletedLines(patchString);
-                                String previousCommitHashOfFile;
-                                //for omitting files without having deleted lines in other words newly created files
-                                if (deletedLines.size() > 0) {
-                                    fileNamesWithDeletedLineNumbers.put(fileName, deletedLines);
-                                    previousCommitHashOfFile = checkForOctopusMerge(repositoryName, fileName,
-                                            commitHash, gitHubToken);
-                                    if (previousCommitHashOfFile != null && !previousCommitHashOfFile.isEmpty()) {
-                                        fileNamesWithPreviousCommitHash.put(fileName, previousCommitHashOfFile);
-                                    } else {
-                                        logger.warn("The changes from " + commitHash + " on " + fileName + " file " +
-                                                "may have been reversed from another commit on the same PR, so " +
-                                                "commit " + commitHash + " does not appear in history of current " +
-                                                "file due to git's history simplification when listing history");
-                                    }
-                                }
-                            });
+                        if (fileNamesWithPatchString.isEmpty()) {
+                            break tryBlock;
                         }
+                        /* looping from one file to file and saving deleted lines against the file name in another
+                             map */
+                        fileNamesWithPatchString.forEach((fileName, patchString) -> {
+                            Set<Integer> deletedLines = identifyDeletedLines(patchString);
+                            String previousCommitHashOfFile;
+                            //for omitting files without having deleted lines in other words newly created files
+                            if (deletedLines.size() > 0) {
+                                fileNamesWithDeletedLineNumbers.put(fileName, deletedLines);
+                                previousCommitHashOfFile = checkForOctopusMerge(repositoryName, fileName,
+                                        commitHash, gitHubToken);
+                                if (previousCommitHashOfFile != null && !previousCommitHashOfFile.isEmpty()) {
+                                    fileNamesWithPreviousCommitHash.put(fileName, previousCommitHashOfFile);
+                                } else {
+                                    logger.warn("The changes from " + commitHash + " on " + fileName + " file " +
+                                            "may have been reversed from another commit on the same PR, so " +
+                                            "commit " + commitHash + " does not appear in history of current " +
+                                            "file due to git's history simplification when listing history");
+                                }
+                            } else {
+                                logger.debug(fileName + " filename is a newly created file");
+                            }
+                        });
                         getBlameDetails(repositoryName, fileNamesWithPreviousCommitHash,
                                 fileNamesWithDeletedLineNumbers, gitHubToken);
                     } catch (CodeQualityMetricsException e) {
@@ -238,10 +242,10 @@ public class ChangesFinder {
                 }
             } else {
                 return null;
+                /*the changes from given commit to the current selected file may have been reversed from another commit,
+                 so the given commit does not appear in history of the current file due to git's history simplification
+                  when listing history*/
             }
-            /*the changes from given commit to the current selected file may have been reversed from another commit, so
-            the given commit does not appear in history of the current file due to git's history simplification when
-            listing history*/
         } catch (CodeQualityMetricsException e) {
             logger.error(e.getMessage(), e.getCause());
         }
@@ -258,7 +262,7 @@ public class ChangesFinder {
      * @return previous commit date of the current selected file
      */
     private String getPreviousCommitDate(Map<String, String> commitWithDate, String latestCommitDate) {
-        //creating a tempory list for sorting the date in ascending order
+        //creating a temporary list for sorting the date in ascending order
         List<String> sortedCommitDates = new ArrayList<>(commitWithDate.values());
         Collections.sort(sortedCommitDates);
         int indexOfLatestcommit = sortedCommitDates.indexOf(latestCommitDate);
@@ -322,7 +326,7 @@ public class ChangesFinder {
     }
 
     /**
-     * Used to identify the deleted lines from the current selected commit in given patch.
+     * Used to identify the deleted lines in the selected file from the current selected commit in given patch.
      *
      * @param patchString patch string of the selected file received from github SDK
      * @return a Set of deleted lines in the above mentioned file
@@ -334,11 +338,11 @@ public class ChangesFinder {
         for (String patchRange : patches) {
             Scanner scanner = new Scanner(patchRange);
             int lineNumber = 0;
-            //for finding the starting line number for the modified range.
+            //for finding the starting line number of the modified range.
             if (scanner.hasNext()) {
                 String patchLine = scanner.nextLine();
                 String words[] = patchLine.split(",");
-                //String at the first index of word array is the staring line number of the modified range
+                //String at the first index of word array is the starting line number of the modified range
                 lineNumber = Integer.parseInt(words[0]);
             }
             //for finding the deleted lines in the string
