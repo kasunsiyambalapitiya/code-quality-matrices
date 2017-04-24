@@ -55,9 +55,9 @@ public class Application {
                         "properties object", e);
             }
         } else {
-            logger.error("Command line arguments were not given correctly to start the execution");
-            logger.debug("Please enter PMT Access token, patch id and github access token in order as command " +
-                    "line arguments to initiate the program");
+            logger.error("Incorrect command line arguments were given");
+            logger.debug("Please enter only the required patch id as the command line argument to initiate the " +
+                    "program");
         }
     }
 }

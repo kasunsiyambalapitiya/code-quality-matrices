@@ -71,8 +71,8 @@ public class SdkGitHubClient {
                         " changed and their relevant patch strings are saved to the map successfully");
             }
         } catch (IOException e) {
-            throw new CodeQualityMetricsException("IO Exception occurred when getting the commit of given SHA from " +
-                    "the given Repository ", e);
+            throw new CodeQualityMetricsException("IO Exception occurred when searching for files changed on the " +
+                    "commit " + commitHash + " on " + repositoryName + " Repository", e);
         }
         return fileNamesAndPatches;
     }

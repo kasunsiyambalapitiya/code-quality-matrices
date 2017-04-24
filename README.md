@@ -17,7 +17,7 @@ Since there is no Github REST API yet deployed for obtaining blame details of fi
 ## Installation
 ### Prerequisites
 * [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) installed.
-* [Java](http://www.oracle.com/technetwork/java/javase/downloads/index-jsp-138363.html) installed
+* [Java](http://www.oracle.com/technetwork/java/javase/downloads/index-jsp-138363.html) installed.
 * [Apache Maven](https://maven.apache.org/download.cgi) installed.
 
 After cloning or downloading the repository open `Eclipse IDE` or `IntelliJ IDEA` and open project’s `pom.xml`(Import all the dependencies if required).
@@ -25,7 +25,7 @@ After cloning or downloading the repository open `Eclipse IDE` or `IntelliJ IDEA
 ## Running Samples
 It is required to provide the relevant WSO2 patch name as a command line argument to obtain relevant authors and reviewers of code lines been modified from the given patch.
 
-Run following samples and check with outputs
+Run following samples and check with outputs,
 
 1. WSO2-CARBON-PATCH-4.4.0-0680   
     Authors : [Lakmali, Amila De Silva, lalaji, Chamila]  

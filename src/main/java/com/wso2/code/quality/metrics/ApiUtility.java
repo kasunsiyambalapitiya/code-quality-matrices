@@ -108,11 +108,11 @@ public final class ApiUtility {
                     logger.debug("The response received from the Github GraphQL converted to a JSON text successfully");
                 }
             } else {
-                throw new CodeQualityMetricsException("Error occurred while calling the API, the response code is " +
-                        responseCode);
+                throw new CodeQualityMetricsException("Error occurred while calling the graphQL API, the response " +
+                        "code is " + responseCode);
             }
         } catch (UnsupportedEncodingException e) {
-            throw new CodeQualityMetricsException("Encoding error occured before calling the github graphQL API", e);
+            throw new CodeQualityMetricsException("Encoding error occurred before calling the github graphQL API", e);
         } catch (ClientProtocolException e) {
             throw new CodeQualityMetricsException("Client protocol exception occurred when calling the github" +
                     " graphQL API", e);
